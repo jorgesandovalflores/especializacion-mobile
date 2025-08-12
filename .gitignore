@@ -1,0 +1,86 @@
+
+# ============================
+# 📱 Android
+# ============================
+*.iml
+.gradle
+/local.properties
+/.idea
+.DS_Store
+/build
+/captures
+.externalNativeBuild
+.cxx
+*.apk
+*.ap_
+output.json
+
+# ============================
+# 🍏 iOS / Xcode
+# ============================
+build/
+DerivedData/
+*.pbxuser
+!default.pbxuser
+*.mode1v3
+!default.mode1v3
+*.mode2v3
+!default.mode2v3
+*.perspectivev3
+!default.perspectivev3
+xcuserdata/
+*.xccheckout
+*.moved-aside
+*.xcuserstate
+*.xcscmblueprint
+
+# ============================
+# 🐦 Flutter
+# ============================
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+.packages
+.pub-cache/
+.pub/
+/build/
+/ios/Flutter/Flutter.framework
+/ios/Flutter/Flutter.podspec
+/ios/ServiceDefinitions.json
+/ios/Runner/GeneratedPluginRegistrant.*
+
+# ============================
+# 🌐 Node.js
+# ============================
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+dist/
+.env
+.env.*
+.cache/
+
+# ============================
+# 🖥️ macOS / Linux / Windows
+# ============================
+.DS_Store
+Thumbs.db
+ehthumbs.db
+Icon?
+*.swp
+*.swo
+
+# ============================
+# 🔧 Logs y temporales
+# ============================
+*.log
+*.tmp
+*.temp
+
+# ============================
+# 🚀 Otros
+# ============================
+.vscode/
+.idea/
