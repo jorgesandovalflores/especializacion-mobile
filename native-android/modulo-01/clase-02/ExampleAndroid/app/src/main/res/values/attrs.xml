@@ -1,0 +1,13 @@
+<resources>
+    <declare-styleable name="ToolbarCustomView">
+        <attr name="tc_title" format="string" />
+        <attr name="tc_barHeight" format="dimension" />
+        <attr name="tc_radius" format="dimension" />
+        <attr name="tc_colorStart" format="color" />
+        <attr name="tc_colorMiddle" format="color" />
+        <attr name="tc_colorEnd" format="color" />
+        <attr name="tc_ratioStart" format="float" />
+        <attr name="tc_ratioMiddle" format="float" />
+        <attr name="tc_ratioEnd" format="float" />
+    </declare-styleable>
+</resources>

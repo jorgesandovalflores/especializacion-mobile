@@ -30,6 +30,16 @@
             android:name=".jerarquia.JerarquiaCompose"
             android:exported="true"
             android:theme="@style/Theme.ExampleAndroidCompose">
+        </activity>
+        <activity
+            android:name=".component.ComponentXml"
+            android:exported="true"
+            android:theme="@style/Theme.ExampleAndroidXml">
+        </activity>
+        <activity
+            android:name=".component.ComponentCompose"
+            android:exported="true"
+            android:theme="@style/Theme.ExampleAndroidCompose">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
