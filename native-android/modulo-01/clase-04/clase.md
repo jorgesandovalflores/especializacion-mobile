@@ -16,6 +16,58 @@ Al finalizar, el estudiante podrá:
 - Kotlin 1.9+ y Compose BOM reciente.
 - Conocimientos de estados, efectos (remember, rememberSaveable), ViewModel.
 
+## Introducción conceptual a la navegación (glosario rápido)
+
+- **Grafo de navegación (NavGraph)**: Conjunto de destinos y relaciones. Puede ser **anidado** (ej. `auth`, `app`).  
+  *Cuándo lo uso*: Para encapsular sub‑flujos (onboarding, autenticación, tabs).
+  
+- **Destino (Screen/Destination)**: Composable registrado en el grafo. Es la “pantalla” a la que navegas.  
+  *Cuándo lo uso*: Siempre que una UI tenga entrada propia en el grafo.
+
+- **Ruta (Route/Path)**: Cadena que identifica un destino. Puede incluir *placeholders* (`detail/{id}`) y *queries*.  
+  *Cuándo lo uso*: Para construir navegación explícita y pasar argumentos.
+
+- **Argumento (NavArgument)**: Parámetro tipado que el destino recibe (`Int`, `Long`, `String`, `Bool`, etc.).  
+  *Cuándo lo uso*: Cuando el destino necesita un dato concreto (id, filtro, modo).
+
+- **NavHost**: Composable que *alberga* el grafo y renderiza el destino actual.  
+  *Cuándo lo uso*: Una vez por “área” de navegación (raíz, pestañas con grafos propios).
+
+- **NavController**: Orquestador del grafo; expone `navigate`, `popBackStack`, `currentBackStackEntry`.  
+  *Cuándo lo uso*: Desde la UI para ejecutar transiciones entre destinos.
+
+- **Back stack**: Pila de entradas de navegación (historial). Define el comportamiento del botón “atrás”.  
+  *Cuándo lo uso*: Siempre; lo controlas con opciones de navegación.
+
+- **startDestination**: Primer destino de un grafo.  
+  *Cuándo lo uso*: Para definir la pantalla inicial del flujo.
+
+- **Opciones de navegación**: `popUpTo`, `inclusive`, `launchSingleTop`, `saveState`, `restoreState`.  
+  *Cuándo lo uso*: Para limpiar el stack, evitar duplicados y preservar/restaurar estado (especialmente en tabs).
+
+- **Grafo anidado (Nested graph)**: Grafo dentro de otro (p. ej., `route = "auth"` con `signin`, `signup`).  
+  *Cuándo lo uso*: Para limpiar todo un sub‑flujo con un único `popUpTo("auth"){ inclusive = true }`.
+
+- **Deep link**: URL/Intent que abre un destino interno (ej. `https://site.com/detail/42`).  
+  *Cuándo lo uso*: Para integrar notificaciones, enlaces externos o App Links.
+
+- **Top‑level destinos**: Destinos raíz de navegación (pestañas/bottom bar).  
+  *Cuándo lo uso*: Para navegación lateral o inferior con preservación de estado entre secciones.
+
+- **SavedStateHandle**: Almacén clave‑valor asociado a una entrada del stack. Soporta argumentos y resultados.  
+  *Cuándo lo uso*: Leer argumentos en el `ViewModel` y devolver resultados al destino anterior.
+
+- **Eventos de navegación (one‑shot)**: Señales efímeras desde `ViewModel` (e.g., `SharedFlow`) que la UI traduce a `navigate`.  
+  *Cuándo lo uso*: Para desacoplar navegación de la lógica de negocio y evitar repeticiones en recomposición.
+
+- **Back vs Up**: *Back* (historial del sistema) vs *Up* (jerarquía de la app).  
+  *Cuándo lo uso*: Configura correctamente el comportamiento del icono “up” en `TopAppBar` según la jerarquía.
+
+- **BackHandler**: API para interceptar el botón “atrás” en Compose.  
+  *Cuándo lo uso*: Confirmaciones de salida, bloqueo condicional, formularios con cambios sin guardar.
+
+---
+
 ## Configuración de Navigation Compose
 - Dependencias (Gradle Kotlin DSL)
 ``` kotlin
