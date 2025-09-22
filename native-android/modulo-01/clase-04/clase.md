@@ -71,13 +71,12 @@ Al finalizar, el estudiante podrá:
 ## Configuración de Navigation Compose
 - Dependencias (Gradle Kotlin DSL)
 ``` kotlin
-// build.gradle.kts (module)
 dependencies {
     // Compose BOM recomendado
     implementation(platform("androidx.compose:compose-bom:2025.01.00"))
     implementation("androidx.navigation:navigation-compose:2.8.3")
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.8.4")
-    implementation("androidx.hilt:hilt-navigation-compose:1.2.0") // opcional si usas Hilt
+    implementation("androidx.hilt:hilt-navigation-compose:1.2.0")
 }
 
 ```
