@@ -7,7 +7,7 @@ import kotlinx.coroutines.delay
 class FakeProductRepository {
     // Simula I/O
     suspend fun fetchProducts(): List<Product> {
-        delay(300) // simular latencia
+        delay(2000) // simular latencia
         return listOf(
             Product("1", "Keyboard TKL", 49.9, true),
             Product("2", "Wireless Mouse", 24.5, true),
