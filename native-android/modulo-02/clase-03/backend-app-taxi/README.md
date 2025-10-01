@@ -108,7 +108,7 @@ npx ts-node -r tsconfig-paths/register src/core/cli/run-seeders.ts
 
 ---
 
-## ▶Ejecución
+## Ejecución
 
 ### Desarrollo
 
@@ -128,7 +128,7 @@ pnpm run start:prod
 
 ---
 
-## 🧭 Endpoints principales
+## Endpoints principales
 
 ### POST `/passenger/login`
 
