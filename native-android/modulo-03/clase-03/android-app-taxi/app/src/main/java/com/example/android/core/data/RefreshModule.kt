@@ -28,10 +28,10 @@ object RefreshModule {
     @RefreshOkHttpClient
     @Singleton
     fun provideRefreshOkHttpClient(
-        logging: HttpLoggingInterceptor
+        loggingInterceptor: HttpLoggingInterceptor,
     ): OkHttpClient {
         return OkHttpClient.Builder()
-            .addInterceptor(logging)
+            .addInterceptor(loggingInterceptor)
             .build()
     }
 

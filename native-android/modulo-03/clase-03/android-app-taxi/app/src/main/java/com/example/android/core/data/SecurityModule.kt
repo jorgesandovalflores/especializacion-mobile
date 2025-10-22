@@ -33,9 +33,7 @@ object SecurityModule {
     @Provides
     @Singleton
     fun provideAuthInterceptor(
-        session: SessionStore,
-        refreshApi: RefreshApi,
-        @ApplicationContext context: Context
+        session: SessionStore
     ): AuthInterceptor =
-        AuthInterceptor(session = session, refreshApi = refreshApi, context = context)
+        AuthInterceptor(session = session)
 }
