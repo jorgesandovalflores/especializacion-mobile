@@ -59,7 +59,7 @@ class AppFirebaseMessagingService : FirebaseMessagingService() {
             }
         }
 
-        val intent = Intent(context, Class.forName("com.example.android_passenger.MainActivity")).apply {
+        val intent = Intent(context, Class.forName("com.example.android_passenger.core.presentation.activity.MainActivity")).apply {
             putExtra("dest", destination)
             flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
         }
