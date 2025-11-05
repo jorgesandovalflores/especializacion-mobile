@@ -147,8 +147,12 @@ export class AuthService {
             );
         }
 
-        // 4) Tocar lastLoginAt
+        // 4) Tocar lastLoginAt and tokenFcm
         await this.passengerDao.touchLastLoginAtById(passenger.id);
+        await this.passengerDao.tokenFcmAtById(
+            passenger.id,
+            request.tokenFcm || "",
+        );
 
         // 5) Emitir JWTs
         const accessTtlSec = Number(this.config.get("JWT_ACCESS_TTL_SEC"));

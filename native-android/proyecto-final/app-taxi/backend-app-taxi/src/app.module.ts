@@ -12,6 +12,7 @@ import { typeOrmConfig } from "./core/database/typeorm.config";
 import { HttpExceptionFilter } from "./core/http/filters/http-exception.filter";
 import { PassengerModule } from "./features/passengers/passenger.module";
 import { MenuModule } from "./features/menu/menu.module";
+import { AddressModule } from "./features/addresses/address.module";
 
 const isDebug = process.env.NODE_DEBUG === "true";
 
@@ -61,6 +62,7 @@ const isDebug = process.env.NODE_DEBUG === "true";
         TypeOrmModule.forRoot(typeOrmConfig),
         PassengerModule,
         MenuModule,
+        AddressModule,
     ],
     controllers: [AppController],
     providers: [
