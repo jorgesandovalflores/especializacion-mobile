@@ -54,7 +54,6 @@ export class FcmService {
     private readonly firebaseProjectId: string;
     private readonly firebaseClientEmail: string;
     private readonly firebasePrivateKey: string;
-    private readonly applicationName: string;
     private readonly jwtClient: JWT;
 
     constructor(
@@ -67,8 +66,6 @@ export class FcmService {
             this.configService.get<string>("FIREBASE_CLIENT_EMAIL") ?? "";
         this.firebasePrivateKey =
             this.configService.get<string>("FIREBASE_PRIVATE_KEY") ?? "";
-        this.applicationName =
-            this.configService.get<string>("APPLICATION_NAME") ?? "app";
 
         this.fcmUrl = `https://fcm.googleapis.com/v1/projects/${this.firebaseProjectId}/messages:send`;
 
