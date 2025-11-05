@@ -49,7 +49,7 @@ interface FcmResponse {
 }
 
 @Injectable()
-export class FcmService {
+export class FcmRemote {
     private readonly fcmUrl: string;
     private readonly firebaseProjectId: string;
     private readonly firebaseClientEmail: string;
