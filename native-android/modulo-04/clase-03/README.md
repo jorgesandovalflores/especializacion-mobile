@@ -103,6 +103,8 @@ if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
 -   Compatible con Android, iOS y Web.
 -   Integración directa con Analytics, Remote Config y Crashlytics.
 
+    ![Diagrama](./_img/1.gif)
+
 #### 2.1 Dependencias (Gradle)
 
 ```kotlin
