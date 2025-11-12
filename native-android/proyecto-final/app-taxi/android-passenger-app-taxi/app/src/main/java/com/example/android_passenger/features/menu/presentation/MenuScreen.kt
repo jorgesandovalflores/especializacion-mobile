@@ -33,6 +33,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.semantics.contentDescription
@@ -43,6 +44,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import coil.ImageLoader
 import coil.compose.AsyncImage
+import coil.compose.SubcomposeAsyncImage
 import coil.decode.SvgDecoder
 import coil.request.ImageRequest
 import com.example.android_passenger.commons.domain.model.Passenger
@@ -140,19 +142,50 @@ fun PassengerCard(
                         .background(brush)
                 )
             } else {
-                // Avatar real
-                Box(
-                    modifier = Modifier
-                        .size(56.dp)
-                        .clip(CircleShape)
-                        .background(MaterialTheme.colorScheme.secondary.copy(alpha = 0.15f)),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text(
-                        text = passenger?.givenName?.firstOrNull()?.uppercase() ?: "U",
-                        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
-                        color = MaterialTheme.colorScheme.secondary
+                val hasPhotoUrl = !passenger?.photoUrl.isNullOrEmpty()
+
+                if (hasPhotoUrl) {
+                    SubcomposeAsyncImage(
+                        model = ImageRequest.Builder(LocalContext.current)
+                            .data(passenger?.photoUrl)
+                            .crossfade(true)
+                            .build(),
+                        loading = {
+                            // Mientras carga, mostrar placeholder
+                            Box(
+                                modifier = Modifier
+                                    .size(56.dp)
+                                    .clip(CircleShape)
+                                    .background(MaterialTheme.colorScheme.secondary.copy(alpha = 0.15f)),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Text(
+                                    text = passenger?.givenName?.firstOrNull()?.uppercase() ?: "U",
+                                    style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+                                    color = MaterialTheme.colorScheme.secondary
+                                )
+                            }
+                        },
+                        contentDescription = "Foto de perfil",
+                        modifier = Modifier
+                            .size(56.dp)
+                            .clip(CircleShape),
+                        contentScale = ContentScale.Crop
                     )
+                } else {
+                    Box(
+                        modifier = Modifier
+                            .size(56.dp)
+                            .clip(CircleShape)
+                            .background(MaterialTheme.colorScheme.secondary.copy(alpha = 0.15f)),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = passenger?.givenName?.firstOrNull()?.uppercase() ?: "U",
+                            style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+                            color = MaterialTheme.colorScheme.secondary
+                        )
+                    }
                 }
             }
 
@@ -252,7 +285,7 @@ private fun MenuItemCard(
     val shape = RoundedCornerShape(14.dp)
 
     Card(
-        onClick = { onClick(item) },                 // ← usa el Card clickable de M3
+        onClick = { onClick(item) },
         shape = shape,
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surface
@@ -454,7 +487,7 @@ fun MenuScreen(
 fun MenuScreenRoute(
     onNavClick: () -> Unit,
     onMenuClick: (Menu) -> Unit,
-    onLogoutSuccess: () -> Unit, // Callback cuando el logout es exitoso
+    onLogoutSuccess: () -> Unit,
     vm: MenuViewModel = hiltViewModel()
 ) {
     // Estados del ViewModel
@@ -488,24 +521,53 @@ fun MenuScreenRoute(
     MenuScreen(
         onNavClick = onNavClick,
         onMenuClick = onMenuClick,
-        onLogoutClick = { vm.callLogout() }, // Llama al ViewModel para iniciar el logout
+        onLogoutClick = { vm.callLogout() },
         passengerLocalState = passengerState,
         menuCacheState = menuState
     )
 }
 
-
 /* -------------------------------------------------------
    Preview: Pantallas y estados
 -------------------------------------------------------- */
-@Preview(name = "MenuScreen - Success", showBackground = true, showSystemUi = true)
+@Preview(name = "MenuScreen - Success with Photo", showBackground = true, showSystemUi = true)
 @Composable
-private fun PreviewMenuScreenSuccess() {
+private fun PreviewMenuScreenSuccessWithPhoto() {
     MaterialTheme {
         MenuScreen(
             onNavClick = {},
             onMenuClick = {},
-            onLogoutClick = {}, // Nuevo parámetro
+            onLogoutClick = {},
+            passengerLocalState = GetPassengerLocalState.Success(
+                Passenger(
+                    id = "1",
+                    phoneNumber = "51987654321",
+                    givenName = "Jorge",
+                    familyName = "Sandoval",
+                    email = "jorge@example.com",
+                    photoUrl = "https://example.com/profile.jpg",
+                    status = "active"
+                )
+            ),
+            menuCacheState = GetMenuCacheState.Success(
+                listOf(
+                    Menu("history", "Mis viajes", "ic_menu_history", "app://history", 1),
+                    Menu("payments", "Pagos", "ic_menu_payments", "app://payments", 2),
+                    Menu("support", "Ayuda", "ic_menu_support", "app://support", 3)
+                )
+            )
+        )
+    }
+}
+
+@Preview(name = "MenuScreen - Success without Photo", showBackground = true, showSystemUi = true)
+@Composable
+private fun PreviewMenuScreenSuccessWithoutPhoto() {
+    MaterialTheme {
+        MenuScreen(
+            onNavClick = {},
+            onMenuClick = {},
+            onLogoutClick = {},
             passengerLocalState = GetPassengerLocalState.Success(
                 Passenger(
                     id = "1",
@@ -514,6 +576,36 @@ private fun PreviewMenuScreenSuccess() {
                     familyName = "Sandoval",
                     email = "jorge@example.com",
                     photoUrl = null,
+                    status = "active"
+                )
+            ),
+            menuCacheState = GetMenuCacheState.Success(
+                listOf(
+                    Menu("history", "Mis viajes", "ic_menu_history", "app://history", 1),
+                    Menu("payments", "Pagos", "ic_menu_payments", "app://payments", 2),
+                    Menu("support", "Ayuda", "ic_menu_support", "app://support", 3)
+                )
+            )
+        )
+    }
+}
+
+@Preview(name = "MenuScreen - Success with Empty Photo", showBackground = true, showSystemUi = true)
+@Composable
+private fun PreviewMenuScreenSuccessWithEmptyPhoto() {
+    MaterialTheme {
+        MenuScreen(
+            onNavClick = {},
+            onMenuClick = {},
+            onLogoutClick = {},
+            passengerLocalState = GetPassengerLocalState.Success(
+                Passenger(
+                    id = "1",
+                    phoneNumber = "51987654321",
+                    givenName = "Jorge",
+                    familyName = "Sandoval",
+                    email = "jorge@example.com",
+                    photoUrl = "",
                     status = "active"
                 )
             ),

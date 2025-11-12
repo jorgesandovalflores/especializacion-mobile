@@ -7,12 +7,15 @@ import com.example.android_passenger.core.domain.SessionStore
 import com.example.android_passenger.features.signup.data.local.SignUpStoreImpl
 import com.example.android_passenger.features.signup.data.remote.SignupApi
 import com.example.android_passenger.features.signup.data.repository.SignUpRepositoryImpl
+import com.example.android_passenger.features.signup.domain.repository.FirebaseStorageRepository
 import com.example.android_passenger.features.signup.domain.repository.SignUpRepository
 import com.example.android_passenger.features.signup.domain.store.SignUpStore
+import com.example.android_passenger.features.signup.domain.usecase.DeleteProfileImageUseCase
 import com.example.android_passenger.features.signup.domain.usecase.GetSignUpStep2UseCase
 import com.example.android_passenger.features.signup.domain.usecase.GetSignUpStep1UseCase
 import com.example.android_passenger.features.signup.domain.usecase.SaveSignUpStep1UseCase
 import com.example.android_passenger.features.signup.domain.usecase.SignUpUseCase
+import com.example.android_passenger.features.signup.domain.usecase.UploadProfileImageUseCase
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -53,6 +56,12 @@ object SignUpModule {
 
     @Provides
     @Singleton
+    fun provideFirebaseStorageRepository(): FirebaseStorageRepository {
+        return FirebaseStorageRepository()
+    }
+
+    @Provides
+    @Singleton
     fun provideSignUpUseCase(
         repo: SignUpRepository,
         storeSignIn: SignUpStore,
@@ -77,5 +86,21 @@ object SignUpModule {
     fun provideSaveSignUpStep1UseCase(
         storeSignIn: SignUpStore
     ): SaveSignUpStep1UseCase = SaveSignUpStep1UseCase(storeSignIn = storeSignIn)
+
+    @Provides
+    @Singleton
+    fun provideUploadProfileImageUseCase(
+        repository: FirebaseStorageRepository
+    ): UploadProfileImageUseCase {
+        return UploadProfileImageUseCase(repository)
+    }
+
+    @Provides
+    @Singleton
+    fun provideDeleteProfileImageUseCase(
+        repository: FirebaseStorageRepository
+    ): DeleteProfileImageUseCase {
+        return DeleteProfileImageUseCase(repository)
+    }
 
 }
