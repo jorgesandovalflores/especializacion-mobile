@@ -113,6 +113,7 @@ dependencies {
     implementation(libs.firebase.messaging)
     implementation(libs.firebase.analytics)
     implementation(libs.firebase.storage)
+    implementation(libs.firebase.firestore)
 
     testImplementation(libs.mockk)
     testImplementation(libs.junit)

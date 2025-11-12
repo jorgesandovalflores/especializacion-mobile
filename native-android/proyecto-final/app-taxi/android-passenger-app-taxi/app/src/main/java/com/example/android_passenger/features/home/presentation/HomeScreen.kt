@@ -4,9 +4,14 @@ import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -16,6 +21,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -35,12 +41,16 @@ import com.google.maps.android.compose.rememberCameraPositionState
 import kotlinx.coroutines.launch
 import com.example.android_passenger.commons.presentation.ComponentPinLocationUser
 import com.example.android_passenger.commons.domain.usecase.GetPassengerLocalState
+import com.example.android_passenger.features.home.domain.model.AlertHome
+import com.example.android_passenger.features.home.domain.usecase.AlertHomeFirestoreUseCaseState
 
 @Composable
 fun HomeScreen(
     modifier: Modifier = Modifier,
     onBackPressed: () -> Unit = {},
-    onMenuClick: () -> Unit = {}
+    onMenuClick: () -> Unit = {},
+    previewAlertHome: AlertHome? = null,
+    previewShowAlert: Boolean = false
 ) {
     val bg = Color(0xFFF4F5F6)
     NavigationBarStyle(color = bg, darkIcons = true)
@@ -53,25 +63,46 @@ fun HomeScreen(
     val scope = rememberCoroutineScope()
 
     // ===== OBTENER photoUrl DESDE HomeViewModel =====
-    val homeViewModel: HomeViewModel = hiltViewModel()
-    val userState by homeViewModel.userUi.collectAsState()
-    LaunchedEffect(Unit) { homeViewModel.callGetUser() }
+    val homeViewModel: HomeViewModel? = if (previewAlertHome == null) hiltViewModel() else null
+    val userState by homeViewModel?.userUi?.collectAsState() ?: remember { mutableStateOf(GetPassengerLocalState.Idle) }
+
+    // ===== OBTENER ALERTA DESDE FIRESTORE =====
+    val alertHomeState by homeViewModel?.alertHomeState?.collectAsState() ?: remember {
+        mutableStateOf(AlertHomeFirestoreUseCaseState.Success(previewAlertHome))
+    }
+    val showAlert by homeViewModel?.showAlert?.collectAsState() ?: remember {
+        mutableStateOf(previewShowAlert && previewAlertHome?.isValid == true)
+    }
+
+    LaunchedEffect(Unit) {
+        if (previewAlertHome == null) {
+            homeViewModel?.callGetUser()
+            homeViewModel?.callGetAlertHome()
+        }
+    }
+
     val userPhotoUrl: String? = when (val s = userState) {
         is GetPassengerLocalState.Success -> s.value.photoUrl
         else -> null
     }
-    // =================================================
 
     var hasAttemptedLocation by remember { mutableStateOf(false) }
 
+    val hasPermissionForPreview = previewAlertHome != null
+    val hasLocationPermission = if (previewAlertHome == null) {
+        locationPermissionState.hasPermission
+    } else {
+        true // Para preview, simular permisos concedidos
+    }
+
     LaunchedEffect(Unit) {
-        if (!locationPermissionState.hasPermission) {
+        if (previewAlertHome == null && !locationPermissionState.hasPermission) {
             locationPermissionState.requestPermission()
         }
     }
 
-    LaunchedEffect(locationPermissionState.hasPermission) {
-        if (locationPermissionState.hasPermission && !hasAttemptedLocation) {
+    LaunchedEffect(hasLocationPermission) {
+        if (hasLocationPermission && !hasAttemptedLocation) {
             hasAttemptedLocation = true
             kotlinx.coroutines.delay(500)
         }
@@ -82,20 +113,35 @@ fun HomeScreen(
             .fillMaxSize()
             .background(Color.LightGray)
     ) {
-        if (locationPermissionState.hasPermission) {
+        if (hasLocationPermission) {
             MapContent(
                 shouldCenterOnUserLocation = !hasAttemptedLocation,
                 onLocationCentered = { hasAttemptedLocation = true },
                 onMenuClick = onMenuClick,
-                userPhotoUrl = userPhotoUrl // <-- pasar photoUrl al pin
+                userPhotoUrl = userPhotoUrl
             )
         } else {
             PermissionRequestScreen(
                 onRequestPermission = {
-                    locationPermissionState.requestPermission()
+                    if (previewAlertHome == null) {
+                        locationPermissionState.requestPermission()
+                    }
                 },
                 onMenuClick = onMenuClick
             )
+        }
+
+        if (showAlert && alertHomeState is AlertHomeFirestoreUseCaseState.Success) {
+            val alertHome = (alertHomeState as AlertHomeFirestoreUseCaseState.Success).alertHome
+            alertHome?.let { alert ->
+                AlertHomeBanner(
+                    alertHome = alert,
+                    onDismiss = { homeViewModel?.dismissAlert() },
+                    modifier = Modifier
+                        .align(Alignment.BottomCenter)
+                        .padding(bottom = 36.dp)
+                )
+            }
         }
     }
 }
@@ -351,6 +397,71 @@ fun MenuIconButton(
             modifier = Modifier.size(22.dp)
         )
     }
+}
+
+@Composable
+fun AlertHomeBanner(
+    alertHome: AlertHome,
+    onDismiss: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Card(
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(16.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = 8.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.errorContainer,
+            contentColor = MaterialTheme.colorScheme.onErrorContainer
+        )
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp)
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = alertHome.title,
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold
+                )
+                IconButton(
+                    onClick = onDismiss,
+                    modifier = Modifier.size(24.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Close,
+                        contentDescription = "Cerrar alerta"
+                    )
+                }
+            }
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(
+                text = alertHome.body,
+                style = MaterialTheme.typography.bodyMedium
+            )
+        }
+    }
+}
+
+@Composable
+private fun rememberAlertHomeForPreview(): AlertHome? {
+    return remember {
+        AlertHome(
+            title = "Alerta Importante",
+            body = "Este es un mensaje de alerta de ejemplo para mostrar en el preview."
+        )
+    }
+}
+
+@Composable
+private fun rememberShowAlertForPreview(): Boolean {
+    return remember { true }
 }
 
 // Extensión para centrar
