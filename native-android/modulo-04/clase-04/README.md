@@ -2,20 +2,20 @@
 
 ## Objetivos
 
-1. Comprender el concepto de **SSO (Single Sign-On)** y sus principales proveedores en el mercado.  
-2. Implementar **autenticación con Firebase Auth** (correo y Google).  
-3. Dominar la **lectura/escritura de datos** en Firestore y conocer sus ventajas frente a otros servicios.  
-4. Comprender el uso de **Firebase Storage**, sus diferencias frente a competidores y cómo integrarlo en Android.  
+1. Comprender el concepto de **SSO (Single Sign-On)** y sus principales proveedores en el mercado.
+2. Implementar **autenticación con Firebase Auth** (correo y Google).
+3. Dominar la **lectura/escritura de datos** en Firestore y conocer sus ventajas frente a otros servicios.
+4. Comprender el uso de **Firebase Storage**, sus diferencias frente a competidores y cómo integrarlo en Android.
 5. Aplicar **reglas de seguridad y control de acceso** en Firebase (Auth, Firestore, Storage).
 
 ---
 
 ## Contenido
 
-1. Introducción al **SSO** y autenticación con correo y Google  
-2. Lectura y escritura de documentos en **Firestore**  
-3. Subida y descarga de archivos en **Storage**  
-4. **Reglas de seguridad y control de acceso** en Firebase  
+1. Introducción al **SSO** y autenticación con correo y Google
+2. Lectura y escritura de documentos en **Firestore**
+3. Subida y descarga de archivos en **Storage**
+4. **Reglas de seguridad y control de acceso** en Firebase
 
 ---
 
@@ -29,25 +29,27 @@
 Ejemplo: Inicias sesión con tu cuenta de Google y accedes automáticamente a Gmail, YouTube y Drive.
 
 **Ventajas del SSO:**
-- Menor fricción en el registro e inicio de sesión.  
-- Centralización de credenciales.  
-- Reducción de problemas de seguridad (menos contraseñas expuestas).  
-- Mejor experiencia de usuario.
+
+-   Menor fricción en el registro e inicio de sesión.
+-   Centralización de credenciales.
+-   Reducción de problemas de seguridad (menos contraseñas expuestas).
+-   Mejor experiencia de usuario.
 
 **Principales proveedores de SSO del mercado:**
 
-| Proveedor | Descripción | Precio base | SDKs móviles | Soporte OAuth2/OIDC |
-|------------|-------------|-------------|---------------|---------------------|
-| Firebase Auth | Solución de Google integrada con otros productos Firebase | Gratis (hasta 10k usuarios activos) | Android, iOS, Web | ✅ |
-| Auth0 | Plataforma avanzada con control granular y extensibilidad | Pago desde $23/mes | Android, iOS, Web | ✅ |
-| Amazon Cognito | Parte de AWS, integración profunda con servicios cloud | Gratis 50k MAU | Android, iOS, Web | ✅ |
-| Keycloak | Open Source auto hospedado | Gratis | SDKs externos | ✅ |
+| Proveedor      | Descripción                                               | Precio base                         | SDKs móviles      | Soporte OAuth2/OIDC |
+| -------------- | --------------------------------------------------------- | ----------------------------------- | ----------------- | ------------------- |
+| Firebase Auth  | Solución de Google integrada con otros productos Firebase | Gratis (hasta 10k usuarios activos) | Android, iOS, Web | ✅                  |
+| Auth0          | Plataforma avanzada con control granular y extensibilidad | Pago desde $23/mes                  | Android, iOS, Web | ✅                  |
+| Amazon Cognito | Parte de AWS, integración profunda con servicios cloud    | Gratis 50k MAU                      | Android, iOS, Web | ✅                  |
+| Keycloak       | Open Source auto hospedado                                | Gratis                              | SDKs externos     | ✅                  |
 
 **¿Por qué elegir Firebase Auth?**
-- Simplicidad de integración en Android (SDK oficial).  
-- Soporte nativo para autenticación con correo, Google, Facebook, Apple, etc.  
-- Sin servidor propio ni mantenimiento de base de datos de usuarios.  
-- Perfecta integración con Firestore y Storage.
+
+-   Simplicidad de integración en Android (SDK oficial).
+-   Soporte nativo para autenticación con correo, Google, Facebook, Apple, etc.
+-   Sin servidor propio ni mantenimiento de base de datos de usuarios.
+-   Perfecta integración con Firestore y Storage.
 
 #### 1.2 Implementación: autenticación con correo y Google
 
@@ -101,23 +103,25 @@ Una app de comercio electrónico donde el usuario puede registrarse con Google y
 Cada documento es un JSON que puede contener subcolecciones.
 
 **Ventajas:**
-- Sin esquema fijo.  
-- Escala automáticamente.  
-- Integración nativa con Firebase Auth y Realtime listeners.  
-- Sin servidor ni mantenimiento.
+
+-   Sin esquema fijo.
+-   Escala automáticamente.
+-   Integración nativa con Firebase Auth y Realtime listeners.
+-   Sin servidor ni mantenimiento.
 
 **Principales competidores:**
 
-| Servicio | Modelo | Escalabilidad | Realtime | Precio (lecturas/escrituras) | Región |
-|-----------|---------|---------------|-----------|------------------------------|--------|
-| **Firestore** | Documentos/Colecciones | Automática | ✅ | $0.06 /100k lecturas | Global |
-| **MongoDB Atlas** | Documentos | Manual/Auto | ⚙️ con triggers | $0.08 /100k | Multi Cloud |
-| **DynamoDB (AWS)** | Clave-valor | Automática | ❌ | $0.25 /100k lecturas | Regional |
-| **Supabase** | SQL (Postgres) | Automática | ✅ | Gratis (limitado) | Multi Cloud |
+| Servicio           | Modelo                 | Escalabilidad | Realtime        | Precio (lecturas/escrituras) | Región      |
+| ------------------ | ---------------------- | ------------- | --------------- | ---------------------------- | ----------- |
+| **Firestore**      | Documentos/Colecciones | Automática    | ✅              | $0.06 /100k lecturas         | Global      |
+| **MongoDB Atlas**  | Documentos             | Manual/Auto   | ⚙️ con triggers | $0.08 /100k                  | Multi Cloud |
+| **DynamoDB (AWS)** | Clave-valor            | Automática    | ❌              | $0.25 /100k lecturas         | Regional    |
+| **Supabase**       | SQL (Postgres)         | Automática    | ✅              | Gratis (limitado)            | Multi Cloud |
 
 #### 2.2 Implementación en Android
 
 Dependencia:
+
 ```kotlin
 implementation("com.google.firebase:firebase-firestore-ktx")
 ```
@@ -153,23 +157,25 @@ Una app de delivery que guarda el historial de pedidos por usuario (`users/{id}/
 
 **Comparativa de servicios:**
 
-| Servicio | Costo por GB | API REST | Integración móvil | Reglas de seguridad |
-|-----------|---------------|-----------|--------------------|----------------------|
-| **Firebase Storage** | $0.026/GB | ✅ | ✅ SDK Android/iOS | Basadas en Auth |
-| **AWS S3** | $0.023/GB | ✅ | SDK nativo AWS | IAM Policies |
-| **Google Cloud Storage (GCS)** | $0.020/GB | ✅ | SDK Cloud | IAM + ACL |
-| **Supabase Storage** | $0.025/GB | ✅ | SDK JS/Móvil | Basadas en JWT |
-| **Backblaze B2** | $0.005/GB | ✅ | SDK externo | Key-based |
+| Servicio                       | Costo por GB | API REST | Integración móvil  | Reglas de seguridad |
+| ------------------------------ | ------------ | -------- | ------------------ | ------------------- |
+| **Firebase Storage**           | $0.026/GB    | ✅       | ✅ SDK Android/iOS | Basadas en Auth     |
+| **AWS S3**                     | $0.023/GB    | ✅       | SDK nativo AWS     | IAM Policies        |
+| **Google Cloud Storage (GCS)** | $0.020/GB    | ✅       | SDK Cloud          | IAM + ACL           |
+| **Supabase Storage**           | $0.025/GB    | ✅       | SDK JS/Móvil       | Basadas en JWT      |
+| **Backblaze B2**               | $0.005/GB    | ✅       | SDK externo        | Key-based           |
 
 **Ventajas de Firebase Storage:**
-- Integración nativa con Firebase Auth.  
-- URLs firmadas automáticas.  
-- Sin gestión de claves IAM.  
-- Escalabilidad y CDN incluidas.
+
+-   Integración nativa con Firebase Auth.
+-   URLs firmadas automáticas.
+-   Sin gestión de claves IAM.
+-   Escalabilidad y CDN incluidas.
 
 #### 3.2 Implementación en Android
 
 Dependencia:
+
 ```kotlin
 implementation("com.google.firebase:firebase-storage-ktx")
 ```
@@ -227,13 +233,15 @@ service firebase.storage {
 ```
 
 #### 4.3 Recomendaciones generales
-- **No usar reglas públicas.**  
-- **Usar Auth siempre.**  
-- **Auditar accesos** desde Firebase Console.  
-- **Combinar con App Check** para verificar integridad de la app.  
-- **Usar Custom Claims** para roles (admin, user, guest).  
 
-**Ejemplo:**  
+-   **No usar reglas públicas.**
+-   **Usar Auth siempre.**
+-   **Auditar accesos** desde Firebase Console.
+-   **Combinar con App Check** para verificar integridad de la app.
+-   **Usar Custom Claims** para roles (admin, user, guest).
+
+**Ejemplo:**
+
 ```kotlin
 Firebase.auth.currentUser?.getIdToken(true)?.addOnSuccessListener {
     val claims = it.claims
@@ -241,3 +249,7 @@ Firebase.auth.currentUser?.getIdToken(true)?.addOnSuccessListener {
 ```
 
 **En conjunto**, Auth + Firestore + Storage con reglas bien definidas forman una arquitectura segura, escalable y sin servidor.
+
+![Diagrama](./_img/diagrama_001.svg)
+
+![Diagrama](./_img/diagrama_002.svg)
