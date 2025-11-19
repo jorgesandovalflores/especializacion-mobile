@@ -1,5 +1,6 @@
 package com.example.android_passenger.features.signup.presentation
 
+import android.content.res.Configuration
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.MaterialTheme
@@ -8,7 +9,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -18,6 +19,7 @@ import com.example.android_passenger.commons.presentation.GenericInputField
 import com.example.android_passenger.commons.presentation.NavigationBarStyle
 import com.example.android_passenger.commons.presentation.PrimaryButton
 import com.example.android_passenger.commons.presentation.ToastType
+import com.example.android_passenger.core.presentation.theme.AndroidTheme
 import com.example.android_passenger.features.signup.domain.model.SignUpModelStep1
 import com.example.android_passenger.features.signup.domain.model.SignUpModelStep2
 import com.example.android_passenger.features.signup.domain.usecase.GetSignUpStep1UseCaseState
@@ -41,9 +43,7 @@ fun SignUpStep2Route(
 
     LaunchedEffect(signUpState) {
         when (signUpState) {
-            is SignUpUseCaseState.Success -> {
-                onFinish()
-            }
+            is SignUpUseCaseState.Success -> onFinish()
             else -> Unit
         }
     }
@@ -51,11 +51,12 @@ fun SignUpStep2Route(
     SignUpStep2Screen(
         step2State = step2State,
         signUpState = signUpState,
-        onEmailChange = {  },
-        onPhoneNumberChange = {  },
+        onEmailChange = { },
+        onPhoneNumberChange = { },
         onFinish = { email, phoneNumber ->
             val step1Data = when (step1State) {
-                is GetSignUpStep1UseCaseState.Success -> (step1State as GetSignUpStep1UseCaseState.Success).data
+                is GetSignUpStep1UseCaseState.Success ->
+                    (step1State as GetSignUpStep1UseCaseState.Success).data
                 else -> SignUpModelStep1("", "", "")
             }
 
@@ -77,8 +78,11 @@ fun SignUpStep2Screen(
     onFinish: (email: String, phoneNumber: String) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val bg = Color(0xFFF8F9FA)
-    NavigationBarStyle(color = Color.White, darkIcons = true)
+    val colorScheme = MaterialTheme.colorScheme
+    val bg = colorScheme.background
+
+    val isLightBackground = bg.luminance() > 0.5f
+    NavigationBarStyle(color = bg, darkIcons = isLightBackground)
 
     var email by remember { mutableStateOf("") }
     var phoneNumber by remember { mutableStateOf("") }
@@ -121,6 +125,7 @@ fun SignUpStep2Screen(
                     .imePadding(),
                 verticalArrangement = Arrangement.SpaceBetween
             ) {
+                // Header
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -131,13 +136,13 @@ fun SignUpStep2Screen(
                         style = MaterialTheme.typography.headlineSmall.copy(
                             fontWeight = FontWeight.Bold
                         ),
-                        color = Color(0xFF1A1A1A)
+                        color = colorScheme.onBackground
                     )
 
                     Text(
                         text = "Completa tus datos de contacto",
                         style = MaterialTheme.typography.bodyMedium,
-                        color = Color(0xFF666666)
+                        color = colorScheme.onSurfaceVariant
                     )
                 }
 
@@ -210,26 +215,45 @@ fun SignUpStep2Screen(
     }
 }
 
-@Preview(showBackground = true, backgroundColor = 0xFFFFFFFF)
+/* ===== Previews ===== */
+@Preview(
+    showBackground = true,
+    backgroundColor = 0xFFFFFFFF,
+    uiMode = Configuration.UI_MODE_NIGHT_NO,
+    name = "SignUpStep2 - Empty Light"
+)
 @Composable
-private fun SignUpStep2ScreenPreview_Empty() {
-    SignUpStep2Screen(
-        step2State = GetSignUpStep2UseCaseState.Success(SignUpModelStep2("", "")),
-        signUpState = SignUpUseCaseState.Idle,
-        onEmailChange = {},
-        onPhoneNumberChange = {},
-        onFinish = { _, _ -> }
-    )
+private fun SignUpStep2ScreenPreview_Empty_Light() {
+    AndroidTheme(darkTheme = false) {
+        SignUpStep2Screen(
+            step2State = GetSignUpStep2UseCaseState.Success(
+                SignUpModelStep2("", "")
+            ),
+            signUpState = SignUpUseCaseState.Idle,
+            onEmailChange = {},
+            onPhoneNumberChange = {},
+            onFinish = { _, _ -> }
+        )
+    }
 }
 
-@Preview(showBackground = true, backgroundColor = 0xFFFFFFFF)
+@Preview(
+    showBackground = true,
+    backgroundColor = 0xFF000000,
+    uiMode = Configuration.UI_MODE_NIGHT_YES,
+    name = "SignUpStep2 - Error Dark"
+)
 @Composable
-private fun SignUpStep2ScreenPreview_Error() {
-    SignUpStep2Screen(
-        step2State = GetSignUpStep2UseCaseState.Success(SignUpModelStep2("juan@example.com", "987654321")),
-        signUpState = SignUpUseCaseState.Error("Error en el registro"),
-        onEmailChange = {},
-        onPhoneNumberChange = {},
-        onFinish = { _, _ -> }
-    )
+private fun SignUpStep2ScreenPreview_Error_Dark() {
+    AndroidTheme(darkTheme = true) {
+        SignUpStep2Screen(
+            step2State = GetSignUpStep2UseCaseState.Success(
+                SignUpModelStep2("juan@example.com", "987654321")
+            ),
+            signUpState = SignUpUseCaseState.Error("Error en el registro"),
+            onEmailChange = {},
+            onPhoneNumberChange = {},
+            onFinish = { _, _ -> }
+        )
+    }
 }

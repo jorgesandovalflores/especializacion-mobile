@@ -1,5 +1,6 @@
 package com.example.android_passenger.commons.presentation
 
+import android.content.res.Configuration
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
@@ -24,8 +25,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
@@ -33,10 +33,8 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.android_passenger.core.presentation.theme.AndroidTheme
 
-// ===============================================
-// OtpBox: Caja individual para un dígito del OTP
-// ===============================================
 @Composable
 fun OtpBox(
     value: String,
@@ -45,14 +43,30 @@ fun OtpBox(
     modifier: Modifier = Modifier
 ) {
     val shape = MaterialTheme.shapes.medium
-    val borderColor = if (value.isNotEmpty()) Color(0xFF222222) else Color(0xFFCFCFCF)
+    val colorScheme = MaterialTheme.colorScheme
+
+    val isLightTheme = colorScheme.background.luminance() > 0.5f
+
+    val borderColor = if (value.isNotEmpty()) {
+        if (isLightTheme) colorScheme.primary else colorScheme.onSurface
+    } else {
+        colorScheme.outlineVariant
+    }
+
+    val boxBackground = if (isLightTheme) {
+        colorScheme.surfaceVariant
+    } else {
+        colorScheme.surface
+    }
+
+    val textColor = colorScheme.onSurface
 
     Box(
         modifier = modifier
             .height(56.dp)
             .clip(shape)
             .border(width = 1.dp, color = borderColor, shape = shape)
-            .background(color = Color(0xFFF8F8F8)),
+            .background(color = boxBackground),
         contentAlignment = Alignment.Center
     ) {
         BasicTextField(
@@ -61,7 +75,7 @@ fun OtpBox(
             textStyle = TextStyle(
                 fontSize = 22.sp,
                 textAlign = TextAlign.Center,
-                color = Color(0xFF0F0F0F)
+                color = textColor
             ),
             singleLine = true,
             keyboardOptions = KeyboardOptions(
@@ -69,7 +83,7 @@ fun OtpBox(
                 imeAction = ImeAction.Next
             ),
             keyboardActions = KeyboardActions(
-                onNext = { /* El cambio de foco se maneja externamente */ }
+                onNext = { }
             ),
             modifier = Modifier
                 .fillMaxWidth()
@@ -78,11 +92,6 @@ fun OtpBox(
     }
 }
 
-// =====================================================
-// OtpCodeInput: Arma las 4 cajas y maneja foco/filtrado
-// - Pasa el weight desde el Row a cada OtpBox
-// - Mueve el foco automáticamente hacia adelante/atrás
-// =====================================================
 @Composable
 fun OtpCodeInput(
     d0: String, onD0: (String) -> Unit,
@@ -91,7 +100,7 @@ fun OtpCodeInput(
     d3: String, onD3: (String) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val focusManager = LocalFocusManager.current
+    val focusManager = androidx.compose.ui.platform.LocalFocusManager.current
     val requesters = remember { List(4) { FocusRequester() } }
 
     fun next(index: Int) {
@@ -149,17 +158,62 @@ fun OtpCodeInput(
     }
 }
 
-@Preview(showBackground = true, widthDp = 360)
+/* Previews */
+
+@Preview(
+    showBackground = true,
+    widthDp = 360,
+    backgroundColor = 0xFFF0F0F0,
+    uiMode = Configuration.UI_MODE_NIGHT_NO,
+    name = "OTP Code Input - Light"
+)
 @Composable
-fun PreviewOtpCodeInput() {
+fun PreviewOtpCodeInput_Light() {
     var d0 by remember { mutableStateOf("") }
     var d1 by remember { mutableStateOf("") }
     var d2 by remember { mutableStateOf("") }
     var d3 by remember { mutableStateOf("") }
 
-    MaterialTheme {
-        Surface {
-            Column (
+    AndroidTheme(darkTheme = false) {
+        Surface(
+            color = MaterialTheme.colorScheme.background
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(24.dp)
+            ) {
+                OtpCodeInput(
+                    d0 = d0, onD0 = { d0 = it },
+                    d1 = d1, onD1 = { d1 = it },
+                    d2 = d2, onD2 = { d2 = it },
+                    d3 = d3, onD3 = { d3 = it },
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
+        }
+    }
+}
+
+@Preview(
+    showBackground = true,
+    widthDp = 360,
+    backgroundColor = 0xFF000000,
+    uiMode = Configuration.UI_MODE_NIGHT_YES,
+    name = "OTP Code Input - Dark"
+)
+@Composable
+fun PreviewOtpCodeInput_Dark() {
+    var d0 by remember { mutableStateOf("9") }
+    var d1 by remember { mutableStateOf("8") }
+    var d2 by remember { mutableStateOf("7") }
+    var d3 by remember { mutableStateOf("6") }
+
+    AndroidTheme(darkTheme = true) {
+        Surface(
+            color = MaterialTheme.colorScheme.background
+        ) {
+            Column(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(24.dp)

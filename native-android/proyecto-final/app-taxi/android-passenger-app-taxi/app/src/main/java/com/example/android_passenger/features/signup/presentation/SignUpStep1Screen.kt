@@ -2,6 +2,7 @@ package com.example.android_passenger.features.signup.presentation
 
 import com.example.android_passenger.R
 import android.net.Uri
+import android.content.res.Configuration
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
@@ -12,7 +13,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -25,6 +26,7 @@ import coil.request.ImageRequest
 import com.example.android_passenger.commons.presentation.GenericInputField
 import com.example.android_passenger.commons.presentation.NavigationBarStyle
 import com.example.android_passenger.commons.presentation.PrimaryButton
+import com.example.android_passenger.core.presentation.theme.AndroidTheme
 import com.example.android_passenger.core.presentation.utils.*
 import com.example.android_passenger.features.signup.domain.model.SignUpModelStep1
 import com.example.android_passenger.features.signup.domain.usecase.GetSignUpStep1UseCaseState
@@ -41,10 +43,10 @@ fun SignUpStep1Route(
     val uploadImageState by viewModel.uploadImage.collectAsState()
     val currentPhotoUrl by viewModel.currentPhotoUrl.collectAsState()
 
-    // Efecto para limpiar el estado de subida después de un tiempo
     LaunchedEffect(uploadImageState) {
         if (uploadImageState is UploadProfileImageUseCaseState.Error ||
-            uploadImageState is UploadProfileImageUseCaseState.Success) {
+            uploadImageState is UploadProfileImageUseCaseState.Success
+        ) {
             launch {
                 kotlinx.coroutines.delay(3000)
                 viewModel.clearImageUploadState()
@@ -60,8 +62,8 @@ fun SignUpStep1Route(
         step1State = step1State,
         uploadImageState = uploadImageState,
         currentPhotoUrl = currentPhotoUrl,
-        onGivenNameChange = { /* Puedes manejar esto si es necesario */ },
-        onFamilyNameChange = { /* Puedes manejar esto si es necesario */ },
+        onGivenNameChange = {  },
+        onFamilyNameChange = {  },
         onImageSelected = { uri ->
             uri?.let { viewModel.uploadProfileImage(it) }
         },
@@ -90,8 +92,11 @@ fun SignUpStep1Screen(
     onNext: (givenName: String, familyName: String) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val bg = Color(0xFFF8F9FA)
-    NavigationBarStyle(color = Color.White, darkIcons = true)
+    val colorScheme = MaterialTheme.colorScheme
+    val bg = colorScheme.background
+
+    val isLightBackground = bg.luminance() > 0.5f
+    NavigationBarStyle(color = bg, darkIcons = isLightBackground)
 
     var givenName by remember { mutableStateOf("") }
     var familyName by remember { mutableStateOf("") }
@@ -120,7 +125,6 @@ fun SignUpStep1Screen(
         }
     }
 
-    // Cargar datos existentes cuando el estado cambie
     LaunchedEffect(step1State) {
         when (step1State) {
             is GetSignUpStep1UseCaseState.Success -> {
@@ -148,7 +152,6 @@ fun SignUpStep1Screen(
                     onClick = {
                         showImageSourceDialog = false
                         if (cameraPermissionState.hasPermission) {
-                            // Crear archivo temporal para la cámara
                             tempFileLauncher.launch("profile_${System.currentTimeMillis()}.jpg")
                         } else {
                             cameraPermissionState.requestPermission()
@@ -159,7 +162,7 @@ fun SignUpStep1Screen(
                     Icon(
                         painter = painterResource(id = R.drawable.feature_signup_ic_camera),
                         contentDescription = "Cámara",
-                        modifier = Modifier.size(20.dp) // Control de tamaño
+                        modifier = Modifier.size(20.dp)
                     )
                     Spacer(Modifier.width(8.dp))
                     Text("Cámara")
@@ -180,7 +183,7 @@ fun SignUpStep1Screen(
                     Icon(
                         painter = painterResource(id = R.drawable.feature_signup_ic_image),
                         contentDescription = "Galería",
-                        modifier = Modifier.size(20.dp) // Control de tamaño
+                        modifier = Modifier.size(20.dp)
                     )
                     Spacer(Modifier.width(8.dp))
                     Text("Galería")
@@ -197,6 +200,7 @@ fun SignUpStep1Screen(
             .imePadding(),
         verticalArrangement = Arrangement.SpaceBetween
     ) {
+        // Header
         Column(
             modifier = Modifier
                 .fillMaxWidth()
@@ -207,16 +211,17 @@ fun SignUpStep1Screen(
                 style = MaterialTheme.typography.headlineSmall.copy(
                     fontWeight = FontWeight.Bold
                 ),
-                color = Color(0xFF1A1A1A)
+                color = colorScheme.onBackground
             )
 
             Text(
                 text = "Completa tus datos para continuar",
                 style = MaterialTheme.typography.bodyMedium,
-                color = Color(0xFF666666)
+                color = colorScheme.onSurfaceVariant
             )
         }
 
+        // Contenido principal
         Column(
             modifier = Modifier
                 .fillMaxWidth()
@@ -235,7 +240,7 @@ fun SignUpStep1Screen(
                     modifier = Modifier
                         .size(120.dp)
                         .clip(CircleShape)
-                        .background(Color.LightGray),
+                        .background(colorScheme.surfaceVariant),
                     contentAlignment = Alignment.Center
                 ) {
                     when {
@@ -262,8 +267,8 @@ fun SignUpStep1Screen(
                             Icon(
                                 painter = painterResource(id = R.drawable.feature_signup_ic_camera),
                                 contentDescription = "Agregar foto",
-                                modifier = Modifier.size(32.dp), // Control de tamaño más pequeño
-                                tint = Color.Gray
+                                modifier = Modifier.size(32.dp),
+                                tint = colorScheme.onSurfaceVariant
                             )
                         }
                     }
@@ -277,7 +282,7 @@ fun SignUpStep1Screen(
                     Icon(
                         painter = painterResource(id = R.drawable.feature_signup_ic_image),
                         contentDescription = "Seleccionar foto",
-                        modifier = Modifier.size(20.dp) // Control de tamaño
+                        modifier = Modifier.size(20.dp)
                     )
                     Spacer(Modifier.width(8.dp))
                     Text(
@@ -290,7 +295,7 @@ fun SignUpStep1Screen(
                     is UploadProfileImageUseCaseState.Success -> {
                         Text(
                             text = "✓ Imagen subida correctamente",
-                            color = Color.Green,
+                            color = colorScheme.primary,
                             style = MaterialTheme.typography.bodySmall
                         )
                     }
@@ -340,6 +345,7 @@ fun SignUpStep1Screen(
             }
         }
 
+        // Botón continuar
         Column(
             modifier = Modifier
                 .fillMaxWidth()
@@ -358,50 +364,95 @@ fun SignUpStep1Screen(
 }
 
 /* ===== Previews ===== */
-@Preview(showBackground = true, backgroundColor = 0xFFFFFFFF)
+
+@Preview(
+    showBackground = true,
+    backgroundColor = 0xFFFFFFFF,
+    uiMode = Configuration.UI_MODE_NIGHT_NO,
+    name = "SignUpStep1 - Empty Light"
+)
 @Composable
-private fun SignUpStep1ScreenPreview_Empty() {
-    SignUpStep1Screen(
-        step1State = GetSignUpStep1UseCaseState.Success(
-            SignUpModelStep1("", "", "")
-        ),
-        uploadImageState = UploadProfileImageUseCaseState.Idle,
-        currentPhotoUrl = null,
-        onGivenNameChange = {},
-        onFamilyNameChange = {},
-        onImageSelected = {},
-        onNext = { _, _ -> }
-    )
+private fun SignUpStep1ScreenPreview_Empty_Light() {
+    AndroidTheme(darkTheme = false) {
+        SignUpStep1Screen(
+            step1State = GetSignUpStep1UseCaseState.Success(
+                SignUpModelStep1("", "", "")
+            ),
+            uploadImageState = UploadProfileImageUseCaseState.Idle,
+            currentPhotoUrl = null,
+            onGivenNameChange = {},
+            onFamilyNameChange = {},
+            onImageSelected = {},
+            onNext = { _, _ -> }
+        )
+    }
 }
 
-@Preview(showBackground = true, backgroundColor = 0xFFFFFFFF)
+@Preview(
+    showBackground = true,
+    backgroundColor = 0xFF000000,
+    uiMode = Configuration.UI_MODE_NIGHT_YES,
+    name = "SignUpStep1 - Empty Dark"
+)
 @Composable
-private fun SignUpStep1ScreenPreview_Filled() {
-    SignUpStep1Screen(
-        step1State = GetSignUpStep1UseCaseState.Success(
-            SignUpModelStep1("Juan", "Pérez", "https://example.com/photo.jpg")
-        ),
-        uploadImageState = UploadProfileImageUseCaseState.Idle,
-        currentPhotoUrl = "https://example.com/photo.jpg",
-        onGivenNameChange = {},
-        onFamilyNameChange = {},
-        onImageSelected = {},
-        onNext = { _, _ -> }
-    )
+private fun SignUpStep1ScreenPreview_Empty_Dark() {
+    AndroidTheme(darkTheme = true) {
+        SignUpStep1Screen(
+            step1State = GetSignUpStep1UseCaseState.Success(
+                SignUpModelStep1("", "", "")
+            ),
+            uploadImageState = UploadProfileImageUseCaseState.Idle,
+            currentPhotoUrl = null,
+            onGivenNameChange = {},
+            onFamilyNameChange = {},
+            onImageSelected = {},
+            onNext = { _, _ -> }
+        )
+    }
 }
 
-@Preview(showBackground = true, backgroundColor = 0xFFFFFFFF)
+@Preview(
+    showBackground = true,
+    backgroundColor = 0xFFFFFFFF,
+    uiMode = Configuration.UI_MODE_NIGHT_NO,
+    name = "SignUpStep1 - Filled Light"
+)
 @Composable
-private fun SignUpStep1ScreenPreview_Uploading() {
-    SignUpStep1Screen(
-        step1State = GetSignUpStep1UseCaseState.Success(
-            SignUpModelStep1("Juan", "Pérez", "")
-        ),
-        uploadImageState = UploadProfileImageUseCaseState.Loading,
-        currentPhotoUrl = null,
-        onGivenNameChange = {},
-        onFamilyNameChange = {},
-        onImageSelected = {},
-        onNext = { _, _ -> }
-    )
+private fun SignUpStep1ScreenPreview_Filled_Light() {
+    AndroidTheme(darkTheme = false) {
+        SignUpStep1Screen(
+            step1State = GetSignUpStep1UseCaseState.Success(
+                SignUpModelStep1("Juan", "Pérez", "https://example.com/photo.jpg")
+            ),
+            uploadImageState = UploadProfileImageUseCaseState.Idle,
+            currentPhotoUrl = "https://example.com/photo.jpg",
+            onGivenNameChange = {},
+            onFamilyNameChange = {},
+            onImageSelected = {},
+            onNext = { _, _ -> }
+        )
+    }
+}
+
+@Preview(
+    showBackground = true,
+    backgroundColor = 0xFFFFFFFF,
+    uiMode = Configuration.UI_MODE_NIGHT_NO,
+    name = "SignUpStep1 - Uploading Light"
+)
+@Composable
+private fun SignUpStep1ScreenPreview_Uploading_Light() {
+    AndroidTheme(darkTheme = false) {
+        SignUpStep1Screen(
+            step1State = GetSignUpStep1UseCaseState.Success(
+                SignUpModelStep1("Juan", "Pérez", "")
+            ),
+            uploadImageState = UploadProfileImageUseCaseState.Loading,
+            currentPhotoUrl = null,
+            onGivenNameChange = {},
+            onFamilyNameChange = {},
+            onImageSelected = {},
+            onNext = { _, _ -> }
+        )
+    }
 }

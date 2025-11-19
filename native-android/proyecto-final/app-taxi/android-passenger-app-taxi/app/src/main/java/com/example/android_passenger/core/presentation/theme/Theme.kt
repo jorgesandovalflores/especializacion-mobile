@@ -3,6 +3,7 @@ package com.example.android_passenger.core.presentation.theme
 import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Shapes
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.dynamicDarkColorScheme
 import androidx.compose.material3.dynamicLightColorScheme
@@ -12,27 +13,42 @@ import androidx.compose.ui.platform.LocalContext
 
 private val DarkColorScheme = darkColorScheme(
     primary = ColorPrimary,
+    onPrimary = ColorOnPrimary,
     secondary = ColorSecondary,
-    tertiary = Pink80
+    onSecondary = ColorOnSecondary,
+    background = ColorBackgroundDark,
+    onBackground = ColorOnBackgroundDark,
+    surface = ColorSurfaceDark,
+    onSurface = ColorOnSurfaceDark,
+    error = ColorError,
+    onError = ColorOnError,
 )
 
 private val LightColorScheme = lightColorScheme(
     primary = ColorPrimary,
+    onPrimary = ColorOnPrimary,
     secondary = ColorSecondary,
-    tertiary = Pink40
+    onSecondary = ColorOnSecondary,
+    background = ColorBackgroundLight,
+    onBackground = ColorOnBackgroundLight,
+    surface = ColorSurfaceLight,
+    onSurface = ColorOnSurfaceLight,
+    error = ColorError,
+    onError = ColorOnError,
 )
 
 @Composable
 fun AndroidTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
-    // Dynamic color is available on Android 12+
     dynamicColor: Boolean = true,
     content: @Composable () -> Unit
 ) {
+    val context = LocalContext.current
+
     val colorScheme = when {
         dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
-            val context = LocalContext.current
-            if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
+            if (darkTheme) dynamicDarkColorScheme(context)
+            else dynamicLightColorScheme(context)
         }
 
         darkTheme -> DarkColorScheme
@@ -42,6 +58,7 @@ fun AndroidTheme(
     MaterialTheme(
         colorScheme = colorScheme,
         typography = Typography,
+        shapes = Shapes(),
         content = content
     )
 }

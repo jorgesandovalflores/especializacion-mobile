@@ -1,5 +1,6 @@
 package com.example.android_passenger.features.signin.presentation
 
+import android.content.res.Configuration
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -24,7 +25,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.tooling.preview.Preview
@@ -35,6 +36,7 @@ import com.example.android_passenger.commons.presentation.NavigationBarStyle
 import com.example.android_passenger.commons.presentation.OtpCodeInput
 import com.example.android_passenger.commons.presentation.PrimaryButton
 import com.example.android_passenger.commons.presentation.ToastType
+import com.example.android_passenger.core.presentation.theme.AndroidTheme
 import com.example.android_passenger.features.signin.domain.usecase.OtpGenerateState
 import com.example.android_passenger.features.signin.domain.usecase.OtpValidateState
 import com.google.firebase.messaging.FirebaseMessaging
@@ -54,8 +56,12 @@ fun SignInValidateOtpScreen(
     onResend: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val bg = Color.White
-    NavigationBarStyle(color = bg, darkIcons = true)
+    val colorScheme = MaterialTheme.colorScheme
+    val bg = colorScheme.background
+
+    // Decidimos color de íconos del sistema en función de la luminancia del background
+    val isLightBackground = bg.luminance() > 0.5f
+    NavigationBarStyle(color = bg, darkIcons = isLightBackground)
 
     // ====== Estado OTP local (4 dígitos) ======
     var d0 by remember(expiresAt) { mutableStateOf("") }
@@ -121,7 +127,7 @@ fun SignInValidateOtpScreen(
                     Text(
                         text = "Hemos enviado un código de 4 dígitos al número $phone",
                         style = MaterialTheme.typography.titleMedium,
-                        color = Color(0xFF0F0F0F)
+                        color = colorScheme.onBackground
                     )
 
                     OtpCodeInput(
@@ -141,7 +147,7 @@ fun SignInValidateOtpScreen(
                                 style = MaterialTheme.typography.bodyMedium.copy(
                                     textDecoration = TextDecoration.Underline
                                 ),
-                                color = Color(0xFF2E2E2E),
+                                color = colorScheme.onSurface,
                                 textAlign = TextAlign.End
                             )
                         } else {
@@ -150,7 +156,8 @@ fun SignInValidateOtpScreen(
                                 style = MaterialTheme.typography.bodyMedium.copy(
                                     textDecoration = TextDecoration.Underline
                                 ),
-                                color = Color(0xFF0F0F0F),
+                                // Usamos primary para que parezca un link/acción
+                                color = colorScheme.primary,
                                 modifier = Modifier.clickable { onResend() },
                                 textAlign = TextAlign.End
                             )
@@ -196,6 +203,7 @@ private fun secondsRemaining(targetLocal: ZonedDateTime?): Int {
     val diff = Duration.between(now, targetLocal).seconds
     return if (diff > 0) diff.toInt() else 0
 }
+
 private fun formatAsMMSS(seconds: Int): String {
     val m = seconds / 60
     val s = seconds % 60
@@ -248,7 +256,9 @@ fun SignInValidateOtpRoute(
 
     LaunchedEffect(generateState) {
         when (val g = generateState) {
-            is OtpGenerateState.Success -> { expiresIso = g.expiresAt }
+            is OtpGenerateState.Success -> {
+                expiresIso = g.expiresAt
+            }
             else -> Unit
         }
     }
@@ -279,44 +289,86 @@ fun SignInValidateOtpRoute(
 }
 
 /* ===== Previews ===== */
-@Preview(showBackground = true, backgroundColor = 0xFFFFFFFF)
+@Preview(
+    showBackground = true,
+    backgroundColor = 0xFFFFFFFF,
+    uiMode = Configuration.UI_MODE_NIGHT_NO,
+    name = "Validate OTP - Idle Light"
+)
 @Composable
-private fun SignInValidateOtpScreenPreview_Idle() {
+private fun SignInValidateOtpScreenPreview_Idle_Light() {
     val futureUtc = Instant.now().plusSeconds(90).toString()
-    SignInValidateOtpScreen(
-        phone = "987654321",
-        expiresAt = futureUtc,
-        validateState = OtpValidateState.Idle,
-        generateState = OtpGenerateState.Idle,
-        onValidate = {},
-        onResend = {}
-    )
+    AndroidTheme(darkTheme = false) {
+        SignInValidateOtpScreen(
+            phone = "987654321",
+            expiresAt = futureUtc,
+            validateState = OtpValidateState.Idle,
+            generateState = OtpGenerateState.Idle,
+            onValidate = {},
+            onResend = {}
+        )
+    }
 }
 
-@Preview(showBackground = true, backgroundColor = 0xFFFFFFFF)
+@Preview(
+    showBackground = true,
+    backgroundColor = 0xFF000000,
+    uiMode = Configuration.UI_MODE_NIGHT_YES,
+    name = "Validate OTP - Idle Dark"
+)
 @Composable
-private fun SignInValidateOtpScreenPreview_Loading() {
+private fun SignInValidateOtpScreenPreview_Idle_Dark() {
+    val futureUtc = Instant.now().plusSeconds(90).toString()
+    AndroidTheme(darkTheme = true) {
+        SignInValidateOtpScreen(
+            phone = "987654321",
+            expiresAt = futureUtc,
+            validateState = OtpValidateState.Idle,
+            generateState = OtpGenerateState.Idle,
+            onValidate = {},
+            onResend = {}
+        )
+    }
+}
+
+@Preview(
+    showBackground = true,
+    backgroundColor = 0xFFFFFFFF,
+    uiMode = Configuration.UI_MODE_NIGHT_NO,
+    name = "Validate OTP - Loading Light"
+)
+@Composable
+private fun SignInValidateOtpScreenPreview_Loading_Light() {
     val futureUtc = Instant.now().plusSeconds(60).toString()
-    SignInValidateOtpScreen(
-        phone = "987654321",
-        expiresAt = futureUtc,
-        validateState = OtpValidateState.Loading,
-        generateState = OtpGenerateState.Idle,
-        onValidate = {},
-        onResend = {}
-    )
+    AndroidTheme(darkTheme = false) {
+        SignInValidateOtpScreen(
+            phone = "987654321",
+            expiresAt = futureUtc,
+            validateState = OtpValidateState.Loading,
+            generateState = OtpGenerateState.Idle,
+            onValidate = {},
+            onResend = {}
+        )
+    }
 }
 
-@Preview(showBackground = true, backgroundColor = 0xFFFFFFFF)
+@Preview(
+    showBackground = true,
+    backgroundColor = 0xFFFFFFFF,
+    uiMode = Configuration.UI_MODE_NIGHT_NO,
+    name = "Validate OTP - Error Light"
+)
 @Composable
-private fun SignInValidateOtpScreenPreview_Error() {
+private fun SignInValidateOtpScreenPreview_Error_Light() {
     val futureUtc = Instant.now().plusSeconds(30).toString()
-    SignInValidateOtpScreen(
-        phone = "987654321",
-        expiresAt = futureUtc,
-        validateState = OtpValidateState.Error("Código inválido"),
-        generateState = OtpGenerateState.Idle,
-        onValidate = {},
-        onResend = {}
-    )
+    AndroidTheme(darkTheme = false) {
+        SignInValidateOtpScreen(
+            phone = "987654321",
+            expiresAt = futureUtc,
+            validateState = OtpValidateState.Error("Código inválido"),
+            generateState = OtpGenerateState.Idle,
+            onValidate = {},
+            onResend = {}
+        )
+    }
 }

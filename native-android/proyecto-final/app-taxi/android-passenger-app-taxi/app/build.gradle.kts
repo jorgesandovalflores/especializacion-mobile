@@ -108,6 +108,7 @@ dependencies {
     implementation(libs.maps.compose)
     implementation(libs.play.services.maps)
     implementation(libs.play.services.location)
+    implementation(libs.play.services.base)
     // firebase
     implementation(platform(libs.firebase.bom))
     implementation(libs.firebase.messaging)

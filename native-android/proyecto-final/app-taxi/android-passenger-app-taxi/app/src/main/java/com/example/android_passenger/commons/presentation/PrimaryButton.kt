@@ -1,5 +1,6 @@
 package com.example.android_passenger.commons.presentation
 
+import android.content.res.Configuration
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -19,6 +20,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.example.android_passenger.core.presentation.theme.AndroidTheme
 import com.example.android_passenger.core.presentation.theme.ColorPrimary
 
 @Composable
@@ -35,9 +37,11 @@ fun PrimaryButton(
         enabled = enabled && !loading,
         colors = ButtonDefaults.buttonColors(
             containerColor = ColorPrimary,
-            contentColor = Color.White
+            contentColor = Color.White,
+            disabledContainerColor = ColorPrimary.copy(alpha = 0.4f),
+            disabledContentColor = Color.White.copy(alpha = 0.8f)
         ),
-        elevation = ButtonDefaults.buttonElevation( // <- elevación custom
+        elevation = ButtonDefaults.buttonElevation(
             defaultElevation = 6.dp,
             pressedElevation = 8.dp,
             focusedElevation = 6.dp,
@@ -64,28 +68,68 @@ fun PrimaryButton(
     }
 }
 
-@Preview(showBackground = true, backgroundColor = 0xFFF0F0F0)
+@Preview(
+    showBackground = true,
+    backgroundColor = 0xFFF0F0F0,
+    uiMode = Configuration.UI_MODE_NIGHT_NO,
+    name = "PrimaryButton - Light"
+)
 @Composable
-private fun PrimaryButtonPreview() {
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(16.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(16.dp)
-    ) {
-        PrimaryButton(
-            text = "Ingresar",
-            onClick = {},
-            enabled = true,
-            loading = false
-        )
+private fun PrimaryButtonPreview_Light() {
+    AndroidTheme(darkTheme = false) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            PrimaryButton(
+                text = "Ingresar",
+                onClick = {},
+                enabled = true,
+                loading = false
+            )
 
-        PrimaryButton(
-            text = "Cargando...",
-            onClick = {},
-            enabled = true,
-            loading = true
-        )
+            PrimaryButton(
+                text = "Cargando...",
+                onClick = {},
+                enabled = true,
+                loading = true
+            )
+        }
+    }
+}
+
+@Preview(
+    showBackground = true,
+    backgroundColor = 0xFF000000,
+    uiMode = Configuration.UI_MODE_NIGHT_YES,
+    name = "PrimaryButton - Dark"
+)
+@Composable
+private fun PrimaryButtonPreview_Dark() {
+    AndroidTheme(darkTheme = true) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            PrimaryButton(
+                text = "Ingresar",
+                onClick = {},
+                enabled = true,
+                loading = false
+            )
+
+            PrimaryButton(
+                text = "Cargando...",
+                onClick = {},
+                enabled = true,
+                loading = true
+            )
+        }
     }
 }

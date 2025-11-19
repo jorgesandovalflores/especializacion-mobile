@@ -28,6 +28,7 @@ import java.net.URLEncoder
 import java.nio.charset.StandardCharsets
 import java.time.Instant
 import androidx.core.net.toUri
+import com.example.android_passenger.core.presentation.theme.AndroidTheme
 
 // ===== Rutas =====
 sealed class Route(val path: String) {
@@ -73,7 +74,11 @@ class MainActivity : ComponentActivity() {
         window.isStatusBarContrastEnforced = false
         window.isNavigationBarContrastEnforced = false
 
-        setContent { AppRoot() }
+        setContent {
+            AndroidTheme() {
+                AppRoot()
+            }
+        }
     }
 }
 
@@ -83,7 +88,6 @@ private fun AppRoot() {
 
     NavHost(navController = nav, startDestination = Route.Splash.path) {
 
-        // ===== Splash → SignIn (LIMPIA) =====
         composable(Route.Splash.path) {
             SplashScreenRoute(
                 onGoSignIn = {
@@ -101,23 +105,20 @@ private fun AppRoot() {
         // ======= Grafo de autenticación =======
         navigation(route = "auth_graph", startDestination = Route.SignIn.path) {
 
-            // Entry: decide Generate vs Validate
             composable(Route.SignIn.path) {
                 SignInEntryRoute(nav = nav)
             }
 
-            // Generate OTP (MANTIENE historial → puede volver desde Validate)
             composable(Route.SignInGenerate.path) {
                 SignInGenerateOtpRoute(
                     onGoValidate = { phone, expiresAtIso ->
                         val expiresAtUtcMillis = runCatching { Instant.parse(expiresAtIso).toEpochMilli() }
                             .getOrDefault(0L)
-                        nav.navigate(Route.SignInValidate.build(phone, expiresAtUtcMillis)) // sin popUpTo
+                        nav.navigate(Route.SignInValidate.build(phone, expiresAtUtcMillis))
                     }
                 )
             }
 
-            // Validate OTP (permite back a Generate)
             composable(
                 route = Route.SignInValidate.path,
                 arguments = listOf(
@@ -132,11 +133,9 @@ private fun AppRoot() {
                     phone = phone,
                     expiresAtUtcMillis = expiresAt,
                     onGoHome = {
-                        // Cualquier → Home (LIMPIA TODO)
                         nav.navigateClearingBackStack(Route.Home.path)
                     },
                     onGoSignUp = {
-                        // Limpiar grafo de auth al ir a registro
                         nav.navigate(Route.SignUp.path) {
                             popUpTo("auth_graph") { inclusive = true }
                         }
@@ -148,19 +147,18 @@ private fun AppRoot() {
         // ======= Grafo de registro =======
         navigation(route = "signup_graph", startDestination = Route.SignUp.path) {
 
-            // Entry: decide el paso (por ahora siempre al 1 o 2 según getStep)
             composable(Route.SignUp.path) {
                 SignUpEntryRoute(nav = nav)
             }
 
-            // Step 1 → Step 2 (mantiene historial)
+            // Step 1 → Step 2
             composable(Route.SignUpStep1.path) {
                 SignUpStep1Route(
                     onNext = { nav.navigate(Route.SignUpStep2.path) }
                 )
             }
 
-            // Step 2 → Home (LIMPIA TODO)
+            // Step 2 → Home
             composable(Route.SignUpStep2.path) {
                 SignUpStep2Route(
                     onFinish = {
@@ -205,7 +203,6 @@ private fun AppRoot() {
     }
 }
 
-// ===== EntryRoute de Sign-In =====
 @Composable
 private fun SignInEntryRoute(
     nav: NavController,
@@ -215,12 +212,10 @@ private fun SignInEntryRoute(
         val pending = getPendingOtp()
         val now = System.currentTimeMillis()
         if (pending != null && pending.expiresAtUtcMillis > now && pending.phone.isNotBlank()) {
-            // Vamos directo a Validate y limpiamos el entry del stack
             nav.navigateSingleTop(Route.SignInValidate.build(pending.phone, pending.expiresAtUtcMillis)) {
                 popUpTo(Route.SignIn.path) { inclusive = true }
             }
         } else {
-            // Vamos a Generate y limpiamos el entry del stack
             nav.navigateSingleTop(Route.SignInGenerate.path) {
                 popUpTo(Route.SignIn.path) { inclusive = true }
             }
@@ -233,7 +228,6 @@ data class PendingOtp(
     val expiresAtUtcMillis: Long
 )
 
-// ===== EntryRoute de Sign-Up =====
 @Composable
 private fun SignUpEntryRoute(
     nav: NavController,
@@ -251,7 +245,6 @@ private fun SignUpEntryRoute(
     }
 }
 
-// ===== Helpers de navegación =====
 private inline fun NavController.navigateSingleTop(
     route: String,
     crossinline builder: androidx.navigation.NavOptionsBuilder.() -> Unit = {}
@@ -262,7 +255,6 @@ private inline fun NavController.navigateSingleTop(
     }
 }
 
-// Limpia absolutamente TODO el back stack y navega a [route]
 private inline fun NavController.navigateClearingBackStack(route: String) {
     this.navigate(route) {
         popUpTo(this@navigateClearingBackStack.graph.id) {

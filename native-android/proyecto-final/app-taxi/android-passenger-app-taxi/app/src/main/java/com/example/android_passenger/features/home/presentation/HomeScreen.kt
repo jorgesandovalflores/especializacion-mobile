@@ -1,5 +1,6 @@
 package com.example.android_passenger.features.home.presentation
 
+import com.example.android_passenger.R
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -43,6 +44,8 @@ import com.example.android_passenger.commons.presentation.ComponentPinLocationUs
 import com.example.android_passenger.commons.domain.usecase.GetPassengerLocalState
 import com.example.android_passenger.features.home.domain.model.AlertHome
 import com.example.android_passenger.features.home.domain.usecase.AlertHomeFirestoreUseCaseState
+import com.google.android.gms.maps.model.MapColorScheme
+import com.google.android.gms.maps.model.MapStyleOptions
 
 @Composable
 fun HomeScreen(
@@ -164,7 +167,7 @@ private fun MapContent(
     shouldCenterOnUserLocation: Boolean,
     onLocationCentered: () -> Unit,
     onMenuClick: () -> Unit,
-    userPhotoUrl: String? // <-- nuevo parámetro
+    userPhotoUrl: String?
 ) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
@@ -185,10 +188,10 @@ private fun MapContent(
         )
     }
 
-    val mapProperties = remember {
+    val mapProperties = remember(context) {
         MapProperties(
             mapType = MapType.NORMAL,
-            isMyLocationEnabled = true
+            isMyLocationEnabled = false
         )
     }
 
@@ -215,7 +218,12 @@ private fun MapContent(
             modifier = Modifier.fillMaxSize(),
             cameraPositionState = cameraPositionState,
             properties = mapProperties,
-            uiSettings = uiSettings
+            uiSettings = uiSettings,
+            googleMapOptionsFactory = {
+                com.google.android.gms.maps.GoogleMapOptions()
+                    .mapId(context.getString(R.string.google_map_id))
+                    .mapColorScheme(MapColorScheme.FOLLOW_SYSTEM)
+            }
         )
 
         Box(
@@ -224,7 +232,7 @@ private fun MapContent(
                 .align(Alignment.TopStart)
         ) {
             MenuIconButton(
-                iconRes = com.example.android_passenger.R.drawable.feature_home_ic_menu,
+                iconRes = R.drawable.feature_home_ic_menu,
                 onClick = onMenuClick
             )
         }
