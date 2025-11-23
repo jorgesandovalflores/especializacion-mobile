@@ -116,13 +116,21 @@ dependencies {
     implementation(libs.firebase.storage)
     implementation(libs.firebase.firestore)
 
-    testImplementation(libs.mockk)
+    // Pruebas unitarias (JVM local)
     testImplementation(libs.junit)
     testImplementation(libs.kotlinx.coroutines.test)
+
+    // Pruebas instrumentadas
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
+
+    // Compose Testing
     androidTestImplementation(platform(libs.androidx.compose.bom))
     androidTestImplementation(libs.androidx.ui.test.junit4)
-    debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
+    testImplementation(libs.mockk)
+
+    // librería opcionales
+    androidTestImplementation(libs.androidx.ui.test.junit4)
+    debugImplementation(libs.androidx.ui.tooling)
 }
