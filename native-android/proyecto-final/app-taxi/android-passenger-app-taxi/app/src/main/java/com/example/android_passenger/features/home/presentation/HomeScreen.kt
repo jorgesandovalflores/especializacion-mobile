@@ -7,20 +7,28 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.LocationOn
+import androidx.compose.material.icons.filled.Place
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.layout.positionInRoot
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -42,10 +50,10 @@ import com.google.maps.android.compose.rememberCameraPositionState
 import kotlinx.coroutines.launch
 import com.example.android_passenger.commons.presentation.ComponentPinLocationUser
 import com.example.android_passenger.commons.domain.usecase.GetPassengerLocalState
+import com.example.android_passenger.commons.presentation.PrimaryButton
 import com.example.android_passenger.features.home.domain.model.AlertHome
 import com.example.android_passenger.features.home.domain.usecase.AlertHomeFirestoreUseCaseState
 import com.google.android.gms.maps.model.MapColorScheme
-import com.google.android.gms.maps.model.MapStyleOptions
 
 @Composable
 fun HomeScreen(
@@ -150,19 +158,6 @@ fun HomeScreen(
 }
 
 @Composable
-fun HomeScreenRoute(
-    onNavigateToMenu: () -> Unit,
-    onBackPressed: () -> Unit,
-    modifier: Modifier = Modifier,
-) {
-    HomeScreen(
-        modifier = modifier,
-        onMenuClick = onNavigateToMenu,
-        onBackPressed = onBackPressed
-    )
-}
-
-@Composable
 private fun MapContent(
     shouldCenterOnUserLocation: Boolean,
     onLocationCentered: () -> Unit,
@@ -171,6 +166,17 @@ private fun MapContent(
 ) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
+    val density = LocalDensity.current
+
+    // Estados para las direcciones
+    var originAddress by remember { mutableStateOf("") }
+    var destinationAddress by remember { mutableStateOf("") }
+
+    // Para medir dónde empieza el Card
+    var cardTopPx by remember { mutableStateOf<Float?>(null) }
+
+    // Estado de carga del botón de "mi ubicación"
+    var isLocating by remember { mutableStateOf(false) }
 
     // Ubicación por defecto (Lima)
     val defaultLocation = LatLng(-12.0464, -77.0428)
@@ -202,7 +208,7 @@ private fun MapContent(
 
                 if (currentLatLng != null) {
                     userLocation.value = currentLatLng
-                    cameraPositionState.centerOn(currentLatLng, 15f)
+                    cameraPositionState.centerOn(currentLatLng, 18f)
                     onLocationCentered()
                 } else {
                     userLocation.value = defaultLocation
@@ -213,7 +219,9 @@ private fun MapContent(
         }
     }
 
-    Box(modifier = Modifier.fillMaxSize()) {
+    BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
+        val screenHeightPx = with(density) { maxHeight.toPx() }
+
         GoogleMap(
             modifier = Modifier.fillMaxSize(),
             cameraPositionState = cameraPositionState,
@@ -223,8 +231,123 @@ private fun MapContent(
                 com.google.android.gms.maps.GoogleMapOptions()
                     .mapId(context.getString(R.string.google_map_id))
                     .mapColorScheme(MapColorScheme.FOLLOW_SYSTEM)
-            }
+            },
+            contentPadding = PaddingValues(
+                bottom = 310.dp,
+                top = 72.dp,
+                start = 16.dp,
+                end = 16.dp
+            )
         )
+
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .align(Alignment.BottomCenter)
+                .navigationBarsPadding()
+        ) {
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(start = 16.dp, end = 16.dp, bottom = 12.dp)
+                    .onGloballyPositioned { coordinates ->
+                        cardTopPx = coordinates.positionInRoot().y
+                    },
+                elevation = CardDefaults.cardElevation(defaultElevation = 8.dp),
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.surface
+                )
+            ) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp)
+                ) {
+                    OutlinedTextField(
+                        value = originAddress,
+                        onValueChange = { originAddress = it },
+                        label = {
+                            Text(
+                                "Dirección de origen",
+                                color = MaterialTheme.colorScheme.onSurface
+                            )
+                        },
+                        placeholder = {
+                            Text(
+                                "Ingresa tu ubicación actual",
+                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                            )
+                        },
+                        leadingIcon = {
+                            Icon(
+                                imageVector = Icons.Default.LocationOn,
+                                contentDescription = "Origen",
+                                tint = MaterialTheme.colorScheme.primary
+                            )
+                        },
+                        modifier = Modifier.fillMaxWidth(),
+                        singleLine = true,
+                        colors = TextFieldDefaults.colors(
+                            focusedContainerColor = Color.Transparent,
+                            unfocusedContainerColor = Color.Transparent,
+                            disabledContainerColor = Color.Transparent,
+                            cursorColor = MaterialTheme.colorScheme.primary,
+                            focusedIndicatorColor = MaterialTheme.colorScheme.primary,
+                            unfocusedIndicatorColor = MaterialTheme.colorScheme.outline
+                        )
+                    )
+
+                    Spacer(modifier = Modifier.height(12.dp))
+
+                    OutlinedTextField(
+                        value = destinationAddress,
+                        onValueChange = { destinationAddress = it },
+                        label = {
+                            Text(
+                                "Dirección de destino",
+                                color = MaterialTheme.colorScheme.onSurface
+                            )
+                        },
+                        placeholder = {
+                            Text(
+                                "¿A dónde quieres ir?",
+                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                            )
+                        },
+                        leadingIcon = {
+                            Icon(
+                                imageVector = Icons.Default.Place,
+                                contentDescription = "Destino",
+                                tint = MaterialTheme.colorScheme.error
+                            )
+                        },
+                        modifier = Modifier.fillMaxWidth(),
+                        singleLine = true,
+                        colors = TextFieldDefaults.colors(
+                            focusedContainerColor = Color.Transparent,
+                            unfocusedContainerColor = Color.Transparent,
+                            disabledContainerColor = Color.Transparent,
+                            cursorColor = MaterialTheme.colorScheme.primary,
+                            focusedIndicatorColor = MaterialTheme.colorScheme.primary,
+                            unfocusedIndicatorColor = MaterialTheme.colorScheme.outline
+                        )
+                    )
+                }
+            }
+
+            PrimaryButton(
+                text = "Buscar Ruta",
+                onClick = {
+                    if (originAddress.isNotEmpty() && destinationAddress.isNotEmpty()) {
+                        // Acción cuando ambos campos están llenos
+                    }
+                },
+                enabled = originAddress.isNotEmpty() && destinationAddress.isNotEmpty(),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(start = 16.dp, end = 16.dp, bottom = 16.dp),
+            )
+        }
 
         Box(
             modifier = Modifier
@@ -244,32 +367,44 @@ private fun MapContent(
         ) {
             MenuIconButton(
                 iconRes = android.R.drawable.ic_menu_mylocation,
+                isLoading = isLocating,
                 onClick = {
-                    scope.launch {
-                        val currentLatLng = LocationHelper.getCurrentLatLng(context)
+                    if (isLocating) return@MenuIconButton // Evitar múltiples taps mientras carga
 
-                        if (currentLatLng != null) {
-                            userLocation.value = currentLatLng
-                            cameraPositionState.centerOn(currentLatLng, 15f)
-                        } else {
-                            val targetLocation = userLocation.value ?: defaultLocation
-                            cameraPositionState.centerOn(targetLocation, 15f)
+                    scope.launch {
+                        isLocating = true
+                        try {
+                            val currentLatLng = LocationHelper.getCurrentLatLng(context)
+
+                            if (currentLatLng != null) {
+                                userLocation.value = currentLatLng
+                                cameraPositionState.centerOn(currentLatLng, 18f)
+                            } else {
+                                val targetLocation = userLocation.value ?: defaultLocation
+                                cameraPositionState.centerOn(targetLocation, 18f)
+                            }
+                        } finally {
+                            // Siempre volver a estado normal, incluso si falla
+                            isLocating = false
                         }
                     }
                 }
             )
         }
 
-        if (userLocation.value != null) {
+        if (userLocation.value != null && cardTopPx != null) {
+            val pinCenterYPx = cardTopPx!! / 2f
+            val offsetFromCenterPx = pinCenterYPx - (screenHeightPx / 2f)
+            val offsetFromCenterDp = with(density) { offsetFromCenterPx.toDp() }
+
             val profileSize = 56.dp
             val pinHeight = 18.dp
             val gap = 6.dp
-            val pinOffsetY = -(profileSize / 2 + gap + pinHeight)
 
             ComponentPinLocationUser(
                 modifier = Modifier
                     .align(Alignment.Center)
-                    .offset(y = pinOffsetY),
+                    .offset(y = offsetFromCenterDp),
                 showAddress = false,
                 photoUrl = userPhotoUrl,
                 profileSize = profileSize,
@@ -380,10 +515,12 @@ private fun PermissionRequestScreen(
 fun MenuIconButton(
     iconRes: Int,
     onClick: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    isLoading: Boolean = false
 ) {
     Button(
         onClick = onClick,
+        enabled = !isLoading,
         shape = CircleShape,
         colors = ButtonDefaults.buttonColors(
             containerColor = Color.White,
@@ -399,13 +536,22 @@ fun MenuIconButton(
         contentPadding = PaddingValues(0.dp),
         modifier = modifier.size(54.dp)
     ) {
-        Icon(
-            painter = painterResource(id = iconRes),
-            contentDescription = "menu",
-            modifier = Modifier.size(22.dp)
-        )
+        if (isLoading) {
+            // Indicador de carga compacto
+            CircularProgressIndicator(
+                strokeWidth = 2.dp,
+                modifier = Modifier.size(22.dp)
+            )
+        } else {
+            Icon(
+                painter = painterResource(id = iconRes),
+                contentDescription = "menu",
+                modifier = Modifier.size(22.dp)
+            )
+        }
     }
 }
+
 
 @Composable
 fun AlertHomeBanner(
@@ -456,6 +602,20 @@ fun AlertHomeBanner(
         }
     }
 }
+
+@Composable
+fun HomeScreenRoute(
+    onNavigateToMenu: () -> Unit,
+    onBackPressed: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    HomeScreen(
+        modifier = modifier,
+        onMenuClick = onNavigateToMenu,
+        onBackPressed = onBackPressed
+    )
+}
+
 
 @Composable
 private fun rememberAlertHomeForPreview(): AlertHome? {
