@@ -1,3 +1,5 @@
+import org.jetbrains.kotlin.konan.properties.Properties
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
@@ -9,6 +11,11 @@ plugins {
 }
 
 android {
+    /* PROPERTIES KEYSTORE */
+    val propertiesKeystoreFile = rootProject.file("keystore.properties")
+    val propertiesKeystore = Properties()
+    propertiesKeystore.load(propertiesKeystoreFile.inputStream())
+
     namespace = "com.example.android_passenger"
     compileSdk = 36
 
@@ -23,9 +30,29 @@ android {
         buildConfigField("String", "API_BASE_URL", "\"https://6jh2c2wj-3001.brs.devtunnels.ms/\"")
     }
 
+    signingConfigs {
+        create("release") {
+            storeFile = rootProject.file(propertiesKeystore.getProperty("STORE_FILE_RELEASE"))
+            storePassword = propertiesKeystore.getProperty("STORE_PASSWORD_RELEASE")
+            keyAlias = propertiesKeystore.getProperty("KEY_ALIAS_RELEASE")
+            keyPassword = propertiesKeystore.getProperty("KEY_PASSWORD_RELEASE")
+        }
+        create("default") {
+            storeFile = rootProject.file(propertiesKeystore.getProperty("STORE_FILE_DEBUG"))
+            storePassword = propertiesKeystore.getProperty("STORE_PASSWORD_DEBUG")
+            keyAlias = propertiesKeystore.getProperty("KEY_ALIAS_DEBUG")
+            keyPassword = propertiesKeystore.getProperty("KEY_PASSWORD_DEBUG")
+        }
+    }
+
     buildTypes {
+        getByName("debug") {
+            isMinifyEnabled = false
+            signingConfig = signingConfigs.getByName("default")
+        }
         release {
             isMinifyEnabled = false
+            signingConfig = signingConfigs.getByName("release")
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
@@ -115,6 +142,10 @@ dependencies {
     implementation(libs.firebase.analytics)
     implementation(libs.firebase.storage)
     implementation(libs.firebase.firestore)
+    // Socket.IO
+    implementation("io.socket:socket.io-client:2.1.0") {
+        exclude(group = "org.json", module = "json")
+    }
 
     // Pruebas unitarias (JVM local)
     testImplementation(libs.junit)

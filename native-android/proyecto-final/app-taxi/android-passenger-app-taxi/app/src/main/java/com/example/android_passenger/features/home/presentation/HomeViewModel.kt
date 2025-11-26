@@ -9,16 +9,24 @@ import com.example.android_passenger.core.presentation.toReadableMessage
 import com.example.android_passenger.features.home.domain.model.AlertHome
 import com.example.android_passenger.features.home.domain.usecase.AlertHomeFirestoreUseCase
 import com.example.android_passenger.features.home.domain.usecase.AlertHomeFirestoreUseCaseState
+import com.example.android_passenger.features.home.domain.usecase.RouteUpdate
+import com.example.android_passenger.features.home.domain.usecase.SocketConnectionState
+import com.example.android_passenger.features.home.domain.usecase.SocketError
+import com.example.android_passenger.features.home.domain.usecase.SocketHomeUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
 class HomeViewModel @Inject constructor(
     private val getPassengerLocalUseCase: GetPassengerLocalUseCase,
-    private val alertHomeFirestoreUseCase: AlertHomeFirestoreUseCase
+    private val alertHomeFirestoreUseCase: AlertHomeFirestoreUseCase,
+    private val socketHomeUseCase: SocketHomeUseCase
 ) : ViewModel() {
 
     private val _userUi = MutableStateFlow<GetPassengerLocalState>(GetPassengerLocalState.Idle)
@@ -68,5 +76,43 @@ class HomeViewModel @Inject constructor(
 
     fun dismissAlert() {
         _showAlert.value = false
+    }
+
+    val connectionState: StateFlow<SocketConnectionState> =
+        socketHomeUseCase.connectionState
+
+    val routeUpdates: StateFlow<RouteUpdate?> =
+        socketHomeUseCase.routeUpdates
+
+    val errors: StateFlow<SocketError?> =
+        socketHomeUseCase.errors
+
+    val isConnected: StateFlow<Boolean> =
+        socketHomeUseCase.connectionState.map { it is SocketConnectionState.Connected }
+            .stateIn(
+                viewModelScope,
+                SharingStarted.WhileSubscribed(5000),
+                false
+            )
+
+    fun connect() {
+        viewModelScope.launch {
+            socketHomeUseCase.connect()
+        }
+    }
+
+    fun disconnect() {
+        viewModelScope.launch {
+            socketHomeUseCase.disconnect()
+        }
+    }
+
+    fun clearError() {
+
+    }
+
+    override fun onCleared() {
+        super.onCleared()
+        disconnect()
     }
 }

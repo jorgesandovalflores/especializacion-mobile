@@ -13,6 +13,7 @@ import { HttpExceptionFilter } from "./core/http/filters/http-exception.filter";
 import { PassengerModule } from "./features/passengers/passenger.module";
 import { MenuModule } from "./features/menu/menu.module";
 import { AddressModule } from "./features/addresses/address.module";
+import { WebsocketsModule } from "./features/websockets/websockets.module";
 
 const isDebug = process.env.NODE_DEBUG === "true";
 
@@ -63,6 +64,7 @@ const isDebug = process.env.NODE_DEBUG === "true";
         PassengerModule,
         MenuModule,
         AddressModule,
+        WebsocketsModule,
     ],
     controllers: [AppController],
     providers: [

@@ -53,7 +53,10 @@ import com.example.android_passenger.commons.domain.usecase.GetPassengerLocalSta
 import com.example.android_passenger.commons.presentation.PrimaryButton
 import com.example.android_passenger.features.home.domain.model.AlertHome
 import com.example.android_passenger.features.home.domain.usecase.AlertHomeFirestoreUseCaseState
+import com.google.android.gms.maps.model.BitmapDescriptorFactory
 import com.google.android.gms.maps.model.MapColorScheme
+import com.google.maps.android.compose.Marker
+import com.google.maps.android.compose.rememberMarkerState
 
 @Composable
 fun HomeScreen(
@@ -129,7 +132,8 @@ fun HomeScreen(
                 shouldCenterOnUserLocation = !hasAttemptedLocation,
                 onLocationCentered = { hasAttemptedLocation = true },
                 onMenuClick = onMenuClick,
-                userPhotoUrl = userPhotoUrl
+                userPhotoUrl = userPhotoUrl,
+                homeViewModel = homeViewModel
             )
         } else {
             PermissionRequestScreen(
@@ -162,7 +166,8 @@ private fun MapContent(
     shouldCenterOnUserLocation: Boolean,
     onLocationCentered: () -> Unit,
     onMenuClick: () -> Unit,
-    userPhotoUrl: String?
+    userPhotoUrl: String?,
+    homeViewModel: HomeViewModel?
 ) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
@@ -181,6 +186,14 @@ private fun MapContent(
     // Ubicación por defecto (Lima)
     val defaultLocation = LatLng(-12.0464, -77.0428)
     val userLocation = remember { mutableStateOf<LatLng?>(null) }
+
+    // Obtener las actualizaciones de ruta del ViewModel
+    val routeUpdate by homeViewModel?.routeUpdates?.collectAsState() ?: remember { mutableStateOf(null) }
+
+    // Estado para el marker del carro
+    val carMarkerState = rememberMarkerState(
+        position = routeUpdate?.let { LatLng(it.latitude, it.longitude) } ?: defaultLocation
+    )
 
     val cameraPositionState = rememberCameraPositionState {
         position = CameraPosition.fromLatLngZoom(defaultLocation, 12f)
@@ -201,6 +214,13 @@ private fun MapContent(
         )
     }
 
+    // Actualizar la posición del marker cuando llegue un nuevo routeUpdate
+    LaunchedEffect(routeUpdate) {
+        routeUpdate?.let { update ->
+            carMarkerState.position = LatLng(update.latitude, update.longitude)
+        }
+    }
+
     LaunchedEffect(shouldCenterOnUserLocation) {
         if (shouldCenterOnUserLocation) {
             scope.launch {
@@ -210,6 +230,7 @@ private fun MapContent(
                     userLocation.value = currentLatLng
                     cameraPositionState.centerOn(currentLatLng, 18f)
                     onLocationCentered()
+                    homeViewModel?.connect()
                 } else {
                     userLocation.value = defaultLocation
                     cameraPositionState.centerOn(defaultLocation, 12f)
@@ -238,7 +259,15 @@ private fun MapContent(
                 start = 16.dp,
                 end = 16.dp
             )
-        )
+        ) {
+            if (routeUpdate != null) {
+                Marker (
+                    state = carMarkerState,
+                    icon = BitmapDescriptorFactory.fromResource(R.drawable.feature_home_marker_car),
+                    rotation = routeUpdate?.bearing ?: 0f,
+                )
+            }
+        }
 
         Column(
             modifier = Modifier
