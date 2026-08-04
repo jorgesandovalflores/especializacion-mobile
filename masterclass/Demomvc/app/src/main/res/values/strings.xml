@@ -1,0 +1,25 @@
+<resources>
+    <string name="app_name">Demo-mvc</string>
+
+    <string name="greeting_hello">Hola %1$s</string>
+    <string name="greeting_welcome">¡Bienvenido de nuevo!</string>
+
+    <string name="label_activity">Actividad</string>
+    <string name="label_activity_subtitle">de esta semana</string>
+
+    <string name="label_sales">Ventas la semana pasada</string>
+    <string name="label_revenue">Ingresos la semana pasada</string>
+
+    <string name="label_transactions">Transacciones</string>
+    <string name="label_see_all">Ver todo</string>
+
+    <string name="label_retry">Reintentar</string>
+    <string name="error_generic">No se pudo cargar la información</string>
+
+    <string name="cd_avatar">Foto de perfil</string>
+    <string name="cd_menu">Menú</string>
+    <string name="cd_nav_home">Inicio</string>
+    <string name="cd_nav_wallet">Billetera</string>
+    <string name="cd_nav_stats">Estadísticas</string>
+    <string name="cd_nav_settings">Ajustes</string>
+</resources>

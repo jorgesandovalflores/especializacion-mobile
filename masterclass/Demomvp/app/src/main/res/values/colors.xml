@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="black">#FF000000</color>
+    <color name="white">#FFFFFFFF</color>
+
+    <color name="bg">#F9F9FB</color>
+    <color name="text_primary">#1A1A1E</color>
+    <color name="text_secondary">#8B8B95</color>
+
+    <color name="card_mint">#DCEFE6</color>
+    <color name="card_peach">#F6E3D3</color>
+    <color name="card_lavender">#E5E1F5</color>
+
+    <color name="row_peach">#F8ECE2</color>
+    <color name="row_mint">#E6F2EC</color>
+
+    <color name="icon_mint">#5FAE93</color>
+    <color name="icon_peach">#D98B4F</color>
+    <color name="icon_lavender">#8E7FC7</color>
+
+    <color name="badge_nike">#1A1A1A</color>
+    <color name="badge_pepsi">#E4002B</color>
+
+    <color name="error">#D64545</color>
+</resources>

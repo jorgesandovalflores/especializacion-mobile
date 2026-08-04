@@ -1,0 +1,987 @@
+{
+  "version": "2.15",
+  "children": [
+    {
+      "type": "frame",
+      "id": "bi8Au",
+      "x": 0,
+      "y": 0,
+      "name": "Home Screen",
+      "clip": true,
+      "width": 412,
+      "fill": "$bg",
+      "layout": "vertical",
+      "children": [
+        {
+          "type": "frame",
+          "id": "ZevQm",
+          "name": "Status Bar",
+          "width": "fill_container",
+          "height": 71.3,
+          "padding": [
+            0,
+            24
+          ],
+          "justifyContent": "space_between",
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "text",
+              "id": "Lb00w",
+              "name": "Time",
+              "fill": "$text-primary",
+              "content": "9:41",
+              "fontFamily": "$font-main",
+              "fontSize": 15,
+              "fontWeight": "600"
+            },
+            {
+              "type": "frame",
+              "id": "ccLFH",
+              "name": "Status Icons",
+              "gap": 6.8999999999999995,
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "icon",
+                  "id": "ESOJm",
+                  "name": "Signal",
+                  "width": 20.7,
+                  "height": 20.7,
+                  "icon": "signal_cellular_alt",
+                  "library": "Material Symbols Rounded",
+                  "fill": "$text-primary"
+                },
+                {
+                  "type": "icon",
+                  "id": "yB1zA",
+                  "name": "Wifi",
+                  "width": 20.7,
+                  "height": 20.7,
+                  "icon": "wifi",
+                  "library": "Material Symbols Rounded",
+                  "fill": "$text-primary"
+                },
+                {
+                  "type": "icon",
+                  "id": "amWtU",
+                  "name": "Battery",
+                  "width": 23,
+                  "height": 23,
+                  "icon": "battery_full",
+                  "library": "Material Symbols Rounded",
+                  "fill": "$text-primary"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "Jxo1D",
+          "name": "Content Wrapper",
+          "width": "fill_container",
+          "layout": "vertical",
+          "gap": 32.199999999999996,
+          "padding": [
+            4.6,
+            20,
+            27.599999999999998,
+            20
+          ],
+          "children": [
+            {
+              "type": "frame",
+              "id": "bsniw",
+              "name": "Header",
+              "width": "fill_container",
+              "justifyContent": "space_between",
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "rL7L6",
+                  "name": "Profile Group",
+                  "gap": 13.799999999999999,
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "S54c9d",
+                      "name": "Avatar",
+                      "clip": true,
+                      "width": 50.599999999999994,
+                      "height": 50.599999999999994,
+                      "fill": "$card-peach",
+                      "cornerRadius": 25.299999999999997,
+                      "children": [
+                        {
+                          "type": "icon",
+                          "id": "J8NuL",
+                          "name": "Avatar Icon",
+                          "width": 50.599999999999994,
+                          "height": 50.599999999999994,
+                          "icon": "person",
+                          "library": "Material Symbols Rounded",
+                          "fill": "$icon-peach"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "AQeQB",
+                      "name": "Greeting",
+                      "layout": "vertical",
+                      "gap": 2.3,
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "TFllX",
+                          "name": "Hello Text",
+                          "fill": "$text-primary",
+                          "content": "Hola John Smith",
+                          "fontFamily": "$font-main",
+                          "fontSize": 17,
+                          "fontWeight": "700"
+                        },
+                        {
+                          "type": "text",
+                          "id": "qpiDx",
+                          "name": "Welcome Text",
+                          "fill": "$text-secondary",
+                          "content": "¡Bienvenido de nuevo!",
+                          "fontFamily": "$font-main",
+                          "fontSize": 13,
+                          "fontWeight": "normal"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "Z4QrAB",
+                  "name": "Menu Button",
+                  "width": 50.599999999999994,
+                  "height": 50.599999999999994,
+                  "fill": "#FFFFFF",
+                  "cornerRadius": 16.099999999999998,
+                  "effect": {
+                    "type": "shadow",
+                    "shadowType": "outer",
+                    "color": "#00000014",
+                    "offset": {
+                      "x": 0,
+                      "y": 2
+                    },
+                    "blur": 8
+                  },
+                  "justifyContent": "center",
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "icon",
+                      "id": "T7fElL",
+                      "name": "Menu Icon",
+                      "width": 23,
+                      "height": 23,
+                      "icon": "apps",
+                      "library": "Material Symbols Rounded",
+                      "fill": "$text-primary"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "i6kj8x",
+              "name": "Cards Row",
+              "width": "fill_container",
+              "gap": 13.799999999999999,
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "H85Dd",
+                  "name": "Activity Card",
+                  "width": 220,
+                  "fill": "$card-mint",
+                  "cornerRadius": 20,
+                  "layout": "vertical",
+                  "gap": 18.4,
+                  "padding": 20.7,
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "SLqEx",
+                      "name": "Chart Bars",
+                      "gap": 11.5,
+                      "alignItems": "end",
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "cmGr2",
+                          "name": "Bar Col 20",
+                          "width": 26,
+                          "height": 103.49999999999999,
+                          "layout": "vertical",
+                          "gap": 6.8999999999999995,
+                          "justifyContent": "end",
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "frame",
+                              "id": "c9pNHf",
+                              "name": "Bar",
+                              "width": 16,
+                              "height": 20.7,
+                              "fill": "$icon-mint",
+                              "cornerRadius": [
+                                4,
+                                4,
+                                0,
+                                0
+                              ]
+                            },
+                            {
+                              "type": "text",
+                              "id": "FR9Vy",
+                              "name": "Bar Label",
+                              "fill": "$text-secondary",
+                              "content": "20",
+                              "fontFamily": "$font-main",
+                              "fontSize": 10,
+                              "fontWeight": "normal"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "W5MhuV",
+                          "name": "Bar Col 40",
+                          "width": 26,
+                          "height": 103.49999999999999,
+                          "layout": "vertical",
+                          "gap": 6.8999999999999995,
+                          "justifyContent": "end",
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "frame",
+                              "id": "K32RsZ",
+                              "name": "Bar",
+                              "width": 16,
+                              "height": 34.5,
+                              "fill": "$icon-mint",
+                              "cornerRadius": [
+                                4,
+                                4,
+                                0,
+                                0
+                              ]
+                            },
+                            {
+                              "type": "text",
+                              "id": "ALn27",
+                              "name": "Bar Label",
+                              "fill": "$text-secondary",
+                              "content": "40",
+                              "fontFamily": "$font-main",
+                              "fontSize": 10,
+                              "fontWeight": "normal"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "RbH2E",
+                          "name": "Bar Col 80",
+                          "width": 26,
+                          "height": 103.49999999999999,
+                          "layout": "vertical",
+                          "gap": 6.8999999999999995,
+                          "justifyContent": "end",
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "frame",
+                              "id": "JNFIx",
+                              "name": "Bar",
+                              "width": 16,
+                              "height": 62.099999999999994,
+                              "fill": "$icon-mint",
+                              "cornerRadius": [
+                                4,
+                                4,
+                                0,
+                                0
+                              ]
+                            },
+                            {
+                              "type": "text",
+                              "id": "qoo2A",
+                              "name": "Bar Label",
+                              "fill": "$text-secondary",
+                              "content": "80",
+                              "fontFamily": "$font-main",
+                              "fontSize": 10,
+                              "fontWeight": "normal"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "Y8b9F",
+                          "name": "Bar Col 40",
+                          "width": 26,
+                          "height": 103.49999999999999,
+                          "layout": "vertical",
+                          "gap": 6.8999999999999995,
+                          "justifyContent": "end",
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "frame",
+                              "id": "uyCEA",
+                              "name": "Bar",
+                              "width": 16,
+                              "height": 34.5,
+                              "fill": "$icon-mint",
+                              "cornerRadius": [
+                                4,
+                                4,
+                                0,
+                                0
+                              ]
+                            },
+                            {
+                              "type": "text",
+                              "id": "TSnnA",
+                              "name": "Bar Label",
+                              "fill": "$text-secondary",
+                              "content": "40",
+                              "fontFamily": "$font-main",
+                              "fontSize": 10,
+                              "fontWeight": "normal"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "LAZtn",
+                          "name": "Bar Col 20",
+                          "width": 26,
+                          "height": 103.49999999999999,
+                          "layout": "vertical",
+                          "gap": 6.8999999999999995,
+                          "justifyContent": "end",
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "frame",
+                              "id": "pYYp3",
+                              "name": "Bar",
+                              "width": 16,
+                              "height": 20.7,
+                              "fill": "$icon-mint",
+                              "cornerRadius": [
+                                4,
+                                4,
+                                0,
+                                0
+                              ]
+                            },
+                            {
+                              "type": "text",
+                              "id": "iEQiM",
+                              "name": "Bar Label",
+                              "fill": "$text-secondary",
+                              "content": "20",
+                              "fontFamily": "$font-main",
+                              "fontSize": 10,
+                              "fontWeight": "normal"
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "xGI8M",
+                      "name": "Activity Text",
+                      "layout": "vertical",
+                      "gap": 2.3,
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "ccTeG",
+                          "name": "Activity Title",
+                          "fill": "$text-primary",
+                          "content": "Actividad",
+                          "fontFamily": "$font-main",
+                          "fontSize": 16,
+                          "fontWeight": "700"
+                        },
+                        {
+                          "type": "text",
+                          "id": "vzdja",
+                          "name": "Activity Subtitle",
+                          "fill": "$text-secondary",
+                          "content": "de esta semana",
+                          "fontFamily": "$font-main",
+                          "fontSize": 12,
+                          "fontWeight": "normal"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "kZ6Om",
+                  "name": "Right Column",
+                  "width": 138.2,
+                  "layout": "vertical",
+                  "gap": 13.799999999999999,
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "kkWnI",
+                      "name": "Sales Card",
+                      "width": "fill_container",
+                      "fill": "$card-peach",
+                      "cornerRadius": 16,
+                      "layout": "vertical",
+                      "gap": 11.5,
+                      "padding": 16.099999999999998,
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "lye4P",
+                          "name": "Sales Card Badge",
+                          "width": 36.8,
+                          "height": 36.8,
+                          "fill": "#FFFFFF",
+                          "cornerRadius": 11.5,
+                          "justifyContent": "center",
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "icon",
+                              "id": "lbMxp",
+                              "name": "Sales Card Icon",
+                              "width": 18.4,
+                              "height": 18.4,
+                              "icon": "sell",
+                              "library": "Material Symbols Rounded",
+                              "fill": "$icon-peach"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "p0h41",
+                          "name": "Sales Card Text",
+                          "width": "fill_container",
+                          "layout": "vertical",
+                          "gap": 2.3,
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "kKbat",
+                              "name": "Sales Card Label",
+                              "fill": "$text-secondary",
+                              "textGrowth": "fixed-width",
+                              "width": "fill_container",
+                              "content": "Ventas la semana pasada",
+                              "fontFamily": "$font-main",
+                              "fontSize": 11,
+                              "fontWeight": "normal"
+                            },
+                            {
+                              "type": "text",
+                              "id": "nZczB",
+                              "name": "Sales Card Value",
+                              "fill": "$text-primary",
+                              "content": "$280.99",
+                              "fontFamily": "$font-main",
+                              "fontSize": 15,
+                              "fontWeight": "700"
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "q5Ytql",
+                      "name": "Revenue Card",
+                      "width": "fill_container",
+                      "fill": "$card-lavender",
+                      "cornerRadius": 16,
+                      "layout": "vertical",
+                      "gap": 11.5,
+                      "padding": 16.099999999999998,
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "HbjlC",
+                          "name": "Revenue Card Badge",
+                          "width": 36.8,
+                          "height": 36.8,
+                          "fill": "#FFFFFF",
+                          "cornerRadius": 11.5,
+                          "justifyContent": "center",
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "icon",
+                              "id": "XncPn",
+                              "name": "Revenue Card Icon",
+                              "width": 18.4,
+                              "height": 18.4,
+                              "icon": "donut_large",
+                              "library": "Material Symbols Rounded",
+                              "fill": "$icon-lavender"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "GMYeL",
+                          "name": "Revenue Card Text",
+                          "width": "fill_container",
+                          "layout": "vertical",
+                          "gap": 2.3,
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "Jdzg9",
+                              "name": "Revenue Card Label",
+                              "fill": "$text-secondary",
+                              "textGrowth": "fixed-width",
+                              "width": "fill_container",
+                              "content": "Ingresos la semana pasada",
+                              "fontFamily": "$font-main",
+                              "fontSize": 11,
+                              "fontWeight": "normal"
+                            },
+                            {
+                              "type": "text",
+                              "id": "oPNWT",
+                              "name": "Revenue Card Value",
+                              "fill": "$text-primary",
+                              "content": "$280.99",
+                              "fontFamily": "$font-main",
+                              "fontSize": 15,
+                              "fontWeight": "700"
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "BrAWR",
+              "name": "Transactions Section",
+              "width": "fill_container",
+              "layout": "vertical",
+              "gap": 16.099999999999998,
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "HG3Rw",
+                  "name": "Transactions Header",
+                  "width": "fill_container",
+                  "justifyContent": "space_between",
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "usEAW",
+                      "name": "Transactions Title",
+                      "fill": "$text-primary",
+                      "content": "Transacciones",
+                      "fontFamily": "$font-main",
+                      "fontSize": 17,
+                      "fontWeight": "700"
+                    },
+                    {
+                      "type": "text",
+                      "id": "g7g6br",
+                      "name": "See All",
+                      "fill": "$text-secondary",
+                      "content": "Ver todo",
+                      "fontFamily": "$font-main",
+                      "fontSize": 13,
+                      "fontWeight": "600"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "Wdwjo",
+                  "name": "Transactions List",
+                  "width": "fill_container",
+                  "layout": "vertical",
+                  "gap": 11.5,
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "nrqvP",
+                      "name": "Nike Row",
+                      "width": "fill_container",
+                      "fill": "$row-peach",
+                      "cornerRadius": 16,
+                      "gap": 13.799999999999999,
+                      "padding": 16.099999999999998,
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "b5eMz",
+                          "name": "Nike Row Badge",
+                          "width": 46,
+                          "height": 46,
+                          "fill": "#1A1A1A",
+                          "cornerRadius": 23,
+                          "justifyContent": "center",
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "icon",
+                              "id": "oHCmB",
+                              "name": "Nike Row Icon",
+                              "width": 23,
+                              "height": 23,
+                              "icon": "checkroom",
+                              "library": "Material Symbols Rounded",
+                              "fill": "#FFFFFF"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "Ym36O",
+                          "name": "Nike Row Info",
+                          "width": "fill_container",
+                          "layout": "vertical",
+                          "gap": 2.3,
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "Vp5oE",
+                              "name": "Nike Row Title",
+                              "fill": "$text-primary",
+                              "content": "Nike Store",
+                              "fontFamily": "$font-main",
+                              "fontSize": 14,
+                              "fontWeight": "700"
+                            },
+                            {
+                              "type": "text",
+                              "id": "ydIOB",
+                              "name": "Nike Row Category",
+                              "fill": "$text-secondary",
+                              "content": "Ropa y calzado",
+                              "fontFamily": "$font-main",
+                              "fontSize": 12,
+                              "fontWeight": "normal"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "ctdnK",
+                          "name": "Nike Row Amount Col",
+                          "layout": "vertical",
+                          "gap": 2.3,
+                          "alignItems": "end",
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "SyAbu",
+                              "name": "Nike Row Amount",
+                              "fill": "$text-primary",
+                              "content": "-27.67",
+                              "fontFamily": "$font-main",
+                              "fontSize": 14,
+                              "fontWeight": "700"
+                            },
+                            {
+                              "type": "text",
+                              "id": "e4ga2",
+                              "name": "Nike Row Time",
+                              "fill": "$text-secondary",
+                              "content": "2:23 p.m.",
+                              "fontFamily": "$font-main",
+                              "fontSize": 11,
+                              "fontWeight": "normal"
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "E5UOZ",
+                      "name": "Pepsi Row",
+                      "width": "fill_container",
+                      "fill": "$row-mint",
+                      "cornerRadius": 16,
+                      "gap": 13.799999999999999,
+                      "padding": 16.099999999999998,
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "mSGNu",
+                          "name": "Pepsi Row Badge",
+                          "width": 46,
+                          "height": 46,
+                          "fill": "#E4002B",
+                          "cornerRadius": 23,
+                          "justifyContent": "center",
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "icon",
+                              "id": "yqENU",
+                              "name": "Pepsi Row Icon",
+                              "width": 23,
+                              "height": 23,
+                              "icon": "local_drink",
+                              "library": "Material Symbols Rounded",
+                              "fill": "#FFFFFF"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "cTmxe",
+                          "name": "Pepsi Row Info",
+                          "width": "fill_container",
+                          "layout": "vertical",
+                          "gap": 2.3,
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "Ehjzf",
+                              "name": "Pepsi Row Title",
+                              "fill": "$text-primary",
+                              "content": "Pepsi",
+                              "fontFamily": "$font-main",
+                              "fontSize": 14,
+                              "fontWeight": "700"
+                            },
+                            {
+                              "type": "text",
+                              "id": "CPeXH",
+                              "name": "Pepsi Row Category",
+                              "fill": "$text-secondary",
+                              "content": "Restaurantes y café",
+                              "fontFamily": "$font-main",
+                              "fontSize": 12,
+                              "fontWeight": "normal"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "OypKy",
+                          "name": "Pepsi Row Amount Col",
+                          "layout": "vertical",
+                          "gap": 2.3,
+                          "alignItems": "end",
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "fxgJh",
+                              "name": "Pepsi Row Amount",
+                              "fill": "$text-primary",
+                              "content": "-34.92",
+                              "fontFamily": "$font-main",
+                              "fontSize": 14,
+                              "fontWeight": "700"
+                            },
+                            {
+                              "type": "text",
+                              "id": "I3qGQL",
+                              "name": "Pepsi Row Time",
+                              "fill": "$text-secondary",
+                              "content": "10:00 a.m.",
+                              "fontFamily": "$font-main",
+                              "fontSize": 11,
+                              "fontWeight": "normal"
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "bw4tf",
+              "name": "Bottom Nav",
+              "width": "fill_container",
+              "padding": [
+                9.2,
+                12
+              ],
+              "justifyContent": "space_between",
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "L9NOJ9",
+                  "name": "Home Nav",
+                  "width": 46,
+                  "height": 46,
+                  "justifyContent": "center",
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "icon",
+                      "id": "u4o8wE",
+                      "name": "Home Nav Icon",
+                      "width": 25.299999999999997,
+                      "height": 25.299999999999997,
+                      "icon": "home",
+                      "library": "Material Symbols Rounded",
+                      "weight": 600,
+                      "fill": "$icon-mint"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "Q6vOZ",
+                  "name": "Wallet Nav",
+                  "width": 46,
+                  "height": 46,
+                  "justifyContent": "center",
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "icon",
+                      "id": "Ox0ja",
+                      "name": "Wallet Nav Icon",
+                      "width": 25.299999999999997,
+                      "height": 25.299999999999997,
+                      "icon": "account_balance_wallet",
+                      "library": "Material Symbols Rounded",
+                      "weight": 400,
+                      "fill": "$text-secondary"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "Ac2tO",
+                  "name": "Stats Nav",
+                  "width": 46,
+                  "height": 46,
+                  "justifyContent": "center",
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "icon",
+                      "id": "s8R6e2",
+                      "name": "Stats Nav Icon",
+                      "width": 25.299999999999997,
+                      "height": 25.299999999999997,
+                      "icon": "bar_chart",
+                      "library": "Material Symbols Rounded",
+                      "weight": 400,
+                      "fill": "$text-secondary"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "f9cyG7",
+                  "name": "Settings Nav",
+                  "width": 46,
+                  "height": 46,
+                  "justifyContent": "center",
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "icon",
+                      "id": "NNf6V",
+                      "name": "Settings Nav Icon",
+                      "width": 25.299999999999997,
+                      "height": 25.299999999999997,
+                      "icon": "settings",
+                      "library": "Material Symbols Rounded",
+                      "weight": 400,
+                      "fill": "$text-secondary"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "variables": {
+    "bg": {
+      "type": "color",
+      "value": "#F9F9FB"
+    },
+    "text-primary": {
+      "type": "color",
+      "value": "#1A1A1E"
+    },
+    "text-secondary": {
+      "type": "color",
+      "value": "#8B8B95"
+    },
+    "card-mint": {
+      "type": "color",
+      "value": "#DCEFE6"
+    },
+    "card-peach": {
+      "type": "color",
+      "value": "#F6E3D3"
+    },
+    "card-lavender": {
+      "type": "color",
+      "value": "#E5E1F5"
+    },
+    "row-peach": {
+      "type": "color",
+      "value": "#F8ECE2"
+    },
+    "row-mint": {
+      "type": "color",
+      "value": "#E6F2EC"
+    },
+    "icon-mint": {
+      "type": "color",
+      "value": "#5FAE93"
+    },
+    "icon-peach": {
+      "type": "color",
+      "value": "#D98B4F"
+    },
+    "icon-lavender": {
+      "type": "color",
+      "value": "#8E7FC7"
+    },
+    "font-main": {
+      "type": "string",
+      "value": "Inter"
+    }
+  },
+  "fileToken": "7964f2a7-d156-4d9d-8e59-6edc1ab0dc6e"
+}
