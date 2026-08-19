@@ -1,17 +1,21 @@
+// AGP 9+ trae soporte a Kotlin integrado: ya no se aplica el plugin
+// org.jetbrains.kotlin.android por separado.
+// https://developer.android.com/build/migrate-to-built-in-kotlin
 plugins {
     alias(libs.plugins.android.application)
-    alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
 }
 
+// compileSdk/targetSdk: https://developer.android.com/tools/releases/platforms
+// requisito target API de Play: https://developer.android.com/google/play/requirements/target-sdk
 android {
     namespace = "com.example.m01clase01"
-    compileSdk = 36
+    compileSdk = 37
 
     defaultConfig {
         applicationId = "com.example.m01clase01"
-        minSdk = 35
-        targetSdk = 35
+        minSdk = 24
+        targetSdk = 37
         versionCode = 1
         versionName = "1.0"
 
@@ -30,9 +34,6 @@ android {
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
-    }
-    kotlinOptions {
-        jvmTarget = "11"
     }
     buildFeatures {
         compose = true
