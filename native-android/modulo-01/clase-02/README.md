@@ -470,6 +470,10 @@ directo a Draw, sin recomponer ni remedir nada.
     "Iniciar sesión" (a diferencia de escribir, `isLoading` cambia
     dos veces).
 
+## Quiz
+
+Repasa lo visto en esta sesión: **[forms.gle/jxbRVGgkQXyYpSeu8](https://forms.gle/jxbRVGgkQXyYpSeu8)**
+
 ## Recursos
 
 - [Thinking in Compose](https://developer.android.com/develop/ui/compose/mental-model)
