@@ -1,0 +1,22 @@
+<svg width="460" height="220" viewBox="0 0 460 220" xmlns="http://www.w3.org/2000/svg" font-family="Helvetica, Arial, sans-serif">
+  <rect x="1" y="1" width="458" height="218" rx="6" fill="#F2F2F2" stroke="#B0B0B0" stroke-width="1"/>
+
+  <rect x="120" y="30" width="180" height="150" rx="6" fill="#0091CC" opacity="0.35"/>
+  <text x="210" y="52" text-anchor="middle" fill="#035C82" font-size="13">1 · fondo</text>
+
+  <rect x="160" y="60" width="140" height="110" rx="6" fill="#0091CC" opacity="0.6"/>
+  <text x="230" y="82" text-anchor="middle" fill="white" font-size="13">2 · contenido</text>
+
+  <rect x="200" y="95" width="90" height="60" rx="6" fill="#0091CC"/>
+  <text x="245" y="130" text-anchor="middle" fill="white" font-size="13">3 · encima</text>
+
+  <line x1="330" y1="185" x2="330" y2="40" stroke="#333333" stroke-width="2" marker-end="url(#arrowZ)"/>
+  <text x="345" y="115" fill="#333333" font-size="12">orden Z</text>
+  <text x="345" y="130" fill="#333333" font-size="10">(último hijo = arriba)</text>
+
+  <defs>
+    <marker id="arrowZ" markerWidth="8" markerHeight="8" refX="4" refY="6" orient="auto">
+      <path d="M0,6 L4,0 L8,6 Z" fill="#333333"/>
+    </marker>
+  </defs>
+</svg>

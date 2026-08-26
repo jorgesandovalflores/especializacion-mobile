@@ -12,32 +12,12 @@
         android:supportsRtl="true"
         tools:targetApi="31">
         <activity
-            android:name=".declaracion.DeclaracionXml"
+            android:name=".login.LoginXml"
             android:exported="true"
             android:theme="@style/Theme.ExampleAndroidXml">
         </activity>
         <activity
-            android:name=".declaracion.DeclaracionCompose"
-            android:exported="true"
-            android:theme="@style/Theme.ExampleAndroidCompose">
-        </activity>
-        <activity
-            android:name=".jerarquia.JerarquiaXml"
-            android:exported="true"
-            android:theme="@style/Theme.ExampleAndroidXml">
-        </activity>
-        <activity
-            android:name=".jerarquia.JerarquiaCompose"
-            android:exported="true"
-            android:theme="@style/Theme.ExampleAndroidCompose">
-        </activity>
-        <activity
-            android:name=".component.ComponentXml"
-            android:exported="true"
-            android:theme="@style/Theme.ExampleAndroidXml">
-        </activity>
-        <activity
-            android:name=".component.ComponentCompose"
+            android:name=".login.LoginCompose"
             android:exported="true"
             android:theme="@style/Theme.ExampleAndroidCompose">
             <intent-filter>
