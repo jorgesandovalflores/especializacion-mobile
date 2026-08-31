@@ -1,3 +1,10 @@
+/*
+8) Kotlin como lenguaje de expresiones
+if, when e incluso try/catch pueden usarse como expresión: en vez de
+solo ejecutar código, devuelven un valor que se puede asignar
+directamente a un val/var o retornar.
+*/
+
 // If como expresión
 fun ifExpression(a: Int, b: Int): Int {
     val max = if (a > b) a else b

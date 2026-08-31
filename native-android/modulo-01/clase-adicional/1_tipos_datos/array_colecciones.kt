@@ -1,3 +1,10 @@
+/*
+Arrays y colecciones básicas
+Kotlin diferencia colecciones inmutables (listOf/setOf/mapOf, solo
+lectura) de sus versiones mutables (mutableListOf, etc.). Por defecto
+se prefieren las inmutables para evitar cambios de estado inesperados.
+*/
+
 fun collectionsBasics() {
     // List inmutable
     val names = listOf("Ana", "Luis")     // List<String>

@@ -1,3 +1,12 @@
+/*
+Boolean, Char y String
+- Char usa comillas simples ('A'); String usa comillas dobles ("Kotlin").
+- Los templates de string ($variable, ${expresion}) evitan la
+  concatenación manual con "+".
+- Las strings multilínea ("""...""") preservan saltos de línea y
+  admiten trimIndent() para quitar la indentación del código fuente.
+*/
+
 fun booleansCharsStrings() {
     // Boolean
     val isActive = true       // Boolean

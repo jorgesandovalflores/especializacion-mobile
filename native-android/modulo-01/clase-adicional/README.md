@@ -1,5 +1,7 @@
 # Kotlin para Android — Clase completa
 
+<img src="./img/00-kotlin-logo.png" alt="Logotipo de Kotlin" width="110" align="right" />
+
 > Programa: **Especialización en Desarrollo Móvil — Android/Kotlin**  
 > Sesión: **Kotlin desde la base con comparaciones a Java y TypeScript**  
 
@@ -12,6 +14,11 @@ Comprender los fundamentos del lenguaje **Kotlin** (tipos, operadores, control d
 - Android Studio instalado (versión reciente).  
 - Conocimientos básicos de Java **o** TypeScript/JavaScript.  
 - Git, Gradle y SDK de Android configurados.
+
+## App de acompañamiento: ExampleAndroid
+> 📱 Proyecto: [`ExampleAndroid/`](./ExampleAndroid/)
+
+Además de los snippets de consola en las carpetas `1_tipos_datos/` a `9_coroutines/`, este directorio incluye una **calculadora funcional** en Jetpack Compose (edge-to-edge, UI de una sola pantalla): dos campos, botones de `+ − × ÷`, resultado, un botón "Guardar en servidor" y un historial. No es una pantalla que imprime la teoría: cada punto de la clase está implementado como código real en [`calculator/CalculatorLogic.kt`](./ExampleAndroid/app/src/main/java/com/example/example/calculator/CalculatorLogic.kt) y [`calculator/CalculatorRepository.kt`](./ExampleAndroid/app/src/main/java/com/example/example/calculator/CalculatorRepository.kt) (enum/data/sealed class, null safety con `toDoubleOrNull()`, `when`/`if` como expresión, extensión + infix, colecciones con `filter`/`map`/`sumOf`, coroutines con `launch`/`suspend`/`Dispatchers.IO`, interop con `@JvmStatic`/`@JvmOverloads`), con un comentario en cada bloque indicando la sección numerada de este README a la que corresponde — pensado para explicarlo en clase leyendo el código, no la pantalla. Ábrela en Android Studio o compílala con `./gradlew assembleDebug`.
 
 ---
 
@@ -47,6 +54,9 @@ Comprender los fundamentos del lenguaje **Kotlin** (tipos, operadores, control d
 - La visión es que Kotlin sea un lenguaje **multiplataforma de propósito general**, no solo ligado a Android.
 
 ### Línea de tiempo rápida
+
+<img src="./img/timeline-kotlin.svg" alt="Línea de tiempo de Kotlin: 2010 nace en JetBrains, 2012 open source, 2016 versión 1.0, 2017 soporte oficial de Google, 2019 lenguaje preferido para Android, 2023+ compilador K2" width="100%" />
+
 - **2010** → Inicio en JetBrains  
 - **2011** → Anuncio público  
 - **2012** → Open Source (Apache 2)  
@@ -59,6 +69,8 @@ Comprender los fundamentos del lenguaje **Kotlin** (tipos, operadores, control d
 ---
 
 ## 1) Tipos de datos e inferencia
+
+> 📁 Ejemplos ejecutables: [`1_tipos_datos/`](./1_tipos_datos/)
 
 **Concepto/Teoría**  
 - En Kotlin **todo es objeto** (no hay primitivos “puros” como en Java). Tipos: `Int`, `Long`, `Float`, `Double`, `Boolean`, `Char`, `String`.  
@@ -94,6 +106,8 @@ value class Email(val value: String) // clase de valor (optimización)
 
 ## 2) Variables, constantes y alcance (scope)
 
+> 📁 Ejemplos ejecutables: [`2_var_const/`](./2_var_const/)
+
 **Concepto/Teoría**  
 - `val` (inmutable) vs `var` (mutable).  
 - **Top-level**: funciones/propiedades a nivel de archivo (sin clases contenedoras).  
@@ -118,6 +132,8 @@ private val cache = mutableMapOf<String, String>() // privado a archivo
 ---
 
 ## 3) Operadores y expresiones
+
+> 📁 Ejemplos ejecutables: [`3_operadores_expreciones/`](./3_operadores_expreciones/)
 
 **Concepto/Teoría**  
 - Aritméticos/lógicos/comparación similares a Java.  
@@ -146,6 +162,8 @@ val hasTwo = 2 in list              // pertenencia
 ---
 
 ## 4) Control de flujo (if/when, bucles, rangos, smart casts)
+
+> 📁 Ejemplos ejecutables: [`4_controles_flujo/`](./4_controles_flujo/)
 
 **Concepto/Teoría**  
 - `if` y `when` **son expresiones** (devuelven valor).  
@@ -178,6 +196,8 @@ for (i in 10 downTo 1 step 2) { /* 10,8,6,4,2 */ }
 ---
 
 ## 5) Funciones (default/named, extensiones, infix)
+
+> 📁 Ejemplos ejecutables: [`5_funciones/`](./5_funciones/)
 
 **Concepto/Teoría**  
 - Parámetros **por defecto** y **argumentos nombrados** (menos overloads).  
@@ -308,6 +328,8 @@ phone?.let { p ->
 val mustHaveValue = phone!!
 ```
 
+<img src="./img/null-safety-flow.svg" alt="Flujo de null safety: phone String opcional, safe call con interrogación, rama null usa Elvis para devolver 0, rama no nula continúa con phone.length hasta un Int que nunca es null" width="100%" />
+
 **Comparación**  
 - **Java**: `null` en cualquier referencia; NPE común.  
 - **TypeScript**: `?.` y `??` similares; anulabilidad con uniones de tipos.
@@ -321,12 +343,16 @@ val mustHaveValue = phone!!
 
 ## 9) Coroutines
 
+> 📁 Ejemplos ejecutables: [`9_coroutines/`](./9_coroutines/)
+
 **Concepto/Teoría**  
 - Concurrencia ligera con **structured concurrency** y cancelación propagada.  
 - `suspend` suspende sin bloquear.  
 - `launch` (fire-and-forget) y `async` (retorna `Deferred`).  
 - **Dispatchers**: `Main` (UI), `IO` (bloqueo IO), `Default` (CPU).  
 - En Android: `lifecycleScope` y `viewModelScope` para integrarse con el ciclo de vida.
+
+<img src="./img/coroutines-dispatchers.svg" alt="Diagrama de dispatchers dentro de un CoroutineScope: Main para UI, IO para red/disco/base de datos, Default para trabajo intensivo de CPU" width="100%" />
 
 **Sintaxis**
 ```kotlin
@@ -353,6 +379,8 @@ suspend fun readFile(path: String): String =
 
 ## 10) Interoperabilidad con Java
 
+<img src="./img/00-java-duke-mascot.png" alt="Duke, la mascota de Java" width="60" align="right" />
+
 **Concepto/Teoría + Sintaxis**
 ```kotlin
 class Foo @JvmOverloads constructor(val x: Int = 0) {
@@ -374,6 +402,8 @@ thread.start()
 ---
 
 ## 11) Beneficios clave en Android
+
+<img src="./img/00-android-robot-logo.png" alt="Mascota de Android" width="70" align="right" />
 
 - **KTX**: extensiones idiomáticas (menos boilerplate).  
 - **Compose**: UI declarativa, Kotlin-first.  

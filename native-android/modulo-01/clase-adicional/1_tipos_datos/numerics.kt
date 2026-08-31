@@ -1,3 +1,11 @@
+/*
+Tipos numéricos
+Int, Long, Float y Double son los más usados. A diferencia de Java,
+Kotlin no hace conversiones implícitas entre tipos numéricos (ni
+siquiera de Int a Long): siempre hay que convertir explícitamente
+con toLong(), toDouble(), etc.
+*/
+
 fun numbersBasics() {
     // Int por defecto
     val a = 10              // Int

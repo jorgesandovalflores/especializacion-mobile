@@ -1,9 +1,11 @@
 /*
-| Operador | Descripción | Ejemplo          |           |         |   |         |
-| -------- | ----------- | ---------------- | --------- | ------- | - | ------- |
-| `&&`     | AND lógico  | `a > 0 && b > 0` |           |         |   |         |
-| \`       |             | \`               | OR lógico | \`a > 0 |   | b > 0\` |
-| `!`      | Negación    | `!(a > 0)`       |           |         |   |         |
+Operadores lógicos
+&&  AND lógico  → a > 0 && b > 0
+||  OR lógico   → a > 0 || b > 0
+!   Negación    → !(a > 0)
+
+Igual que en Java, && y || son "short-circuit": si el primer operando
+ya decide el resultado, el segundo ni siquiera se evalúa.
 */
 
 fun logical() {

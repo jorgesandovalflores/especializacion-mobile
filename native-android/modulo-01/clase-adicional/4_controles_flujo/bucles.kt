@@ -1,3 +1,10 @@
+/*
+3) Bucles: for, while y do-while
+"for" en Kotlin siempre itera sobre algo iterable (un rango, una
+colección, withIndex()...); no existe el "for clásico" de Java/C con
+inicialización, condición e incremento explícitos.
+*/
+
 // a) For con rangos
 fun forRange() {
     for (i in 1..5) {

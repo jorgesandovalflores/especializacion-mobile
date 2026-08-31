@@ -1,3 +1,10 @@
+/*
+Smart casts
+Después de comprobar el tipo con "is" (o de descartar null), el
+compilador "recuerda" el tipo dentro de ese bloque y permite usarlo
+directamente, sin necesidad de un cast manual como en Java.
+*/
+
 fun smartCastsDemo(value: Any) {
     // 'is' verifica tipo, Kotlin smart-castea dentro del bloque
     if (value is String) {
