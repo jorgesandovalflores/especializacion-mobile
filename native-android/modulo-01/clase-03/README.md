@@ -10,9 +10,10 @@
 Al finalizar la sesión, el estudiante será capaz de:
 1. Contrastar el sistema **android.view** (imperativo, XML) con **Jetpack Compose** (declarativo).
 2. Modelar UI con **state** usando `remember`, `mutableStateOf`, `State<T>` y `rememberSaveable`.
-3. Controlar la **recomposición**, entendiendo qué la dispara y cómo evitar trabajo innecesario.
-4. Comunicar estados entre componentes con **state hoisting** y ViewModel + Flow/StateFlow.
+3. Controlar la **recomposición**, entendiendo qué la dispara, cómo evitar trabajo innecesario y qué hace por nosotros el **Strong Skipping Mode** del compilador actual.
+4. Comunicar estados entre componentes con **state hoisting** y ViewModel + Flow/StateFlow, recolectando de forma **lifecycle-aware** con `collectAsStateWithLifecycle()`.
 5. Emplear efectos de Compose: **`LaunchedEffect`**, **`SideEffect`** y **`derivedStateOf`**.
+6. Escribir un test básico de un composable con `createComposeRule()`.
 
 ---
 
@@ -20,10 +21,11 @@ Al finalizar la sesión, el estudiante será capaz de:
 
 1) View, Widgets, Layouts  
 2) `remember`, `mutableStateOf`, `State<T>`  
-3) Control de recomposición y ciclo de vida  
-4) Comunicación de estados entre componentes  
+3) Control de recomposición, ciclo de vida y Strong Skipping Mode  
+4) Comunicación de estados entre componentes (state hoisting, ViewModel + StateFlow, `collectAsStateWithLifecycle`)  
 5) Efectos: `LaunchedEffect`, `SideEffect`, `derivedStateOf`  
-6) Errores comunes y checklist
+6) Testing rápido de Composables  
+7) Errores comunes y checklist
 
 ---
 
@@ -222,6 +224,8 @@ fun Sample() {
 - `rememberSaveable`: para estado de UI que **sí** debe sobrevivir (texto de un formulario, tab seleccionada).
 - ViewModel/Flow: para estado **de pantalla** que debe sobrevivir a recreaciones y separar UI de lógica.
 
+> **Matiz importante — muerte de proceso:** `rememberSaveable` y un `ViewModel` "a secas" sobreviven a un cambio de configuración (rotación), pero **no** garantizan sobrevivir a que el sistema mate el proceso en background por falta de memoria. Para eso, el `ViewModel` debe leer/escribir su estado a través de `SavedStateHandle` (`savedStateHandle.getStateFlow(...)` o `savedStateHandle["key"] = value`), que persiste en el mismo `Bundle` que usa `rememberSaveable` por debajo.
+
 **Ejemplo 1 – Contador con persistencia**
 
 ```kotlin
@@ -317,6 +321,17 @@ fun LocationListener(onLocation: (Double, Double) -> Unit) {
 }
 ```
 
+### 3.1 Strong Skipping Mode
+
+Desde el Compose Compiler 1.5.4 (integrado en el plugin `org.jetbrains.kotlin.plugin.compose` que usa `Example/`), el **Strong Skipping Mode** está **activado por defecto** y cambia el razonamiento sobre recomposición que traían las versiones anteriores de Compose:
+
+- Antes: un composable con un parámetro **inestable** (ej. `List<T>` sin `@Immutable`, una lambda no memoizada) perdía la posibilidad de *skip* y se recomponía siempre que su padre lo hacía.
+- Ahora: el compilador hace **skip** de composables con parámetros inestables usando **igualdad de instancia**, y **memoiza automáticamente las lambdas** que capturan `MutableState` u otros valores estables, sin que el desarrollador tenga que envolverlas manualmente en `remember`.
+- Consecuencia práctica: `@Stable`/`@Immutable` siguen siendo útiles (dan igualdad estructural en vez de solo por instancia), pero ya **no son obligatorios** para obtener skipping básico como sí lo eran antes de Compose Compiler 1.5.4.
+- Puedes verificarlo generando el **reporte del compilador** (`composeCompiler { reportsDestination = ... }` en `build.gradle.kts`) y revisando qué composables quedan marcados como `skippable`/`restartable`.
+
+Esto no reemplaza las buenas prácticas de la sección anterior (seguir prefiriendo parámetros inmutables y `remember` para objetos costosos), pero explica por qué el mismo código puede recomponer *menos* de lo que un tutorial de 2023 haría pensar.
+
 ---
 
 ## 4) Comunicación de estados entre componentes
@@ -384,8 +399,8 @@ class SearchViewModel : ViewModel() {
 
 @Composable
 fun SearchScreen(vm: SearchViewModel = androidx.lifecycle.viewmodel.compose.viewModel()) {
-    // usar collectAsStateWithLifecycle si está disponible en el proyecto
-    val ui by vm.state.collectAsState()
+    // collectAsStateWithLifecycle: recolecta solo mientras la UI está STARTED
+    val ui by vm.state.collectAsStateWithLifecycle()
 
     Column {
         SearchField(
@@ -396,6 +411,14 @@ fun SearchScreen(vm: SearchViewModel = androidx.lifecycle.viewmodel.compose.view
     }
 }
 ```
+
+### 4.1 `collectAsState()` vs `collectAsStateWithLifecycle()`
+
+`collectAsState()` (de `androidx.compose.runtime`) recolecta el `Flow` **mientras el composable está en composición**, sin importar si la `Activity`/`Fragment` está en foreground. Eso significa que un `StateFlow` sigue emitiendo y recomponiendo aunque la pantalla esté detrás de otra o la app en background — trabajo y batería desperdiciados.
+
+`collectAsStateWithLifecycle()` (de `androidx.lifecycle:lifecycle-runtime-compose`, ya declarada en `Example/app/build.gradle.kts`) ata la recolección al `Lifecycle` del `LocalLifecycleOwner`: por defecto solo recolecta cuando el estado es **`STARTED`** o superior, y se re-suscribe automáticamente al volver a foreground. Es la recomendación oficial de Android para **todo** `Flow`/`StateFlow` expuesto por un `ViewModel` y consumido en Compose; `collectAsState()` queda reservado para `State`/`Flow` que no viajan por el ciclo de vida (por ejemplo, un `Flow` puramente local a la composición).
+
+**Regla práctica:** si el flujo sale de un `ViewModel`, usa `collectAsStateWithLifecycle()`. El ejemplo `DeclarativoActivityViewModel.kt` del proyecto `Example/` ya sigue esta recomendación.
 
 ---
 
@@ -473,7 +496,39 @@ fun PriceSummary(items: List<Int>) {
 
 ---
 
-## 6) Errores comunes y checklist
+## 6) Testing rápido de Composables
+
+Compose se prueba con `androidx.compose.ui.test` (`ui-test-junit4` y `ui-tooling-preview`, ya presentes en `Example/app/build.gradle.kts` como `androidTestImplementation`/`debugImplementation`). La regla `createComposeRule()` monta un composable aislado (sin necesitar una `Activity` real) y permite buscar nodos, hacer clic y hacer asserts sobre lo que se ve en pantalla.
+
+```kotlin
+class CounterScreenTest {
+
+    @get:Rule
+    val composeTestRule = createComposeRule()
+
+    @Test
+    fun incrementButton_updatesCount() {
+        composeTestRule.setContent {
+            CounterState()
+        }
+
+        composeTestRule.onNodeWithText("Count: 0").assertIsDisplayed()
+
+        composeTestRule.onNodeWithText("Increment").performClick()
+
+        composeTestRule.onNodeWithText("Count: 1").assertIsDisplayed()
+    }
+}
+```
+
+**Qué probar en esta sesión**
+- Que el `state hoisting` funciona: el hijo dispara `onValueChange` y el padre actualiza el `value` mostrado.
+- Que un `LaunchedEffect(key)` no se relanza si la clave no cambia (usar un fake/spy en el repositorio y contar invocaciones).
+- Que `derivedStateOf` no recalcula si las dependencias no cambian (contar invocaciones del bloque de cálculo).
+
+---
+
+## 7) Errores comunes y checklist
 
 **Errores frecuentes**
 - Crear objetos en cada recomposición sin `remember`.
@@ -482,6 +537,8 @@ fun PriceSummary(items: List<Int>) {
 - `SideEffect` usado para trabajo pesado (use `LaunchedEffect`).
 - Falta de **state hoisting** → hijos con estados internos difíciles de controlar.
 - Recalcular listas/formatos en cada recomposición sin `derivedStateOf`.
+- Usar `collectAsState()` para un `StateFlow` de ViewModel en vez de `collectAsStateWithLifecycle()` (sigue recolectando en background).
+- Asumir que `rememberSaveable`/ViewModel sobreviven a la muerte de proceso sin pasar por `SavedStateHandle`.
 
 **Checklist rápido**
 - ¿El estado vive en el **nivel correcto** (UI efímero vs pantalla vs dominio)?
@@ -490,6 +547,8 @@ fun PriceSummary(items: List<Int>) {
 - ¿Los efectos tienen **claves** correctas?
 - ¿Los hijos reciben `value` + `onValueChange`?
 - ¿Mis modelos de UI son **inmutables** y estables?
+- ¿Recolecto `Flow`/`StateFlow` de un ViewModel con `collectAsStateWithLifecycle()`?
+- ¿El estado crítico para el usuario sobrevive a muerte de proceso vía `SavedStateHandle`?
 
 ---
 
@@ -499,11 +558,14 @@ fun PriceSummary(items: List<Int>) {
 2) Implementar un buscador con `SearchField` hoisted y `derivedStateOf` para la lista filtrada.  
 3) Agregar `LaunchedEffect(userId)` que cargue datos del usuario y manejar error/loader.  
 4) Instrumentar `SideEffect` para reportar el nombre de pantalla.  
-5) Añadir `rememberSaveable` al estado del texto para que sobreviva rotación.
+5) Añadir `rememberSaveable` al estado del texto para que sobreviva rotación.  
+6) Migrar `LoginScreenViewModel` (ver `Example/`) para que `LoginViewModel` reciba un `SavedStateHandle` y persista el email escrito ante muerte de proceso.  
+7) Escribir un test con `createComposeRule()` para `CounterState` (sección 6) que verifique que dos clics dejan el contador en 2.
 
 ---
 
 ## Recursos recomendados (internos del curso)
 - Plantilla base de Compose del módulo.  
 - Snippets de `State`, `derivedStateOf`, `LaunchedEffect`, `DisposableEffect`.  
-- Ejemplo de ViewModel + StateFlow con `collectAsState(…)`.
+- Ejemplo de ViewModel + StateFlow con `collectAsStateWithLifecycle(…)` (`Example/app/.../DeclarativoActivityViewModel.kt`).  
+- Documentación oficial: [State and Jetpack Compose](https://developer.android.com/develop/ui/compose/state), [Lifecycle-aware state collection](https://developer.android.com/develop/ui/compose/state#lifecycle-aware-state-collection), [Compose Bill of Materials](https://developer.android.com/develop/ui/compose/bom).

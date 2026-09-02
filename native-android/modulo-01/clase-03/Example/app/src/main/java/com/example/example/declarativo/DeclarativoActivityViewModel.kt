@@ -22,10 +22,10 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.example.declarativo.theme.ExampleTheme
 
@@ -116,8 +116,8 @@ fun LoginScreenViewModel(
     vm: LoginViewModel = viewModel(),
     onSuccess: () -> Unit = {}
 ) {
-    val ui = vm.ui.collectAsState().value
-    // Si tienes lifecycle-runtime-compose, puedes usar collectAsStateWithLifecycle()
+    // lifecycle-aware: deja de recolectar cuando la pantalla no está STARTED
+    val ui = vm.ui.collectAsStateWithLifecycle().value
 
     Column (
         modifier = modifier
