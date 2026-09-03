@@ -209,6 +209,8 @@ fun Sample() {
 }
 ```
 
+> 🔗 **Revisar demo:** [`ImperativoActivity.kt`](./Example/app/src/main/java/com/example/example/imperativo/ImperativoActivity.kt) (XML clásico con `ConstraintLayout`) · [`DeclarativoActivity.kt`](./Example/app/src/main/java/com/example/example/declarativo/DeclarativoActivity.kt) (Hello World en Compose) · [`DeclarativoActivityAndroidView.kt`](./Example/app/src/main/java/com/example/example/declarativo/DeclarativoActivityAndroidView.kt) (`AndroidView` — View clásica dentro de Compose) · [`ImperativoActivityComposeView.kt`](./Example/app/src/main/java/com/example/example/imperativo/ImperativoActivityComposeView.kt) (`ComposeView` — Compose dentro de XML)
+
 ---
 
 ## 2) `remember`, `mutableStateOf` y `State<T>`
@@ -254,6 +256,8 @@ fun ExpensiveObjectHolder() {
     // ...
 }
 ```
+
+> 🔗 **Revisar demo:** [`DeclarativoActivityRemember.kt`](./Example/app/src/main/java/com/example/example/declarativo/DeclarativoActivityRemember.kt) (`remember` vs `rememberSaveable` con `Saver` custom) · [`DeclarativoActivityRememberCasoUse.kt`](./Example/app/src/main/java/com/example/example/declarativo/DeclarativoActivityRememberCasoUse.kt) (`rememberSaveable` en un formulario real)
 
 ---
 
@@ -320,6 +324,8 @@ fun LocationListener(onLocation: (Double, Double) -> Unit) {
     }
 }
 ```
+
+> 🔗 **Revisar demo:** [`declarativo/TimerActivity.kt`](./Example/app/src/main/java/com/example/example/declarativo/TimerActivity.kt) (`LaunchedEffect` + `DisposableEffect`) vs [`imperativo/TimerFragment.kt`](./Example/app/src/main/java/com/example/example/imperativo/TimerFragment.kt) + [`imperativo/TimerActivity.kt`](./Example/app/src/main/java/com/example/example/imperativo/TimerActivity.kt) (mismo timer con `onStart`/`onStop`/`onDestroyView`) — el mejor contraste de la sesión.
 
 ### 3.1 Strong Skipping Mode
 
@@ -420,6 +426,8 @@ fun SearchScreen(vm: SearchViewModel = androidx.lifecycle.viewmodel.compose.view
 
 **Regla práctica:** si el flujo sale de un `ViewModel`, usa `collectAsStateWithLifecycle()`. El ejemplo `DeclarativoActivityViewModel.kt` del proyecto `Example/` ya sigue esta recomendación.
 
+> 🔗 **Revisar demo:** [`DeclarativoActivityHoisting.kt`](./Example/app/src/main/java/com/example/example/declarativo/DeclarativoActivityHoisting.kt) (state hoisting + `derivedStateOf`) · [`DeclarativoActivityViewModel.kt`](./Example/app/src/main/java/com/example/example/declarativo/DeclarativoActivityViewModel.kt) (ViewModel + `StateFlow` + `collectAsStateWithLifecycle()`)
+
 ---
 
 ## 5) Efectos: `LaunchedEffect`, `SideEffect`, `derivedStateOf`
@@ -448,6 +456,8 @@ fun UserProfileScreen(userId: String, repo: UserRepository) {
     }
 }
 ```
+
+> 🔗 **Revisar demo:** [`declarativo/TimerActivity.kt`](./Example/app/src/main/java/com/example/example/declarativo/TimerActivity.kt) — el `LaunchedEffect(Unit)` que arranca el contador.
 
 ### 5.2 `SideEffect`
 - Corre **después** de que la composición se aplica (commit), en **cada recomposición**.
@@ -478,6 +488,8 @@ fun Reporter(screenName: String, analytics: Analytics) {
 }
 ```
 
+> ⚠️ **Revisar demo:** todavía no hay un `SideEffect` en el proyecto `Example/`. Es un buen ejercicio en vivo: agrégalo a [`declarativo/TimerActivity.kt`](./Example/app/src/main/java/com/example/example/declarativo/TimerActivity.kt) justo antes del `Box` (ej. `SideEffect { Log.d("TimerScreen", "Recompuesto, seconds=$seconds") }`) y compáralo con el `LaunchedEffect` que ya está ahí.
+
 ### 5.3 `derivedStateOf`
 - Deriva un valor **memoizado**(recordar (cachear) un resultado ya calculado para no volver a calcularlo mientras sus entradas no cambien.) a partir de otros estados.  
 - Evita cómputos caros en cada recomposición, recalculando solo cuando cambian sus dependencias.
@@ -493,6 +505,8 @@ fun PriceSummary(items: List<Int>) {
     Text("Total: $total")
 }
 ```
+
+> 🔗 **Revisar demo:** [`DeclarativoActivityHoisting.kt`](./Example/app/src/main/java/com/example/example/declarativo/DeclarativoActivityHoisting.kt) — el `derivedStateOf(email, password)` que calcula `formValid`.
 
 ---
 
@@ -526,6 +540,8 @@ class CounterScreenTest {
 - Que un `LaunchedEffect(key)` no se relanza si la clave no cambia (usar un fake/spy en el repositorio y contar invocaciones).
 - Que `derivedStateOf` no recalcula si las dependencias no cambian (contar invocaciones del bloque de cálculo).
 
+> ⚠️ **Revisar demo:** todavía no hay un test de Compose en `Example/` (solo el `ExampleInstrumentedTest.kt` genérico de la plantilla). Este es el **ejercicio 7** de la clase: escribe el `CounterScreenTest` de arriba contra [`CounterState`](./Example/app/src/main/java/com/example/example/declarativo/DeclarativoActivityRemember.kt) (sección 2).
+
 ---
 
 ## 7) Errores comunes y checklist
@@ -549,6 +565,8 @@ class CounterScreenTest {
 - ¿Mis modelos de UI son **inmutables** y estables?
 - ¿Recolecto `Flow`/`StateFlow` de un ViewModel con `collectAsStateWithLifecycle()`?
 - ¿El estado crítico para el usuario sobrevive a muerte de proceso vía `SavedStateHandle`?
+
+> 🔗 **Revisar demo:** esta sección no tiene un archivo propio — es el repaso. Recorre la carpeta [`Example/app/src/main/java/com/example/example/declarativo/`](./Example/app/src/main/java/com/example/example/declarativo/) y marca el checklist contra cada Activity ya vista.
 
 ---
 
