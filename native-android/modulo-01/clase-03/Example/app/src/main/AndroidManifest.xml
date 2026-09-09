@@ -76,6 +76,12 @@
             android:theme="@style/Theme.Imperativo">
         </activity>
 
+        <activity
+            android:name=".declarativo.DeclarativoActivityRecomposicion"
+            android:exported="true"
+            android:theme="@style/Theme.Declarativo">
+        </activity>
+
     </application>
 
 </manifest>

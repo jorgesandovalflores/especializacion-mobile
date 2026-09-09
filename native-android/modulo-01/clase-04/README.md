@@ -12,9 +12,19 @@ Al finalizar, el estudiante podrá:
 - Integrar ViewModel con navegación basada en eventos (unidireccional), usar SavedStateHandle y devolver resultados entre pantallas.
 
 ## Requisitos
-- Android Studio actual.
-- Kotlin 1.9+ y Compose BOM reciente.
+- Android Studio actual (Narwhal o superior) y AGP 9.x.
+- Kotlin 2.4+. Desde AGP 9.0, Kotlin viene **integrado en el plugin de Android**:
+  ya no se declara `org.jetbrains.kotlin.android` (ver nota más abajo).
+- Compose BOM 2026.08.00 o superior, `compileSdk` 37 y `targetSdk` 36 (mínimo exigido por Google Play desde agosto de 2026).
 - Conocimientos de estados, efectos (remember, rememberSaveable), ViewModel.
+
+> **Kotlin integrado en AGP 9 (built-in Kotlin)**: si vienes de un proyecto con
+> `alias(libs.plugins.kotlin.android)`, quítalo — con AGP 9.x el propio plugin
+> `com.android.application` ya trae el soporte de Kotlin y falla si detecta
+> ambos. También desaparece el bloque `android.kotlinOptions { jvmTarget = "11" }`;
+> el `jvmTarget` ahora se toma de `android.compileOptions`. Ver la guía oficial:
+> https://developer.android.com/build/migrate-to-built-in-kotlin. El proyecto
+> `Example` de esta sesión ya está migrado.
 
 ## Introducción conceptual a la navegación (glosario rápido)
 
@@ -72,14 +82,18 @@ Al finalizar, el estudiante podrá:
 - Dependencias (Gradle Kotlin DSL)
 ``` kotlin
 dependencies {
-    // Compose BOM recomendado
-    implementation(platform("androidx.compose:compose-bom:2025.01.00"))
-    implementation("androidx.navigation:navigation-compose:2.8.3")
-    implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.8.4")
-    implementation("androidx.hilt:hilt-navigation-compose:1.2.0")
+    // Compose BOM recomendado (septiembre 2026)
+    implementation(platform("androidx.compose:compose-bom:2026.08.00"))
+    implementation("androidx.navigation:navigation-compose:2.9.8")
+    implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.11.0")
+    implementation("androidx.hilt:hilt-navigation-compose:1.4.0")
+
+    // Necesario solo si usas rutas type-safe con @Serializable (sección 2.1)
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.11.0")
 }
 
 ```
+> **Nota de versiones**: los números de arriba reflejan las versiones estables disponibles en septiembre de 2026. Antes de fijarlas en un proyecto real, revisa siempre las páginas oficiales de releases ([Navigation](https://developer.android.com/jetpack/androidx/releases/navigation), [Compose](https://developer.android.com/jetpack/androidx/releases/compose), [Lifecycle](https://developer.android.com/jetpack/androidx/releases/lifecycle), [Hilt](https://developer.android.com/jetpack/androidx/releases/hilt)), porque estas librerías publican versiones nuevas con frecuencia.
 
 ## 1) Configuración de Navigation Compose
 
@@ -232,6 +246,70 @@ composable(
     }
     ```
     - Así centralizas el formato y reduces bugs.
+
+------------------------------------------------------------------------
+
+## 2.1) Rutas type-safe con `@Serializable` (recomendado)
+
+**Concepto**\
+Desde Navigation Compose 2.8 (consolidado y estable en la línea 2.9.x
+vigente en 2026), Google recomienda **dejar de construir rutas como
+Strings** (`"product_detail/{id}"`) y en su lugar declarar cada destino
+como una clase u objeto Kotlin anotado con `@Serializable` (de
+`kotlinx.serialization`). El propio tipo *es* la ruta: el compilador
+valida en tiempo de compilación que existan los argumentos correctos,
+con el tipo correcto, sin placeholders ni parseos manuales.
+
+**Caso de uso**\
+El mismo ejemplo de `ProductList → ProductDetail`, pero sin strings
+mágicos ni riesgo de escribir mal un placeholder.
+
+**Ejemplo completo**
+
+``` kotlin
+// Cada destino es un tipo serializable; el argumento es una propiedad más
+@Serializable
+object ProductList
+
+@Serializable
+data class ProductDetail(val id: Int)
+
+@Composable
+fun AppNavRoot() {
+    val navController = rememberNavController()
+
+    NavHost(navController, startDestination = ProductList) {
+        composable<ProductList> {
+            ProductListScreen(
+                onOpenDetail = { id -> navController.navigate(ProductDetail(id)) }
+            )
+        }
+        composable<ProductDetail> { backStackEntry ->
+            val detail: ProductDetail = backStackEntry.toRoute()
+            ProductDetailScreen(productId = detail.id, onBack = { navController.popBackStack() })
+        }
+    }
+}
+```
+- Configuración necesaria
+    - Plugin de Gradle `org.jetbrains.kotlin.plugin.serialization` (mismo `version.ref` que Kotlin).
+    - Dependencia `org.jetbrains.kotlinx:kotlinx-serialization-json`.
+    - `startDestination` ya no es un String, sino la instancia/objeto del destino inicial (`ProductList`).
+- Navegar con datos tipados
+    - `navController.navigate(ProductDetail(id))` construye la ruta directamente con el constructor de la data class; no hay concatenación de Strings ni riesgo de un `id` no numérico.
+    - Si el destino requiere varios argumentos, simplemente se agregan como propiedades de la data class (`data class ProductDetail(val id: Int, val fromSearch: Boolean = false)`).
+- Leer el argumento en el destino
+    - `backStackEntry.toRoute<ProductDetail>()` deserializa la entrada del back stack y devuelve la instancia ya tipada; no hace falta `NavType`, `navArgument` ni valores por defecto para el "no llegó el dato".
+- Ventajas frente al enfoque basado en Strings (sección 2)
+    - Errores de tipeo en la ruta o en el nombre del argumento se detectan en compilación, no en runtime.
+    - Refactors seguros: renombrar una propiedad o cambiar su tipo rompe la compilación en cada uso, en vez de fallar silenciosamente al navegar.
+    - Tipos complejos (listas, enums, objetos anidados) via `@Serializable` sin necesidad de serializarlos a JSON manualmente.
+- Cuándo seguir usando rutas basadas en Strings
+    - Deeplinks externos (sección 7): el patrón de URI sigue siendo un String (`uriPattern`), aunque el destino interno puede seguir siendo un tipo `@Serializable`.
+    - Rutas totalmente dinámicas construidas en runtime a partir de datos externos (por ejemplo, un menú configurado por backend) donde no se conoce el tipo en tiempo de compilación.
+    - Proyectos legados que ya tienen una capa de rutas basada en Strings y aún no migran.
+- Este curso usa ambos enfoques
+    - La demo `typesafe` del proyecto `Example` implementa exactamente este ejemplo; la demo `rutasargumentos` mantiene el enfoque con Strings para que compares ambos lado a lado.
 
 ------------------------------------------------------------------------
 
@@ -582,4 +660,36 @@ composable(
 - Pruebas:
     - ADB: adb shell am start -a android.intent.action.VIEW -d "https://misitio.com/detail/42" com.example.deeplinks
     - Notificación: crea un PendingIntent con Intent(ACTION_VIEW, Uri.parse(...)).
+
+------------------------------------------------------------------------
+
+## 8) Panorama 2026: ¿y Navigation 3?
+
+**Contexto**\
+Todo lo anterior usa **Navigation Compose** (`androidx.navigation:navigation-compose`,
+la librería que vive dentro de `androidx.navigation`, en su línea 2.9.x).
+Es la que vas a encontrar en la enorme mayoría de apps en producción hoy y
+sigue totalmente soportada por Google. Por eso es la base de esta sesión:
+los conceptos (back stack, `popUpTo`, argumentos, deeplinks, eventos desde
+el ViewModel) son los mismos que necesitas para cualquier librería de
+navegación que uses después.
+
+Desde noviembre de 2025, Google también ofrece **Navigation 3**
+(`androidx.navigation3:navigation3-runtime` / `navigation3-ui`, ya estable
+en la serie 1.1.x), un rediseño pensado 100% para Compose. La diferencia
+más importante: en Navigation 3 **tú posees el back stack** como una lista
+de estado observable (`rememberNavBackStack(...)`) en vez de delegarlo a
+un `NavController` interno; tú decides cómo se renderiza cada entrada con
+un `NavDisplay`. Esto da más control (transiciones compartidas entre
+pantallas, layouts adaptativos multi-panel), a costa de un modelo mental
+distinto y más código explícito para casos que Navigation Compose
+resolvía por ti.
+
+**Recomendación para este curso**: domina primero los conceptos de esta
+sesión con Navigation Compose (lo que ves en el proyecto `Example`); son
+la base para entender cualquier librería de navegación en Compose,
+Navigation 3 incluido. Migrar o adoptar Navigation 3 tiene sentido en un
+proyecto nuevo o cuando necesites las capacidades que mencionamos arriba;
+no es una migración urgente para apps que ya funcionan bien con
+Navigation Compose.
 

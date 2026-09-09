@@ -277,6 +277,8 @@ fun ExpensiveObjectHolder() {
 
 ![Diagrama](./img/3.4.png)
 
+> 🔗 **Revisar demo:** [`DeclarativoActivityRecomposicion.kt`](./Example/app/src/main/java/com/example/example/declarativo/DeclarativoActivityRecomposicion.kt) — mismo formulario de login (usuario, password, botón) implementado en 4 funciones (`LoginFormState`, `LoginFormParams`, `LoginFormCompositionLocal`, `LoginFormEffectKey`), una por cada disparador de arriba; cambia manualmente cuál se llama en `setContent` para comparar.
+
 **Buenas prácticas**
 - **State hoisting** (elevar estado al padre) para aislar recomposiciones.
 - Mantener **parámetros estables** (data classes inmutables; `@Immutable`/`@Stable` si aplica).

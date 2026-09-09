@@ -15,9 +15,14 @@ class MainActivity : ComponentActivity() {
             com.example.example.configuracion.AppNavRoot()
         }*/
 
-        // rutas y argumentos
+        // rutas y argumentos (basadas en String)
         /*setContent {
             com.example.example.rutasargumentos.AppNavRoot()
+        }*/
+
+        // rutas type-safe con @Serializable (recomendado desde Navigation 2.8+)
+        /*setContent {
+            com.example.example.typesafe.AppNavRoot()
         }*/
 
         // navegacion anidada
