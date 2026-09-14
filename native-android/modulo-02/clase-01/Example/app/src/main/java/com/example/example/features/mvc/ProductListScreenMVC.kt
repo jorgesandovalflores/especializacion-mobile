@@ -1,16 +1,18 @@
 package com.example.example.features.mvc
 
-import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.example.example.common.ui.ProductListBackground
+import com.example.example.common.ui.ProductListContent
+import com.example.example.common.ui.ProductListHeader
 
-// View (Compose) en MVC: observa el estado del Controller
-@OptIn(ExperimentalMaterial3Api::class)
+// View (Compose) en MVC: observa el estado del Controller y delega el
+// renderizado en ProductListContent, compartido con MVP y MVVM.
 @Composable
 fun ProductListScreenMVC(
     controller: ProductController
@@ -21,44 +23,24 @@ fun ProductListScreenMVC(
     // Disparar carga al entrar
     LaunchedEffect(Unit) { controller.load() }
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text("Products (MVC)") }
-            )
-        }
-    ) { innerPadding ->
+    val products = (state as? MVCState.Success)?.data.orEmpty()
 
-        Box(Modifier.padding(innerPadding).fillMaxSize()) {
-            when (state) {
-                is MVCState.Loading -> {
-                    Box(Modifier.fillMaxSize()) { CircularProgressIndicator() }
-                }
-                is MVCState.Error -> {
-                    val msg = (state as MVCState.Error).message
-                    Column(Modifier.padding(16.dp)) {
-                        Text("Error: $msg")
-                        Button(onClick = { controller.load() }) { Text("Reintentar") }
-                    }
-                }
-                is MVCState.Success -> {
-                    val items = (state as MVCState.Success).data
-                    LazyColumn(
-                        modifier = Modifier.fillMaxSize().padding(12.dp),
-                        verticalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        items(items) { p ->
-                            ElevatedCard(Modifier.fillMaxWidth()) {
-                                Column(Modifier.padding(12.dp)) {
-                                    Text(p.name, style = MaterialTheme.typography.titleMedium)
-                                    Text("$${p.price}")
-                                    Text(if (p.inStock) "In stock" else "Out of stock")
-                                }
-                            }
-                        }
-                    }
-                }
-            }
+    Scaffold(
+        containerColor = ProductListBackground
+    ) { innerPadding ->
+        Column(Modifier.padding(innerPadding).fillMaxSize()) {
+            ProductListHeader(
+                loading = state is MVCState.Loading,
+                error = (state as? MVCState.Error)?.message,
+                resultCount = products.size
+            )
+            ProductListContent(
+                loading = state is MVCState.Loading,
+                error = (state as? MVCState.Error)?.message,
+                products = products,
+                onRetry = { controller.load() },
+                modifier = Modifier.weight(1f)
+            )
         }
     }
 }

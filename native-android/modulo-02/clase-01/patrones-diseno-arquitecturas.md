@@ -80,7 +80,7 @@
 
 - **Strategy**
   - Define una familia de algoritmos intercambiables.
-  - *Ejemplo real:* el filtro "Solo en stock" de [`ProductListScreenMVVM.kt`](./Example/app/src/main/java/com/example/example/features/mvvm/ProductListScreenMVVM.kt) — una estrategia de filtrado aplicada sobre la misma lista `ui.data`, sin tocar al ViewModel. A nivel de datos, `ProductRepository` como interfaz también permite intercambiar la estrategia de obtención de datos (`ProductRemoteRepository` ↔ `FakeProductRepository`) sin tocar la capa de presentación.
+  - *Ejemplo real:* `ProductRepository` como interfaz permite intercambiar la estrategia de obtención de datos (`ProductRemoteRepository` ↔ `FakeProductRepository`) sin tocar la capa de presentación — `ProductController`, `ProductListPresenter` y `ProductListViewModel` reciben cualquiera de las dos por el mismo parámetro.
 
 - **Template Method**
   - Define el esqueleto de un algoritmo, delegando pasos a subclases o a callbacks.

@@ -17,11 +17,11 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 
 // ViewModel: no conoce a la View, expone el estado de negocio de dos formas
-// distintas para poder compararlas en vivo (ver viewmodel-flow-state-livedata.md):
-//  - StateFlow (ui)          -> moderno, natural en Compose con collectAsStateWithLifecycle().
-//  - LiveData (lastUpdatedAt) -> legacy, lifecycle-aware por sí mismo, se observa con observeAsState().
-// El filtro "solo en stock" NO vive aquí: es Compose State, local a la pantalla
-// (ver ProductListScreenMVVM.kt), porque es un detalle de UI, no de negocio.
+// distintas para compararlas en código (ver viewmodel-flow-state-livedata.md):
+//  - StateFlow (ui)          -> moderno; ProductListScreenMVVM.kt lo consume con collectAsStateWithLifecycle().
+//  - LiveData (lastUpdatedAt) -> legacy, lifecycle-aware por sí mismo; se observaría con observeAsState()
+//    igual que ui, pero se deja sin enlazar a la UI para que la pantalla se mantenga
+//    igual al diseño (design-m02-c01.pen) — enlazarlo es un ejercicio propuesto en README.md.
 class ProductListViewModel(
     private val repository: ProductRepository = LoggingProductRepository(ProductRemoteRepository()),
     private val savedStateHandle: SavedStateHandle = SavedStateHandle()

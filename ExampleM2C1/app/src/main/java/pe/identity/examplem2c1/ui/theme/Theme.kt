@@ -1,5 +1,6 @@
-package com.example.example.core.theme
+package pe.identity.examplem2c1.ui.theme
 
+import android.app.Activity
 import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme
@@ -17,7 +18,7 @@ private val DarkColorScheme = darkColorScheme(
 )
 
 private val LightColorScheme = lightColorScheme(
-    primary = ColorPrimary,
+    primary = Purple40,
     secondary = PurpleGrey40,
     tertiary = Pink40
 
@@ -33,7 +34,7 @@ private val LightColorScheme = lightColorScheme(
 )
 
 @Composable
-fun ExampleTheme(
+fun ExampleM2C1Theme(
     darkTheme: Boolean = isSystemInDarkTheme(),
     // Dynamic color is available on Android 12+
     dynamicColor: Boolean = true,

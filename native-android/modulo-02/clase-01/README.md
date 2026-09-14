@@ -189,22 +189,25 @@ Cuatro piezas que se confunden fácil porque todas "notifican cambios", pero res
 
 > 📘 **Ver documento completo:** [viewmodel-flow-state-livedata.md](./viewmodel-flow-state-livedata.md) — cada concepto con su propio ejemplo mínimo.
 
-**Las cuatro piezas conviven en el mismo `ProductListViewModel`/`ProductListScreenMVVM`, para poder compararlas en vivo:**
+**`ProductListViewModel` expone `ui` (StateFlow) y `lastUpdatedAt` (LiveData) del mismo dato de negocio, para comparar ambas formas de observar directamente en el código:**
 
 ```kotlin
-// ProductListScreenMVVM.kt (recortado)
-val ui by vm.ui.collectAsStateWithLifecycle()        // Flow -> StateFlow
-val lastUpdatedAt by vm.lastUpdatedAt.observeAsState() // LiveData
-var onlyInStock by remember { mutableStateOf(false) }  // State local, NO vive en el ViewModel
+// ProductListViewModel.kt (recortado)
+val ui: StateFlow<ProductListUiState> = _ui         // se consume en ProductListScreenMVVM.kt
+val lastUpdatedAt: LiveData<Long?> = _lastUpdatedAt // expuesto, sin enlazar a la UI (ver Ejercicios)
 ```
 
-| Pieza                               | Dónde vive | Por qué                                                                                                                                |
-| ----------------------------------- | ---------- | -------------------------------------------------------------------------------------------------------------------------------------- |
-| `ui: StateFlow<ProductListUiState>` | ViewModel  | Es el resultado de la llamada de red: debe sobrevivir a recomposiciones y rotación.                                                    |
-| `lastUpdatedAt: LiveData<Long?>`    | ViewModel  | Mismo dato de negocio, expuesto también como `LiveData` solo para comparar ambas formas de observar.                                   |
-| `onlyInStock` (`State`)             | Composable | Es un filtro puramente visual; si viviera en el ViewModel, sobrecargaríamos el "modelo de UI" con algo que no es una regla de negocio. |
+`ProductListScreenMVVM.kt` solo consume `ui` (con `collectAsStateWithLifecycle()`), para que la pantalla se mantenga igual al diseño (`design-m02-c01.pen`) y a MVC/MVP. Enlazar `lastUpdatedAt` con `observeAsState()` queda como ejercicio propuesto.
 
-> 🔗 **Revisar demo:** [`ProductListViewModel.kt`](./Example/app/src/main/java/com/example/example/features/mvvm/ProductListViewModel.kt) · [`ProductListScreenMVVM.kt`](./Example/app/src/main/java/com/example/example/features/mvvm/ProductListScreenMVVM.kt)
+El ejemplo real de `State` (local, efímero, fuera del ViewModel) vive en MVP: `ProductListScreenMVP.kt` guarda `isLoading`/`error`/`products` con `remember { mutableStateOf(...) }`, sin que el Presenter conozca esa representación.
+
+| Pieza                                    | Dónde vive                        | Por qué                                                                                                 |
+| ----------------------------------------- | ---------------------------------- | -------------------------------------------------------------------------------------------------------- |
+| `ui: StateFlow<ProductListUiState>`       | ViewModel, consumido en la pantalla | Es el resultado de la llamada de red: debe sobrevivir a recomposiciones y rotación.                       |
+| `lastUpdatedAt: LiveData<Long?>`          | ViewModel, sin consumir aún        | Mismo dato de negocio, expuesto también como `LiveData` solo para comparar ambas formas de observar.      |
+| `isLoading`/`error`/`products` (`State`)  | `ProductListScreenMVP.kt`          | Estado puramente de UI; si viviera en el Presenter, este dejaría de ser agnóstico de cómo se renderiza.   |
+
+> 🔗 **Revisar demo:** [`ProductListViewModel.kt`](./Example/app/src/main/java/com/example/example/features/mvvm/ProductListViewModel.kt) · [`ProductListScreenMVVM.kt`](./Example/app/src/main/java/com/example/example/features/mvvm/ProductListScreenMVVM.kt) · [`ProductListScreenMVP.kt`](./Example/app/src/main/java/com/example/example/features/mvp/ProductListScreenMVP.kt)
 
 ---
 
@@ -279,9 +282,9 @@ ProductApiService (Retrofit)  →  ProductDto/RatingDto  →  ProductMapper.toDo
 
 ### 6.3 Qué observar al ejecutar
 
-1. Abre `MainMenuActivity` → entra a cada demo (MVC, MVP, MVVM) y compara el código, no solo la UI: son idénticas a simple vista.
-2. En **MVVM**, activa "Solo en stock" (State local) y observa la hora de "Actualizado" (LiveData) mientras el `StateFlow` sigue el ciclo Loading → Success.
-3. Apaga el internet del dispositivo/emulador y pulsa "Reintentar": verás el contador de reintentos (`SavedStateHandle`) subir y, en Logcat (filtro `ProductRepository`), el error real reportado por `LoggingProductRepository`.
+1. Abre `MainMenuActivity` → entra a cada demo (MVC, MVP, MVVM): las tres pantallas se ven **idénticas** (mismo `ProductListHeader`, mismo fondo, mismas `ProductCard`) aunque el código de cada una llega ahí por un camino distinto.
+2. Apaga el internet del dispositivo/emulador y pulsa "Reintentar": el contador de reintentos (`SavedStateHandle`) sube por dentro aunque no se muestre en pantalla — compruébalo con un breakpoint o un `Log.d` temporal en `ProductListViewModel.retry()` — y en Logcat (filtro `ProductRepository`) verás el error real reportado por `LoggingProductRepository`.
+3. Revisa en el código (no en la UI) `ProductListViewModel.lastUpdatedAt`: es un `LiveData` real, expuesto pero sin enlazar a la pantalla — enlazarlo es el ejercicio 4.
 
 ---
 
@@ -300,7 +303,7 @@ ProductApiService (Retrofit)  →  ProductDto/RatingDto  →  ProductMapper.toDo
 1. Agrega un cuarto botón en `MainMenuActivity` para una arquitectura **MVI** minimalista (un solo `UiState` + una función `onIntent(intent: ProductListIntent)`), reutilizando `ProductRemoteRepository`.
 2. Cambia `ProductRemoteRepository` por `FakeProductRepository` en `ProductListViewModel` y comprueba que ninguna otra clase necesita cambios (Dependency Inversion en acción).
 3. Agrega un segundo `Decorator` (por ejemplo `CachingProductRepository`, que devuelva la última lista exitosa si el endpoint falla) y combínalo con `LoggingProductRepository`.
-4. En `ProductListScreenMVVM.kt`, agrega un segundo filtro local (`State`) por precio máximo y compáralo en el código con `onlyInStock`: ¿por qué ninguno de los dos vive en el ViewModel?
+4. En `ProductListScreenMVVM.kt`, enlaza `vm.lastUpdatedAt` con `observeAsState()` y muéstralo como un texto pequeño junto al `ProductListHeader`. Luego agrega un filtro "Solo en stock" como `State` local (`remember { mutableStateOf(false) }`) y compáralo con `lastUpdatedAt`: ¿por qué uno vive en el ViewModel y el otro no?
 5. Escribe un test unitario de `ProductListPresenter` usando un `ProductRepository` fake que lance una excepción, y verifica que se llama a `view.showError(...)`.
 
 ---

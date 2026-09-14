@@ -2,7 +2,7 @@
 
 > 📍 Documento 3 de la clase — ver el [menú completo en README.md](./README.md#menú-de-la-clase). Requiere haber visto [comparacion-arquitecturas.md](./comparacion-arquitecturas.md).
 
-Los cuatro conceptos de este documento conviven en un mismo archivo real del proyecto `Example/`: [`ProductListViewModel.kt`](./Example/app/src/main/java/com/example/example/features/mvvm/ProductListViewModel.kt) y su pantalla, [`ProductListScreenMVVM.kt`](./Example/app/src/main/java/com/example/example/features/mvvm/ProductListScreenMVVM.kt), que consumen `GET https://fakestoreapi.com/products`. Cada sección de abajo señala exactamente qué línea de esos dos archivos lo implementa.
+Tres de los cuatro conceptos de este documento viven en un mismo archivo real del proyecto `Example/`: [`ProductListViewModel.kt`](./Example/app/src/main/java/com/example/example/features/mvvm/ProductListViewModel.kt) y su pantalla, [`ProductListScreenMVVM.kt`](./Example/app/src/main/java/com/example/example/features/mvvm/ProductListScreenMVVM.kt), que consumen `GET https://fakestoreapi.com/products`. El cuarto (`State`) vive en [`ProductListScreenMVP.kt`](./Example/app/src/main/java/com/example/example/features/mvp/ProductListScreenMVP.kt), porque en MVVM esa pantalla se mantiene igual al diseño (`design-m02-c01.pen`) y no tiene UI propia para un `State` local. Cada sección de abajo señala exactamente qué línea de esos archivos lo implementa.
 
 ## ViewModel
 - Clase de **Android Jetpack** para separar la lógica de negocio de la UI.
@@ -41,12 +41,11 @@ Button(onClick = { counter++ }) {
 }
 ```
 
-**Ejemplo real** (`ProductListScreenMVVM.kt`): el filtro "Solo en stock" es un `State` local a la pantalla, que filtra la lista ya cargada por el ViewModel sin pedirle nada nuevo:
+**Ejemplo real** (`ProductListScreenMVP.kt`): `isLoading`, `error` y `products` son `State` local a la pantalla — el Presenter solo llama a `showLoading()`/`showProducts()`/`showError()`, sin saber que por dentro se representan así:
 ```kotlin
-var onlyInStock by remember { mutableStateOf(false) }
-val visibleProducts = remember(ui.data, onlyInStock) {
-    if (onlyInStock) ui.data.filter { it.inStock } else ui.data
-}
+var isLoading by remember { mutableStateOf(false) }
+var error by remember { mutableStateOf<String?>(null) }
+var products by remember { mutableStateOf<List<Product>>(emptyList()) }
 ```
 
 ---
@@ -85,13 +84,14 @@ val ui by vm.ui.collectAsStateWithLifecycle()
 val userLiveData = MutableLiveData<User>()
 ```
 
-**Ejemplo real** (`ProductListViewModel.kt` + `ProductListScreenMVVM.kt`): el mismo evento de "productos actualizados" que dispara el `StateFlow` también se publica como `LiveData<Long?>`, únicamente para poder comparar ambas formas de observar en la misma pantalla:
+**Ejemplo real** (`ProductListViewModel.kt`): el mismo evento de "productos actualizados" que dispara el `StateFlow` también se publica como `LiveData<Long?>`, para tener el código de ambas formas de observar disponible para comparar:
 ```kotlin
 // ViewModel
 private val _lastUpdatedAt = MutableLiveData<Long?>(null)
 val lastUpdatedAt: LiveData<Long?> = _lastUpdatedAt
-
-// Compose (requiere la dependencia androidx.compose.runtime:runtime-livedata)
+```
+`ProductListScreenMVVM.kt` no lo consume todavía (así la pantalla se mantiene igual al diseño); enlazarlo con `observeAsState()` (requiere la dependencia `androidx.compose.runtime:runtime-livedata`, ya declarada en `build.gradle.kts`) es el ejercicio 4 de [README.md](./README.md#ejercicios-propuestos):
+```kotlin
 val lastUpdatedAt by vm.lastUpdatedAt.observeAsState()
 ```
 
@@ -102,8 +102,8 @@ val lastUpdatedAt by vm.lastUpdatedAt.observeAsState()
 | Concepto   | Origen             | Uso principal                                   | Dónde vive en `Example/` |
 |------------|--------------------|--------------------------------------------------|----------------------------|
 | ViewModel  | Jetpack Lifecycle  | Guardar y exponer datos de la UI                | `ProductListViewModel` |
-| State      | Jetpack Compose    | Estado observable local de UI                   | `onlyInStock` en `ProductListScreenMVVM` |
-| Flow       | Kotlin Coroutines  | Flujo asíncrono de datos (streams)              | `ui: StateFlow<ProductListUiState>` |
-| LiveData   | Jetpack Lifecycle  | Estado observable ligado al ciclo de vida       | `lastUpdatedAt: LiveData<Long?>` |
+| State      | Jetpack Compose    | Estado observable local de UI                   | `isLoading`/`error`/`products` en `ProductListScreenMVP` |
+| Flow       | Kotlin Coroutines  | Flujo asíncrono de datos (streams)              | `ui: StateFlow<ProductListUiState>` en `ProductListViewModel` |
+| LiveData   | Jetpack Lifecycle  | Estado observable ligado al ciclo de vida       | `lastUpdatedAt: LiveData<Long?>` en `ProductListViewModel` (sin enlazar a la UI, ver Ejercicios) |
 
 > ⬅️ Siguiente: vuelve a [README.md §5 y §6](./README.md#5-ciclo-de-vida-del-viewmodel) para ver el ciclo de vida del ViewModel (con `SavedStateHandle`) y el proyecto `Example/` completo, corriendo contra el endpoint real.

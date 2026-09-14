@@ -1,15 +1,18 @@
 package com.example.example.features.mvp
 
-import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
 import com.example.example.common.model.Product
+import com.example.example.common.ui.ProductListBackground
+import com.example.example.common.ui.ProductListContent
+import com.example.example.common.ui.ProductListHeader
 
-@OptIn(ExperimentalMaterial3Api::class)
+// View (Compose) en MVP: implementa el contrato como View pasiva y delega el
+// renderizado en ProductListContent, compartido con MVC y MVVM.
 @Composable
 fun ProductListScreenMVP(
     presenter: ProductListContract.Presenter = ProductListPresenter()
@@ -40,47 +43,17 @@ fun ProductListScreenMVP(
     }
 
     Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text("Products (MVP)") }
-            )
-        }
+        containerColor = ProductListBackground
     ) { innerPadding ->
-
-        Box(
-            Modifier
-                .padding(innerPadding)
-                .fillMaxSize()
-        ) {
-            when {
-                isLoading -> Box(Modifier.fillMaxSize()) { CircularProgressIndicator() }
-                error != null -> Column(Modifier.padding(16.dp)) {
-                    Text("Error: $error")
-                    Button(onClick = { presenter.load() }) { Text("Reintentar") }
-                }
-                else -> {
-                    LazyColumn(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .padding(12.dp),
-                        verticalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        items(
-                            items = products,
-                            key = { it.id }
-                        ) { p ->
-                            ElevatedCard(Modifier.fillMaxWidth()) {
-                                Column(Modifier.padding(12.dp)) {
-                                    Text(p.name, style = MaterialTheme.typography.titleMedium)
-                                    Text("$${p.price}")
-                                    Text(if (p.inStock) "In stock" else "Out of stock")
-                                }
-                            }
-                        }
-                    }
-                }
-            }
+        Column(Modifier.padding(innerPadding).fillMaxSize()) {
+            ProductListHeader(loading = isLoading, error = error, resultCount = products.size)
+            ProductListContent(
+                loading = isLoading,
+                error = error,
+                products = products,
+                onRetry = { presenter.load() },
+                modifier = Modifier.weight(1f)
+            )
         }
     }
 }
-
