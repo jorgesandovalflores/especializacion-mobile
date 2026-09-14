@@ -4,12 +4,13 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import com.example.example.core.theme.ExampleTheme
 
 // Activity de arranque para demo MVP
 class AppMVP : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
-        setContent { ProductListScreenMVP(presenter = ProductListPresenter()) }
+        setContent { ExampleTheme { ProductListScreenMVP(presenter = ProductListPresenter()) } }
     }
 }

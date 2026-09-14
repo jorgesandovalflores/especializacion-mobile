@@ -1,11 +1,16 @@
 package com.example.example.features.mvp
 
-import com.example.example.common.data.FakeProductRepository
+import com.example.example.common.data.LoggingProductRepository
+import com.example.example.common.data.ProductRemoteRepository
+import com.example.example.common.data.ProductRepository
 import kotlinx.coroutines.*
 
-// Presenter: orquesta carga y notifica a la View
+// Mediator/Proxy (ver patrones-diseno-arquitecturas.md): orquesta el Modelo
+// (endpoint real por defecto) y empuja los resultados a la View mediante
+// el contrato ProductListContract, siguiendo el Template Method
+// showLoading -> fetch -> showProducts/showError.
 class ProductListPresenter(
-    private val repository: FakeProductRepository = FakeProductRepository()
+    private val repository: ProductRepository = LoggingProductRepository(ProductRemoteRepository())
 ) : ProductListContract.Presenter {
 
     private var view: ProductListContract.View? = null

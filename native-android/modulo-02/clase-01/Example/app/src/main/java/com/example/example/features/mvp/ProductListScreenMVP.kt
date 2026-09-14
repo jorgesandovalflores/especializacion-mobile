@@ -54,7 +54,10 @@ fun ProductListScreenMVP(
         ) {
             when {
                 isLoading -> Box(Modifier.fillMaxSize()) { CircularProgressIndicator() }
-                error != null -> Text("Error: $error", Modifier.padding(16.dp))
+                error != null -> Column(Modifier.padding(16.dp)) {
+                    Text("Error: $error")
+                    Button(onClick = { presenter.load() }) { Text("Reintentar") }
+                }
                 else -> {
                     LazyColumn(
                         modifier = Modifier

@@ -4,6 +4,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import android.os.Bundle
 import androidx.activity.enableEdgeToEdge
+import com.example.example.core.theme.ExampleTheme
 
 // Activity de arranque para demo MVC
 class AppMVC : ComponentActivity() {
@@ -11,6 +12,6 @@ class AppMVC : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         val controller = ProductController()
-        setContent { ProductListScreenMVC(controller) }
+        setContent { ExampleTheme { ProductListScreenMVC(controller) } }
     }
 }

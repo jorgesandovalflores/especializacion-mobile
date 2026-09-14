@@ -1,6 +1,8 @@
 package com.example.example.features.mvc
 
-import com.example.example.common.data.FakeProductRepository
+import com.example.example.common.data.LoggingProductRepository
+import com.example.example.common.data.ProductRemoteRepository
+import com.example.example.common.data.ProductRepository
 import com.example.example.common.model.Product
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -9,9 +11,12 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 
-// coordina modelo y actualiza estado observado por la View
+// Facade (ver patrones-diseno-arquitecturas.md): coordina el Modelo
+// (ProductRepository, por defecto el endpoint real decorado con logging)
+// y actualiza el estado (State) que observa la View. El Controller NO
+// conoce a la View: solo expone uiState.
 class ProductController(
-    private val repository: FakeProductRepository = FakeProductRepository()
+    private val repository: ProductRepository = LoggingProductRepository(ProductRemoteRepository())
 ) {
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 

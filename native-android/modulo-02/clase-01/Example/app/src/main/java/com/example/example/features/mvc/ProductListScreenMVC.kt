@@ -7,6 +7,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 
 // View (Compose) en MVC: observa el estado del Controller
 @OptIn(ExperimentalMaterial3Api::class)
@@ -14,8 +15,8 @@ import androidx.compose.ui.unit.dp
 fun ProductListScreenMVC(
     controller: ProductController
 ) {
-    // Colección de estado del Controller
-    val state by controller.uiState.collectAsState()
+    // Colección de estado del Controller, lifecycle-aware (se pausa en background)
+    val state by controller.uiState.collectAsStateWithLifecycle()
 
     // Disparar carga al entrar
     LaunchedEffect(Unit) { controller.load() }
@@ -35,7 +36,10 @@ fun ProductListScreenMVC(
                 }
                 is MVCState.Error -> {
                     val msg = (state as MVCState.Error).message
-                    Text("Error: $msg", Modifier.padding(16.dp))
+                    Column(Modifier.padding(16.dp)) {
+                        Text("Error: $msg")
+                        Button(onClick = { controller.load() }) { Text("Reintentar") }
+                    }
                 }
                 is MVCState.Success -> {
                     val items = (state as MVCState.Success).data
