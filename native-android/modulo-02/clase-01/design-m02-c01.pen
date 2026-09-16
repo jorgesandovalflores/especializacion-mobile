@@ -132,6 +132,73 @@
             },
             {
               "type": "frame",
+              "id": "vBfiB",
+              "name": "Category Filter",
+              "gap": 5,
+              "alignItems": "center",
+              "children": [
+                {
+                  "id": "Rw2Xx",
+                  "type": "ref",
+                  "ref": "s4Ioit",
+                  "name": "Todos",
+                  "fill": "$accent",
+                  "stroke": "$accent",
+                  "descendants": {
+                    "lJEfl": {
+                      "content": "Todos",
+                      "fill": "#FFFFFF"
+                    }
+                  }
+                },
+                {
+                  "id": "aEvYG",
+                  "type": "ref",
+                  "ref": "s4Ioit",
+                  "name": "Electrónica",
+                  "descendants": {
+                    "lJEfl": {
+                      "content": "Electrónica"
+                    }
+                  }
+                },
+                {
+                  "id": "bjFDe",
+                  "type": "ref",
+                  "ref": "s4Ioit",
+                  "name": "Joyería",
+                  "descendants": {
+                    "lJEfl": {
+                      "content": "Joyería"
+                    }
+                  }
+                },
+                {
+                  "id": "GrOrn",
+                  "type": "ref",
+                  "ref": "s4Ioit",
+                  "name": "Hombre",
+                  "descendants": {
+                    "lJEfl": {
+                      "content": "Hombre"
+                    }
+                  }
+                },
+                {
+                  "id": "MrXUI",
+                  "type": "ref",
+                  "ref": "s4Ioit",
+                  "name": "Mujer",
+                  "descendants": {
+                    "lJEfl": {
+                      "content": "Mujer"
+                    }
+                  }
+                }
+              ]
+            },
+            {
+              "type": "frame",
               "id": "Hpooo",
               "name": "Product List",
               "width": "fill_container",
@@ -489,6 +556,36 @@
               ]
             }
           ]
+        }
+      ]
+    },
+    {
+      "type": "frame",
+      "id": "s4Ioit",
+      "x": 0,
+      "y": -120,
+      "name": "Category Chip",
+      "reusable": true,
+      "fill": "$surface",
+      "cornerRadius": 16,
+      "stroke": "$border",
+      "strokeWidth": 1,
+      "padding": [
+        7,
+        10
+      ],
+      "justifyContent": "center",
+      "alignItems": "center",
+      "children": [
+        {
+          "type": "text",
+          "id": "lJEfl",
+          "name": "Label",
+          "fill": "$text-secondary",
+          "content": "Categoría",
+          "fontFamily": "$font",
+          "fontSize": 12,
+          "fontWeight": "600"
         }
       ]
     }

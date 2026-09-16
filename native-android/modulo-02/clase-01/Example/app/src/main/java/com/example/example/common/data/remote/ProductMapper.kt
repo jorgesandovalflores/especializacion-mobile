@@ -10,6 +10,7 @@ fun ProductDto.toDomain(): Product = Product(
     id = id.toString(),
     name = title,
     price = price,
+    category = category,
     // Simplificación pedagógica: la API pública no modela stock; alternamos
     // por id para poder demostrar en la demo tanto "in stock" como "out of stock".
     inStock = id % 4 != 0

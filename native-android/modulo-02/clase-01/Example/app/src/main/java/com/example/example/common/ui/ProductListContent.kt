@@ -58,11 +58,11 @@ fun ProductListContent(
 }
 
 private val SampleProducts = listOf(
-    Product("1", "Fjallraven - Foldsack No. 1 Backpack, Fits 15 Laptops", 109.95, true),
-    Product("2", "Mens Casual Premium Slim Fit T-Shirts", 22.3, true),
-    Product("3", "Mens Cotton Jacket", 55.99, true),
-    Product("4", "Mens Casual Slim Fit", 15.99, false),
-    Product("5", "John Hardy Women's Legends Naga Gold & Silver Dragon Station Chain Bracelet", 695.0, true)
+    Product("1", "Fjallraven - Foldsack No. 1 Backpack, Fits 15 Laptops", 109.95, "men's clothing", true),
+    Product("2", "Mens Casual Premium Slim Fit T-Shirts", 22.3, "men's clothing", true),
+    Product("3", "Mens Cotton Jacket", 55.99, "men's clothing", true),
+    Product("4", "Mens Casual Slim Fit", 15.99, "men's clothing", false),
+    Product("5", "John Hardy Women's Legends Naga Gold & Silver Dragon Station Chain Bracelet", 695.0, "jewelery", true)
 )
 
 @Preview(showBackground = true, name = "ProductListContent - Pantalla principal (5 items)")

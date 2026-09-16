@@ -12,6 +12,7 @@ import androidx.lifecycle.viewmodel.viewModelFactory
 import com.example.example.common.data.LoggingProductRepository
 import com.example.example.common.data.ProductRemoteRepository
 import com.example.example.common.data.ProductRepository
+import com.example.example.common.model.Product
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
@@ -47,8 +48,11 @@ class ProductListViewModel(
         _ui.value = ProductListUiState(loading = true)
         viewModelScope.launch {
             runCatching { repository.fetchProducts() }
-                .onSuccess {
-                    _ui.value = ProductListUiState(data = it)
+                .onSuccess { products ->
+                    _ui.value = ProductListUiState(
+                        allProducts = products,
+                        categories = buildCategoryFilters(products)
+                    )
                     _lastUpdatedAt.value = System.currentTimeMillis()
                 }
                 .onFailure { _ui.value = ProductListUiState(error = it.message ?: "Unknown error") }
@@ -58,6 +62,18 @@ class ProductListViewModel(
     fun retry() {
         savedStateHandle[KEY_RETRY_COUNT] = (savedStateHandle.get<Int>(KEY_RETRY_COUNT) ?: 0) + 1
         load()
+    }
+
+    // Command: cambia el filtro de categoría sin volver a pedir datos al repositorio,
+    // solo actualiza el UiState (selectedCategory) que ya deriva "products" filtrado.
+    fun filterByCategory(category: String?) {
+        _ui.value = _ui.value.copy(selectedCategory = category)
+    }
+
+    private fun buildCategoryFilters(products: List<Product>): List<CategoryFilter> {
+        val categories = products.map { it.category }.distinct().sorted()
+        return listOf(CategoryFilter(value = null, label = "Todos")) +
+            categories.map { CategoryFilter(value = it, label = it.toCategoryLabel()) }
     }
 
     // Factory sin reflexión: crea el ViewModel inyectando un SavedStateHandle

@@ -42,11 +42,11 @@ private val StockAvailableColor = Color(0xFF1F8A5A)
 @Preview(showBackground = true, name = "ProductCard - En stock")
 @Composable
 private fun ProductCardInStockPreview() {
-    ProductCard(Product("1", "Fjallraven - Foldsack No. 1 Backpack, Fits 15 Laptops", 109.95, true))
+    ProductCard(Product("1", "Fjallraven - Foldsack No. 1 Backpack, Fits 15 Laptops", 109.95, "men's clothing", true))
 }
 
 @Preview(showBackground = true, name = "ProductCard - Agotado")
 @Composable
 private fun ProductCardOutOfStockPreview() {
-    ProductCard(Product("4", "Mens Casual Slim Fit", 15.99, false))
+    ProductCard(Product("4", "Mens Casual Slim Fit", 15.99, "men's clothing", false))
 }
