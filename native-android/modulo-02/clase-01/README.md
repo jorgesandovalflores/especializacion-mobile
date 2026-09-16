@@ -300,11 +300,10 @@ ProductApiService (Retrofit)  →  ProductDto/RatingDto  →  ProductMapper.toDo
 
 ## Ejercicios propuestos
 
-1. Agrega un cuarto botón en `MainMenuActivity` para una arquitectura **MVI** minimalista (un solo `UiState` + una función `onIntent(intent: ProductListIntent)`), reutilizando `ProductRemoteRepository`.
-2. Cambia `ProductRemoteRepository` por `FakeProductRepository` en `ProductListViewModel` y comprueba que ninguna otra clase necesita cambios (Dependency Inversion en acción).
-3. Agrega un segundo `Decorator` (por ejemplo `CachingProductRepository`, que devuelva la última lista exitosa si el endpoint falla) y combínalo con `LoggingProductRepository`.
-4. En `ProductListScreenMVVM.kt`, enlaza `vm.lastUpdatedAt` con `observeAsState()` y muéstralo como un texto pequeño junto al `ProductListHeader`. Luego agrega un filtro "Solo en stock" como `State` local (`remember { mutableStateOf(false) }`) y compáralo con `lastUpdatedAt`: ¿por qué uno vive en el ViewModel y el otro no?
-5. Escribe un test unitario de `ProductListPresenter` usando un `ProductRepository` fake que lance una excepción, y verifica que se llama a `view.showError(...)`.
+1. Cambia `ProductRemoteRepository` por `FakeProductRepository` en `ProductListViewModel` y comprueba que ninguna otra clase necesita cambios (Dependency Inversion en acción).
+2. Agrega un segundo `Decorator` (por ejemplo `CachingProductRepository`, que devuelva la última lista exitosa si el endpoint falla) y combínalo con `LoggingProductRepository`.
+3. En `ProductListScreenMVVM.kt`, enlaza `vm.lastUpdatedAt` con `observeAsState()` y muéstralo como un texto pequeño junto al `ProductListHeader`. Luego, en `ProductListViewModel`, implementa un filtro por categoría: agrega `selectedCategory`/`categories` a `ProductListUiState`, deriva de ahí la lista de productos ya filtrada, expón un comando `filterByCategory(category: String?)` y renderiza los chips de categoría en la pantalla — ¿por qué este filtro debe vivir en el ViewModel y no como `State` local de la Composable?
+4. Escribe un test unitario de `ProductListPresenter` usando un `ProductRepository` fake que lance una excepción, y verifica que se llama a `view.showError(...)`.
 
 ---
 
