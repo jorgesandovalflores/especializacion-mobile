@@ -1,0 +1,379 @@
+{
+  "version": "2.17",
+  "children": [
+    {
+      "type": "frame",
+      "id": "bi8Au",
+      "x": 0,
+      "y": 0,
+      "name": "Splash Screen",
+      "clip": true,
+      "width": 390,
+      "height": 844,
+      "fill": "$background",
+      "layout": "vertical",
+      "children": [
+        {
+          "type": "frame",
+          "id": "ta2rs",
+          "name": "Status Bar",
+          "width": "fill_container",
+          "height": 62,
+          "padding": [
+            0,
+            20
+          ],
+          "justifyContent": "space_between",
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "text",
+              "id": "KHIw6",
+              "name": "Time",
+              "fill": "$on-surface",
+              "content": "9:41",
+              "fontFamily": "$font",
+              "fontSize": 15,
+              "fontWeight": "600"
+            },
+            {
+              "type": "frame",
+              "id": "DuB3d",
+              "name": "Status Icons",
+              "gap": 6,
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "icon",
+                  "id": "x9mFOW",
+                  "name": "signal-high",
+                  "width": 16,
+                  "height": 16,
+                  "icon": "signal-high",
+                  "library": "lucide",
+                  "fill": "$on-surface"
+                },
+                {
+                  "type": "icon",
+                  "id": "T1rX7e",
+                  "name": "wifi",
+                  "width": 16,
+                  "height": 16,
+                  "icon": "wifi",
+                  "library": "lucide",
+                  "fill": "$on-surface"
+                },
+                {
+                  "type": "icon",
+                  "id": "RaLS8",
+                  "name": "battery-full",
+                  "width": 16,
+                  "height": 16,
+                  "icon": "battery-full",
+                  "library": "lucide",
+                  "fill": "$on-surface"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "YSGSc",
+          "name": "Content",
+          "width": "fill_container",
+          "height": "fill_container",
+          "justifyContent": "center",
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "icon",
+              "id": "FdJHm",
+              "name": "Spinner",
+              "width": 40,
+              "height": 40,
+              "icon": "loader-circle",
+              "library": "lucide",
+              "fill": "$primary"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "frame",
+      "id": "Vr7xd",
+      "x": 470,
+      "y": 0,
+      "name": "Travel Screen",
+      "clip": true,
+      "width": 390,
+      "height": 844,
+      "fill": "$background",
+      "layout": "vertical",
+      "children": [
+        {
+          "type": "frame",
+          "id": "V0H8y",
+          "name": "Status Bar",
+          "width": "fill_container",
+          "height": 62,
+          "padding": [
+            0,
+            20
+          ],
+          "justifyContent": "space_between",
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "text",
+              "id": "v8i78M",
+              "name": "Time",
+              "fill": "$on-surface",
+              "content": "9:41",
+              "fontFamily": "$font",
+              "fontSize": 15,
+              "fontWeight": "600"
+            },
+            {
+              "type": "frame",
+              "id": "yOsHf",
+              "name": "Status Icons",
+              "gap": 6,
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "icon",
+                  "id": "VGXgR",
+                  "name": "signal-high",
+                  "width": 16,
+                  "height": 16,
+                  "icon": "signal-high",
+                  "library": "lucide",
+                  "fill": "$on-surface"
+                },
+                {
+                  "type": "icon",
+                  "id": "AvoGU",
+                  "name": "wifi",
+                  "width": 16,
+                  "height": 16,
+                  "icon": "wifi",
+                  "library": "lucide",
+                  "fill": "$on-surface"
+                },
+                {
+                  "type": "icon",
+                  "id": "l0pY0V",
+                  "name": "battery-full",
+                  "width": 16,
+                  "height": 16,
+                  "icon": "battery-full",
+                  "library": "lucide",
+                  "fill": "$on-surface"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "NSC38",
+          "name": "Body",
+          "width": "fill_container",
+          "height": "fill_container",
+          "layout": "vertical",
+          "children": [
+            {
+              "type": "frame",
+              "id": "c4BSQj",
+              "name": "Top App Bar",
+              "width": "fill_container",
+              "height": 64,
+              "padding": [
+                0,
+                16
+              ],
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "text",
+                  "id": "j107LC",
+                  "name": "Title",
+                  "fill": "$on-surface",
+                  "content": "Pending trips",
+                  "fontFamily": "$font",
+                  "fontSize": 22
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "r3N8R",
+              "name": "Trip List",
+              "width": "fill_container",
+              "height": "fill_container",
+              "layout": "vertical",
+              "gap": 8,
+              "padding": [
+                12,
+                12,
+                36,
+                12
+              ],
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "gMijO",
+                  "name": "Trip Row - María Pérez",
+                  "width": "fill_container",
+                  "layout": "vertical",
+                  "gap": 4,
+                  "padding": 8,
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "kJv5Y",
+                      "name": "Passenger Name",
+                      "fill": "$on-surface",
+                      "content": "María Pérez",
+                      "fontFamily": "$font",
+                      "fontSize": 16,
+                      "fontWeight": "500"
+                    },
+                    {
+                      "type": "text",
+                      "id": "GPLih",
+                      "name": "From",
+                      "fill": "$on-surface",
+                      "content": "From: Plaza Mayor, Lima",
+                      "fontFamily": "$font",
+                      "fontSize": 16
+                    },
+                    {
+                      "type": "text",
+                      "id": "DFY7t",
+                      "name": "To",
+                      "fill": "$on-surface",
+                      "content": "To:   Av. La Marina 1234, San Miguel",
+                      "fontFamily": "$font",
+                      "fontSize": 16
+                    },
+                    {
+                      "type": "text",
+                      "id": "Jcoap",
+                      "name": "Requested",
+                      "fill": "$on-surface",
+                      "content": "Requested: 2025-09-29T12:00:00Z",
+                      "fontFamily": "$font",
+                      "fontSize": 12
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "j3GFzh",
+                  "name": "Divider",
+                  "width": "fill_container",
+                  "height": 1,
+                  "fill": "$outline-variant"
+                },
+                {
+                  "type": "frame",
+                  "id": "elzYU",
+                  "name": "Trip Row - Lucía Rojas",
+                  "width": "fill_container",
+                  "layout": "vertical",
+                  "gap": 4,
+                  "padding": 8,
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "QsVVK",
+                      "name": "Passenger Name",
+                      "fill": "$on-surface",
+                      "content": "Lucía Rojas",
+                      "fontFamily": "$font",
+                      "fontSize": 16,
+                      "fontWeight": "500"
+                    },
+                    {
+                      "type": "text",
+                      "id": "AXDVj",
+                      "name": "From",
+                      "fill": "$on-surface",
+                      "content": "From: Av. Abancay 300, Cercado",
+                      "fontFamily": "$font",
+                      "fontSize": 16
+                    },
+                    {
+                      "type": "text",
+                      "id": "VZGeh",
+                      "name": "To",
+                      "fill": "$on-surface",
+                      "content": "To:   Av. Arequipa 2100, Lince",
+                      "fontFamily": "$font",
+                      "fontSize": 16
+                    },
+                    {
+                      "type": "text",
+                      "id": "m3QMU",
+                      "name": "Requested",
+                      "fill": "$on-surface",
+                      "content": "Requested: 2025-09-29T12:10:00Z",
+                      "fontFamily": "$font",
+                      "fontSize": 12
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "iQYJd",
+                  "name": "Divider",
+                  "width": "fill_container",
+                  "height": 1,
+                  "fill": "$outline-variant"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "variables": {
+    "primary": {
+      "type": "color",
+      "value": "#6650A4"
+    },
+    "on-primary": {
+      "type": "color",
+      "value": "#FFFFFF"
+    },
+    "background": {
+      "type": "color",
+      "value": "#FFFBFE"
+    },
+    "on-surface": {
+      "type": "color",
+      "value": "#1C1B1F"
+    },
+    "on-surface-variant": {
+      "type": "color",
+      "value": "#49454F"
+    },
+    "outline-variant": {
+      "type": "color",
+      "value": "#CAC4D0"
+    },
+    "error": {
+      "type": "color",
+      "value": "#B3261E"
+    },
+    "font": {
+      "type": "string",
+      "value": "Roboto"
+    }
+  },
+  "fileToken": "0eead91a-a33e-4cbb-8767-0c571dc76528"
+}

@@ -1,6 +1,6 @@
-import { Controller, Get } from '@nestjs/common';
-import { AppService } from './app.service';
-import { Trip } from './trip.model';
+import { Controller, Get } from "@nestjs/common";
+import { AppService } from "./app.service";
+import { Trip } from "./trip.model";
 
 @Controller() // Comentario: raíz "/"
 export class AppController {

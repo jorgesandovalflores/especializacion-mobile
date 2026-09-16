@@ -42,6 +42,90 @@ com/example/android/
 
 ---
 
+## Implementación paso a paso
+
+Proceso seguido para construir esta demo (Splash → Travel, consumiendo `GET /` del backend NestJS). Para el detalle de conceptos de Hilt, ver el [README de la clase](../README.md).
+
+### 1. Revisar el diseño (`../design-m02-c02.pen`)
+
+Antes de codear se revisa el mockup en Pencil: pantalla de carga (Splash) y el listado de viajes pendientes (Travel).
+
+```
+design-m02-c02.pen
+        │
+        ▼
+Splash (spinner) · Travel (TopAppBar + TripList)
+```
+
+### 2. Crear el proyecto
+
+Se crea el proyecto Android con Compose y se agregan las dependencias (Hilt, Retrofit, Navigation Compose) en `libs.versions.toml` / `build.gradle.kts`.
+
+```
+android-app-taxi/
+ ├── app/build.gradle.kts     (Compose · Hilt · KSP · Retrofit · Navigation)
+ └── gradle/libs.versions.toml
+```
+
+### 3. Implementar la UI
+
+Se construyen `SplashScreen` y `TravelScreen` (con `TripRow`), conectadas por un `NavHost` en `MainActivity`.
+
+```
+AppRoot (NavHost)
+ ├── SplashScreen  ──navigate──▶ TravelScreen
+ │                                 ├── TopAppBar
+ │                                 └── TripList → TripRow × N
+```
+
+### 4. Implementar la capa de red/repositorio
+
+Retrofit (`TravelApi`) trae `TripDto`, `TravelRepositoryImpl` lo mapea a `Trip` de dominio detrás de `TravelRepository`, resuelto por Hilt (`NetworkModule` + `TravelDataModule`).
+
+```
+TravelApi → TripDto → TravelRepositoryImpl → Trip
+                              │
+                              ▼
+                  TravelRepository (interfaz)
+                              │
+                    TravelBindModule (@Binds)
+```
+
+**Librerías (`gradle/libs.versions.toml` / `app/build.gradle.kts`):**
+
+| Dependencia (`libs.*`) | Coordenada Maven | Uso |
+| --- | --- | --- |
+| `retrofit-core` | `com.squareup.retrofit2:retrofit:2.11.0` | Cliente HTTP declarativo; define `TravelApi`. |
+| `retrofit-gson` | `com.squareup.retrofit2:converter-gson:2.11.0` | Convierte el JSON del backend a `TripDto`/`LocationDto`. |
+| `okhttp-core` | `com.squareup.okhttp3:okhttp:4.12.0` | Cliente HTTP subyacente de Retrofit. |
+| `okhttp-logging` | `com.squareup.okhttp3:logging-interceptor:4.12.0` | Interceptor que loguea cada request/response en Logcat. |
+| `hilt-android` / `hilt-compiler` | `com.google.dagger:hilt-android(-compiler):2.58` | Genera e inyecta `NetworkModule`/`TravelDataModule` (`@Provides`/`@Binds`). |
+
+### 5. Conectar hacia la vista con Hilt + ViewModel (MVVM)
+
+`TravelViewModel` (`@HiltViewModel`) consulta `GetPendingTripsUseCase` y expone `TravelUiState` como `StateFlow`; `TravelScreen` lo observa con `hiltViewModel()` + `collectAsStateWithLifecycle()`.
+
+```
+TravelScreen
+        │ hiltViewModel() + collectAsStateWithLifecycle()
+        ▼
+TravelViewModel ──usa──▶ GetPendingTripsUseCase ──usa──▶ TravelRepository
+        │ StateFlow<TravelUiState>
+        ▼
+  TopAppBar + TripList (TripRow × N)
+```
+
+**Librerías (`gradle/libs.versions.toml` / `app/build.gradle.kts`):**
+
+| Dependencia (`libs.*`) | Coordenada Maven | Uso |
+| --- | --- | --- |
+| `hilt-lifecycle-viewmodel-compose` | `androidx.hilt:hilt-lifecycle-viewmodel-compose:1.3.0` | `hiltViewModel()` para instanciar `TravelViewModel` en Compose. |
+| `androidx-lifecycle-runtime-compose` | `androidx.lifecycle:lifecycle-runtime-compose:2.9.4` | `collectAsStateWithLifecycle()` para observar el `StateFlow<TravelUiState>`. |
+| `androidx-lifecycle-viewmodel-ktx` | `androidx.lifecycle:lifecycle-viewmodel-ktx:2.9.4` | `viewModelScope` para lanzar `getPendingTrips()` en `TravelViewModel.load()`. |
+| `androidx-navigation-compose` | `androidx.navigation:navigation-compose:2.9.7` | `NavHost` que conecta `SplashScreen` → `TravelScreen`. |
+
+---
+
 ## Features actuales
 
 - **Splash**: pantalla de carga 1.5s → navega a **Travel**.
@@ -51,18 +135,18 @@ com/example/android/
 
 ## 🛠️ Stack
 
-- **Android Gradle Plugin**: 8.9.1
-- **Kotlin**: 2.0.21
-- **Compose BOM**: 2024.09.00 (Material 3)
-- **Navigation Compose**: 2.9.5
+- **Android Gradle Plugin**: 8.13.0
+- **Kotlin**: 2.3.20
+- **Compose BOM**: 2026.03.00 (Material 3)
+- **Navigation Compose**: 2.9.7
 - **Lifecycle**: 2.9.4
-- **Hilt**: 2.54 (con **KSP**)
-- **KSP**: 2.0.21-1.0.25
+- **Hilt**: 2.58 (con **KSP**)
+- **KSP**: 2.3.12
 - **Retrofit**: 2.11.0 + Gson
 - **OkHttp**: 4.12.0
-- **Coroutines**: 1.8.1
+- **Coroutines**: 1.11.0
 - **Java/JDK**: 17
-- **Gradle Wrapper**: ≥ 8.10.2
+- **Gradle Wrapper**: 8.13
 
 > Requisitos: Android Studio **Koala+**, JDK **17**.
 
@@ -72,7 +156,7 @@ com/example/android/
 
 1) **Clonar** y abrir el proyecto en Android Studio.  
 2) Verifica **toolchain** y **Gradle**:
-   - `gradle/wrapper/gradle-wrapper.properties` → `8.10.2`
+   - `gradle/wrapper/gradle-wrapper.properties` → `8.13`
    - JDK 17: *Settings → Build Tools → Gradle → Gradle JDK = 17*.
 3) **Permitir BuildConfig** y setear base URL (emulador):
    ```kotlin
@@ -83,7 +167,10 @@ com/example/android/
        }
        buildFeatures { compose = true; buildConfig = true }
        compileOptions { sourceCompatibility = JavaVersion.VERSION_17; targetCompatibility = JavaVersion.VERSION_17 }
-       kotlinOptions { jvmTarget = "17" }
+   }
+
+   kotlin {
+       compilerOptions { jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17) }
    }
    ```
 4) **Permisos y cleartext** (HTTP):
@@ -165,7 +252,7 @@ class GetPendingTripsUseCase @Inject constructor(
 - [ ] `BuildConfig.API_BASE_URL` apunta a `http://10.0.2.2:3000/` (emulador) y **termina con `/`**.  
 - [ ] `android:usesCleartextTraffic="true"` y `network_security_config` permiten HTTP.  
 - [ ] Permiso `INTERNET` declarado en Manifest.  
-- [ ] JDK 17 + Gradle 8.10.2 + Kotlin 2.0.21 + KSP 2.0.21-1.0.25.  
+- [ ] JDK 17 + Gradle 8.13 + Kotlin 2.3.20 + KSP 2.3.12.  
 - [ ] No mezclar `kapt` y `ksp` para el mismo processor (Hilt usa **KSP**).
 
 ---
@@ -186,8 +273,8 @@ defaultConfig contains custom BuildConfig fields, but the feature is disabled
 ✔ `android.buildFeatures.buildConfig = true`.
 
 **4) KSP: getChangedFiles / IncompatibleClassChangeError**  
-✔ Alinea **KSP con Kotlin**: `ksp = 2.0.21-1.0.25`.  
-✔ Usa **JDK 17** y **Gradle 8.10.2**.  
+✔ Alinea **KSP con Kotlin**: `ksp = 2.3.12` (Kotlin `2.3.20`).  
+✔ Usa **JDK 17** y **Gradle 8.13**.  
 `./gradlew --stop && ./gradlew clean`.
 
 **5) JavaPoet: ClassName.canonicalName() missing**  

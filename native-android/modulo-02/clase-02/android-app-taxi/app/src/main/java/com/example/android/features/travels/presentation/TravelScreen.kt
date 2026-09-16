@@ -4,21 +4,21 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.Divider
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.unit.dp
-import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.android.features.travels.domain.model.Trip
 
 // pantalla principal del feature travel
@@ -27,7 +27,7 @@ import com.example.android.features.travels.domain.model.Trip
 fun TravelScreen(
     vm: TravelViewModel = hiltViewModel()
 ) {
-    val ui by vm.ui.collectAsState()
+    val ui by vm.ui.collectAsStateWithLifecycle()
     val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
 
     Scaffold(
@@ -76,7 +76,7 @@ private fun TripList(trips: List<Trip>) {
             key = { it.id }
         ) { trip ->
             TripRow(trip)
-            Divider()
+            HorizontalDivider()
         }
     }
 }

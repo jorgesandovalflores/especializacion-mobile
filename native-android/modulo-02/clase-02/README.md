@@ -120,6 +120,7 @@ Hilt soporta ambos; **recomendado KSP** si tu stack ya lo usa.
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
+    id("org.jetbrains.kotlin.plugin.compose")
     id("com.google.dagger.hilt.android")
     id("com.google.devtools.ksp")
 }
@@ -127,20 +128,20 @@ plugins {
 android {
     // ... tu configuración usual (namespace, compileSdk, defaultConfig, etc.)
     buildFeatures { compose = true }
-    composeOptions { kotlinCompilerExtensionVersion = "1.5.14" }
     defaultConfig {
         buildConfigField("String", "API_BASE_URL", "\"https://api.example.com/\"")
     }
 }
 
 dependencies {
-    val hiltVersion = "2.51.1"
+    val hiltVersion = "2.58"
     implementation("com.google.dagger:hilt-android:$hiltVersion")
     ksp("com.google.dagger:hilt-compiler:$hiltVersion")
 
-    implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.8.4")
-    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.8.4")
-    implementation("androidx.hilt:hilt-navigation-compose:1.2.0")
+    implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.9.4")
+    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.9.4")
+    implementation("androidx.lifecycle:lifecycle-runtime-compose:2.9.4")
+    implementation("androidx.hilt:hilt-lifecycle-viewmodel-compose:1.3.0")
 
     implementation("com.squareup.retrofit2:retrofit:2.11.0")
     implementation("com.squareup.retrofit2:converter-gson:2.11.0")
@@ -328,7 +329,7 @@ object PricingModule {
 
 - Los **hosts** (Activity/Fragment/Service) que reciben inyección llevan `@AndroidEntryPoint`.
 - Los **ViewModels** llevan `@HiltViewModel` y reciben dependencias por constructor.
-- En **Compose**, se obtiene el VM con `hiltViewModel()` (no se inyecta directamente en Composables).
+- En **Compose**, se obtiene el VM con `hiltViewModel()` (no se inyecta directamente en Composables), importado de `androidx.hilt.lifecycle.viewmodel.compose`.
 
 ```kotlin
 // Activity host con Hilt
@@ -380,7 +381,7 @@ class DriverViewModel @Inject constructor(
 // pantalla Compose que consume el VM
 @Composable
 fun DriverScreen(vm: DriverViewModel = hiltViewModel()) {
-    val ui by vm.ui.collectAsState()
+    val ui by vm.ui.collectAsStateWithLifecycle()
 
     LaunchedEffect(Unit) { vm.loadProfile() }
 
@@ -473,7 +474,7 @@ class DriverViewModel @Inject constructor(
 ```kotlin
 @Composable
 fun DriverScreen(vm: DriverViewModel = hiltViewModel()) {
-    val ui by vm.ui.collectAsState()
+    val ui by vm.ui.collectAsStateWithLifecycle()
 
     LaunchedEffect(Unit) { vm.loadProfile() }
 

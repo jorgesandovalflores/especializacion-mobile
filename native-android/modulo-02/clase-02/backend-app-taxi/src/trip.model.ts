@@ -1,5 +1,5 @@
 // Comentario: modelo simple para tipar el viaje
-export type TripStatus = 'PENDING' | 'ASSIGNED' | 'CANCELLED' | 'COMPLETED';
+export type TripStatus = "PENDING" | "ASSIGNED" | "CANCELLED" | "COMPLETED";
 
 export interface Location {
     lat: number;
