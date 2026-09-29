@@ -12,6 +12,9 @@ import { AuthController } from "./controllers/auth.controller";
 import { AuthService } from "./services/auth.service";
 import { PassengerOtpDao } from "./dao/passenger-otp.dao";
 import { PassengerOtpEntity } from "./entities/passenger-otp.entity";
+import { BrevoSmsService } from "./remote/brevo-sms.service";
+import { LabsMobileSmsService } from "./remote/labsmobile-sms.service";
+import { smsSenderProvider } from "./remote/sms-sender.provider";
 
 /* -------------------------------------------------------
    PassengerModule
@@ -33,6 +36,9 @@ import { PassengerOtpEntity } from "./entities/passenger-otp.entity";
         PassengerDao,
         PassengerOtpDao,
         CacheService,
+        BrevoSmsService,
+        LabsMobileSmsService,
+        smsSenderProvider,
     ],
     exports: [PassengerService, AuthService, PassengerDao, PassengerOtpDao],
 })

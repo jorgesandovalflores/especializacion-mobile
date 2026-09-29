@@ -1,0 +1,6 @@
+allowBuilds:
+    "@parcel/watcher": false
+    "@scarf/scarf": false
+    "@swc/core": false
+    argon2: false
+    unrs-resolver: false

@@ -1,6 +1,6 @@
 services:
     mysql:
-        image: mysql:8.0.35
+        image: mysql:9.7
         container_name: ${MYSQL_CONTAINER_NAME}
         restart: unless-stopped
         env_file:
@@ -13,7 +13,7 @@ services:
         ports:
             - "3306:3306"
         healthcheck:
-            test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-proot"]
+            test: ["CMD-SHELL", "mysqladmin ping -h localhost -p\"$$MYSQL_ROOT_PASSWORD\""]
             interval: 5s
             timeout: 10s
             retries: 10

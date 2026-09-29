@@ -43,6 +43,7 @@ const isDebug = process.env.NODE_DEBUG === "true";
             },
         }),
         I18nModule.forRootAsync({
+            imports: [],
             useFactory: () => ({
                 fallbackLanguage: "es",
                 loaderOptions: {

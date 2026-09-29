@@ -26,7 +26,7 @@ import kotlinx.coroutines.delay
 fun SplashScreen(onFinished: () -> Unit) {
     val bg = ColorPrimary
 
-    NavigationBarStyle(color = bg, darkIcons = true)
+    NavigationBarStyle(darkIcons = false)
 
     // Timer para navegación
     LaunchedEffect(Unit) {

@@ -1,80 +1,50 @@
-# App taxi — Infra
+# Infra App Taxi — MySQL, Redis y API con Docker Compose
 
-Este directorio contiene la **configuración modular de infraestructura** para el backend de `app-taxi`, basada en **Docker Compose**. Permite levantar **Mysql**, **Redis** y los **modos de la app** (HTTP, CRON y WEBSOCKET) de forma **independiente**, compartiendo una **red externa** y variables de entorno comunes.
-
----
-
-## Paso 0) Instalación de Docker y Docker Compose
-
-Antes de continuar, asegúrate de tener instalados **Docker Engine** y **Docker Compose v2** en tu máquina:
-
-### Windows
-
-1. Descarga e instala **Docker Desktop** desde: [https://www.docker.com/products/docker-desktop/](https://www.docker.com/products/docker-desktop/)
-2. Verifica la instalación en PowerShell o CMD:
-    ```bash
-    docker --version
-    docker compose version
-    ```
-
-### Linux (Ubuntu/Debian como ejemplo)
-
-1. Instala Docker:
-    ```bash
-    sudo apt-get update
-    sudo apt-get install -y ca-certificates curl gnupg lsb-release
-    sudo mkdir -p /etc/apt/keyrings
-    curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg
-    echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg]    https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"    | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
-    sudo apt-get update
-    sudo apt-get install -y docker-ce docker-ce-cli containerd.io docker-compose-plugin
-    ```
-2. Verifica la instalación:
-    ```bash
-    docker --version
-    docker compose version
-    ```
-
-### macOS
-
-1. Descarga e instala **Docker Desktop para Mac** desde: [https://www.docker.com/products/docker-desktop/](https://www.docker.com/products/docker-desktop/)  
-   (Soporta tanto Intel como Apple Silicon).
-2. Verifica la instalación en la terminal:
-    ```bash
-    docker --version
-    docker compose version
-    ```
+Levanta en tu máquina todo lo que necesita la app [`../android-app-taxi`](../android-app-taxi/README.md) para iniciar sesión: la **API** de [`../backend-app-taxi`](../backend-app-taxi/README.md), su base de datos **MySQL** y **Redis**. Cada servicio tiene su propio archivo Compose y todos comparten una red y un `.env`.
 
 ---
 
-## Estructura del directorio
+## 1. Qué se levanta y cómo se conecta
+
+![Topología](docs/gif/topology.gif)
+
+| Servicio      | Contenedor       | Imagen                                           | Puerto en tu máquina → contenedor | Datos                        | Para qué                                              |
+| ------------- | ---------------- | ------------------------------------------------ | --------------------------------- | ---------------------------- | ----------------------------------------------------- |
+| API           | `http-app-taxi`  | `${BACKEND_IMAGE}:${BACKEND_TAG}` (se construye) | `3001 → 3001`                     | —                            | Endpoints `/auth/otp-generate` y `/auth/otp-validate` |
+| Base de datos | `mysql-app-taxi` | `mysql:9.7`                                      | `3306 → 3306`                     | volumen `mysql_volume`       | Pasajeros y códigos OTP                               |
+| Caché         | `redis-app-taxi` | `redis:8.10-alpine`                              | `6379 → 6379`                     | volumen `redis_volume` (AOF) | Lock de reenvío e intentos de OTP                     |
+
+| Conexión            | Cómo funciona                                                                                                                        |
+| ------------------- | ------------------------------------------------------------------------------------------------------------------------------------ |
+| App Android → API   | Por el puerto publicado 3001. En el emulador, `10.0.2.2` es el `localhost` de tu máquina: `http://10.0.2.2:3001/`                    |
+| API → MySQL / Redis | Dentro de la red `network-app-taxi`, **por nombre de contenedor** (`mysql-app-taxi:3306`, `redis-app-taxi:6379`), no por `localhost` |
+| API → proveedor SMS | Sale a Internet por HTTPS (Brevo o LabsMobile)                                                                                       |
+| Tú → MySQL / Redis  | Por los puertos 3306 y 6379, con un cliente MySQL o `redis-cli`. La API no los usa                                                   |
+| Datos               | Viven en volúmenes: sobreviven a `docker compose down` y a recrear los contenedores                                                  |
+
+---
+
+## 2. Archivos y variables
 
 ```
-infra
-├── docker-compose.mysql.yml   # Servicio Mysql (development)
-├── docker-compose.redis.yml   # Servicio Redis (development)
+infra-app-taxi/
+├── docker-compose.mysql.yml   # MySQL 9.7 + healthcheck + volumen
+├── docker-compose.redis.yml   # Redis 8.10 con appendonly (AOF) + volumen
+├── docker-compose.http.yml    # API: construye ../backend-app-taxi y le pasa las variables
+├── .env                       # Variables locales (no se versiona)
+└── README.md
 ```
 
----
+![Del .env al contenedor](docs/gif/env-variables.gif)
 
-## Requisitos
-
--   Docker Engine **20.10+** (o superior)
--   Docker Compose **v2** (plugin oficial de Docker)
--   Red externa compartida (p. ej. `network-app-taxi`) para vincular servicios entre archivos Compose
-
----
-
-## Variables de entorno
-
-Ejemplo **.env** (recortado a lo esencial para infra). Adecúa nombres/credenciales a tu entorno:
+Compose reemplaza cada `${VARIABLE}` con el `.env` **de esta carpeta** antes de crear el contenedor. Por eso los comandos se ejecutan siempre desde aquí. La API recibe las variables con el nombre que espera NestJS: `HTTP_JWT_ACCESS_SECRET` del `.env` llega como `JWT_ACCESS_SECRET`, y `MYSQL_CONTAINER_NAME` llega como `DB_HOST`.
 
 ```env
 PROJECT_NAME="app-taxi"
 NETWORK="network-app-taxi"
 TZ="America/Lima"
 
-# Mysql
+# MySQL
 MYSQL_CONTAINER_NAME="mysql-app-taxi"
 MYSQL_ROOT_PASSWORD="root"
 MYSQL_DATABASE="db_app_taxi"
@@ -85,7 +55,9 @@ REDIS_CONTAINER_NAME="redis-app-taxi"
 REDIS_PORT="6379"
 REDIS_VOLUME="redis_volume"
 
-# Http
+# API
+BACKEND_IMAGE="http-app-taxi"
+BACKEND_TAG="0.0.1"
 HTTP_CONTAINER_NAME="http-app-taxi"
 HTTP_DOCKER_PLATFORM="linux/amd64"
 HTTP_NODE_ENV="development"
@@ -94,57 +66,149 @@ HTTP_DB_POOL="10"
 HTTP_APPLICATION_PORT="3001"
 HTTP_JWT_ACCESS_TTL_SEC="900"
 HTTP_JWT_REFRESH_TTL_SEC="2592000"
-HTTP_JWT_ACCESS_SECRET="Key@Access@Secret."
-HTTP_JWT_REFRESH_SECRET="Key@Refresh@Secret."
-HTTP_BREVO_API_KEY="api_brevo"
-HTTP_BREVO_TEXT_SMS="Tu código de verificación es: "
+HTTP_JWT_ACCESS_SECRET="cambia-esto"
+HTTP_JWT_REFRESH_SECRET="cambia-esto-tambien"
+
+# OTP (opcionales; valores por defecto)
+HTTP_OTP_TTL_SEC="120"
+HTTP_OTP_RATE_TTL_SEC="60"
+HTTP_OTP_MAX_ATTEMPTS="5"
+
+# SMS: "brevo" (por defecto) o "labsmobile". Sin credenciales = el código se escribe en el log
+HTTP_SMS_PROVIDER="brevo"
+HTTP_BREVO_API_KEY=""
+HTTP_BREVO_TEXT_SMS="Tu código de App Taxi es:"
 HTTP_BREVO_SENDER="AppTaxi"
+HTTP_LABSMOBILE_USER=""
+HTTP_LABSMOBILE_API_KEY=""
+HTTP_LABSMOBILE_TEXT_SMS="Tu código de App Taxi es:"
+HTTP_LABSMOBILE_SENDER="AppTaxi"
 ```
+
+| Variable                            | La usa         | Qué hace                                                                                                      |
+| ----------------------------------- | -------------- | ------------------------------------------------------------------------------------------------------------- |
+| `NETWORK`                           | los 3 archivos | Nombre de la red externa (debe existir antes de levantar)                                                     |
+| `MYSQL_*`                           | mysql, http    | Nombre del contenedor, contraseña de `root`, base de datos y volumen                                          |
+| `REDIS_*`                           | redis, http    | Nombre del contenedor, puerto publicado y volumen                                                             |
+| `BACKEND_IMAGE`, `BACKEND_TAG`      | http           | Nombre y tag de la imagen que se construye y ejecuta                                                          |
+| `HTTP_DOCKER_PLATFORM`              | http           | `linux/amd64` (funciona en Apple Silicon por emulación) o `linux/arm64` (nativo, más rápido en Apple Silicon) |
+| `HTTP_JWT_*`                        | http           | Secretos y duración de los tokens                                                                             |
+| `HTTP_OTP_*`                        | http           | Vigencia del código, espera entre envíos e intentos permitidos (120 / 60 / 5 si faltan)                       |
+| `HTTP_SMS_PROVIDER`                 | http           | `brevo` o `labsmobile`; otro valor detiene el arranque de la API                                              |
+| `HTTP_BREVO_*`, `HTTP_LABSMOBILE_*` | http           | Credenciales del proveedor activo. Sin ellas y fuera de `production`, el código OTP se escribe en el log      |
+| `HTTP_NODE_DEBUG`                   | http           | Déjala en `"false"`: con `"true"` la imagen no arranca (`pino-pretty` no está en la imagen final)             |
+
+> El `.env` tiene credenciales: no se sube a git. Si `HTTP_*_API_KEY` tiene una clave real, pedir una OTP **envía un SMS de verdad**.
 
 ---
 
-## Red compartida (una sola vez)
+## 3. Imagen de la API
 
-Crea la red externa (si no existe). Todas las composiciones la referencian como `external: true`:
+![Construcción de la imagen](docs/gif/image-build.gif)
+
+`docker-compose.http.yml` construye la imagen con el `Dockerfile` de `../backend-app-taxi`:
+
+| Etapa        | Qué hace                                                                                          | Pasa a la imagen final |
+| ------------ | ------------------------------------------------------------------------------------------------- | ---------------------- |
+| 1 · `base`   | `node:24-alpine` + pnpm 12.5.1 con corepack                                                       | —                      |
+| 2 · `deps`   | `pnpm install --frozen-lockfile` con dependencias de desarrollo                                   | —                      |
+| 3 · `build`  | `nest build`: compila TypeScript a `dist/`                                                        | `dist/`                |
+| 4 · `pruned` | `pnpm prune --prod`: deja solo dependencias de producción                                         | `node_modules/`        |
+| 5 · `runner` | Imagen limpia con `dist/`, `node_modules/`, `entrypoint.sh` y `netcat`; corre como usuario `node` | Es la imagen final     |
+
+La imagen final no lleva TypeScript, el código fuente ni dependencias de desarrollo.
+
+---
+
+## 4. Levantar el stack
+
+![Orden de arranque](docs/gif/startup.gif)
+
+**Requisitos:** Docker Engine 24 o superior y Docker Compose v2 (`docker compose`). En Windows y macOS vienen con [Docker Desktop](https://www.docker.com/products/docker-desktop/); en Linux instala `docker-ce` y `docker-compose-plugin` desde el [repositorio oficial](https://docs.docker.com/engine/install/). Comprueba con `docker --version` y `docker compose version`.
+
+Ejecuta todo **desde esta carpeta**:
 
 ```bash
+# 0) Una sola vez: la red que comparten los tres archivos
 docker network create network-app-taxi
+
+# 1) MySQL: espera a que el healthcheck marque "healthy"
+docker compose -f docker-compose.mysql.yml -p app-taxi up -d
+docker compose -f docker-compose.mysql.yml -p app-taxi ps
+
+# 2) Redis
+docker compose -f docker-compose.redis.yml -p app-taxi up -d
+
+# 3) API: construye la imagen y arranca
+docker compose -f docker-compose.http.yml -p app-taxi up -d --build
+docker compose -f docker-compose.http.yml -p app-taxi logs -f http
 ```
 
-> Puedes verificar con `docker network ls`. Si la red ya existe, este comando fallará inofensivamente.
+Al arrancar, el `entrypoint.sh` de la API espera a MySQL (`nc -z`), aplica las migraciones, carga los seeders y recién entonces levanta Nest. En el log verás `Migrations OK`, `Seeders OK` y `Nest application successfully started`.
+
+Los tres archivos comparten el proyecto `-p app-taxi`, así que Compose avisa `Found orphan containers` al levantar el segundo y el tercero. Es normal: **no** uses `--remove-orphans`, porque borraría los otros servicios.
+
+**Probar:**
+
+```bash
+# Documentación de la API
+open http://localhost:3001/api/docs
+
+# Pedir un código (si el teléfono no existe se crea como pasajero nuevo)
+curl -s -X POST http://localhost:3001/auth/otp-generate \
+  -H 'content-type: application/json' -d '{"phone":"51987654321"}'
+
+# Sin credenciales de SMS, el código aparece en el log
+docker compose -f docker-compose.http.yml -p app-taxi logs http | grep "OTP para"
+
+# Validar el código
+curl -s -X POST http://localhost:3001/auth/otp-validate \
+  -H 'content-type: application/json' -d '{"phone":"51987654321","code":"<codigo>"}'
+```
+
+**Apagar** (los volúmenes se conservan):
+
+```bash
+docker compose -f docker-compose.http.yml -p app-taxi down
+docker compose -f docker-compose.redis.yml -p app-taxi down
+docker compose -f docker-compose.mysql.yml -p app-taxi down
+```
 
 ---
 
-## Orden recomendado de arranque
+## 5. Actualizar un stack existente de la clase 03
 
-> **Importante**: El servicio **HTTP** ejecuta **migraciones** automáticamente antes de iniciar (entrypoint). Asegúrate de que Mysql esté **arriba** antes de levantar HTTP.
+![Actualizar sin perder datos](docs/gif/update-stack.gif)
 
-### 1) Mysql
-
-```bash
-docker-compose -f docker-compose.mysql.yml -p app-taxi up -d
-```
-
-### 2) Redis
+Si ya levantaste la infra de la clase 03, **no borres nada**. Ambas clases usan el mismo proyecto (`-p app-taxi`), los mismos nombres de contenedor, los mismos volúmenes y la misma red. Al ejecutar Compose desde **esta** carpeta, cada contenedor se recrea con la definición de la clase 04 y monta los mismos datos.
 
 ```bash
-docker-compose -f docker-compose.redis.yml -p app-taxi up -d
+cd native-android/modulo-02/clase-04/infra-app-taxi
+
+docker compose -f docker-compose.mysql.yml -p app-taxi up -d
+docker compose -f docker-compose.mysql.yml -p app-taxi ps      # espera "healthy"
+docker compose -f docker-compose.redis.yml -p app-taxi up -d
+docker compose -f docker-compose.http.yml -p app-taxi build
+docker compose -f docker-compose.http.yml -p app-taxi up -d
+docker logs -f http-app-taxi
 ```
 
-### 3) HTTP (API)
+| Estado de la base de datos | Migraciones que se aplican al arrancar la API                      |
+| -------------------------- | ------------------------------------------------------------------ |
+| Viene de la clase 03       | Solo la de la clase 04 (`Executed: 1`); los pasajeros se conservan |
+| Nueva o reiniciada         | Las dos (`Executed: 2`)                                            |
+| Ya actualizada             | Ninguna (`Executed: 0`)                                            |
+
+- `build` usa `BACKEND_IMAGE:BACKEND_TAG`. Con el mismo tag de la clase 03, la imagen anterior se reemplaza; para conservar ambas, cambia `BACKEND_TAG` antes de construir.
+- **Volver a la clase 03:** revierte la migración desde `../backend-app-taxi` con `pnpm migration:revert` y levanta el stack desde `../../clase-03/infra-app-taxi` con `up -d --build`. Si existen pasajeros `INACTIVE_REGISTER`, el revert se detiene sin tocar datos: decide antes qué hacer con ellos.
+
+**Comprobar sin enviar SMS reales:**
 
 ```bash
-docker-compose -f docker-compose.http.yml -p app-taxi up -d
-docker-compose -f docker-compose.http.yml -p app-taxi logs -f http
+curl -s -o /dev/null -w '%{http_code}\n' http://localhost:3001/api/docs      # 200
+curl -s -X POST http://localhost:3001/auth/otp-validate \
+  -H 'content-type: application/json' -d '{"phone":"51900000001","code":"1234"}'
+# {"status_code":422,"message":"No existe un pasajero registrado con este número de teléfono."}
+docker exec -it mysql-app-taxi mysql -uroot -p db_app_taxi \
+  -e "SELECT name FROM migrations_history; SHOW TABLES;"
 ```
-
----
-
-## Puertos por servicio (host → container)
-
-| Servicio          | Host | Container |
-| ----------------- | ---- | --------: |
-| Backend HTTP      | 3001 |      3001 |
-| Backend WebSocket | 3002 |      3002 |
-| DB Mysql          | 3306 |      3306 |
-| Cache Redis       | 6379 |      6379 |

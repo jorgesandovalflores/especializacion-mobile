@@ -1,0 +1,4685 @@
+{
+  "version": "2.19",
+  "children": [
+    {
+      "type": "frame",
+      "id": "bi8Au",
+      "x": 0,
+      "y": 0,
+      "name": "Components",
+      "fill": "$canvas",
+      "gap": 40,
+      "padding": 40,
+      "children": [
+        {
+          "type": "frame",
+          "id": "MHD2U",
+          "name": "StatusBar",
+          "reusable": true,
+          "width": 360,
+          "height": 28,
+          "padding": [
+            0,
+            16
+          ],
+          "justifyContent": "space_between",
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "text",
+              "id": "q0ChZ",
+              "name": "Time",
+              "fill": "$text-primary",
+              "content": "9:41",
+              "fontFamily": "$font",
+              "fontSize": 14,
+              "fontWeight": "500"
+            },
+            {
+              "type": "frame",
+              "id": "EG2Cx",
+              "name": "Icons",
+              "gap": 6,
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "icon",
+                  "id": "XcSjS",
+                  "name": "signal_cellular_alt",
+                  "width": 16,
+                  "height": 16,
+                  "icon": "signal_cellular_alt",
+                  "library": "Material Symbols Rounded",
+                  "fill": "$text-primary"
+                },
+                {
+                  "type": "icon",
+                  "id": "O8iRx",
+                  "name": "wifi",
+                  "width": 16,
+                  "height": 16,
+                  "icon": "wifi",
+                  "library": "Material Symbols Rounded",
+                  "fill": "$text-primary"
+                },
+                {
+                  "type": "icon",
+                  "id": "dupQT",
+                  "name": "battery_full",
+                  "width": 16,
+                  "height": 16,
+                  "icon": "battery_full",
+                  "library": "Material Symbols Rounded",
+                  "fill": "$text-primary"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "v3VVY",
+          "name": "PrimaryButton",
+          "reusable": true,
+          "width": 280,
+          "height": 56,
+          "fill": "$primary",
+          "cornerRadius": 28,
+          "effect": {
+            "type": "shadow",
+            "shadowType": "outer",
+            "color": "#7843E640",
+            "offset": {
+              "x": 0,
+              "y": 4
+            },
+            "blur": 10
+          },
+          "justifyContent": "center",
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "text",
+              "id": "HxIcd",
+              "name": "Label",
+              "fill": "#FFFFFF",
+              "content": "Ingresar",
+              "fontFamily": "$font",
+              "fontSize": 16,
+              "fontWeight": "600"
+            },
+            {
+              "type": "ellipse",
+              "id": "Libkt",
+              "x": 0,
+              "y": 0,
+              "name": "Spinner",
+              "enabled": false,
+              "innerRadius": 0.75,
+              "startAngle": 90,
+              "sweepAngle": -270,
+              "fill": "#FFFFFF",
+              "width": 22,
+              "height": 22
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "eD7Ds",
+          "name": "PhoneInput",
+          "reusable": true,
+          "width": 280,
+          "height": 56,
+          "fill": "$surface",
+          "cornerRadius": 28,
+          "gap": 4,
+          "padding": [
+            0,
+            20
+          ],
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "text",
+              "id": "YVk1T",
+              "x": 0,
+              "y": 0,
+              "name": "Prefix",
+              "enabled": false,
+              "fill": "$text-primary",
+              "content": "+51",
+              "fontFamily": "$font",
+              "fontSize": 16,
+              "fontWeight": "normal"
+            },
+            {
+              "type": "text",
+              "id": "J64YZ",
+              "name": "Value",
+              "fill": "$placeholder",
+              "content": "Ingresa tu número de teléfono",
+              "fontFamily": "$font",
+              "fontSize": 16,
+              "fontWeight": "normal"
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "VCTMf",
+          "name": "OtpBox",
+          "reusable": true,
+          "width": 64,
+          "height": 56,
+          "fill": "$otp-bg",
+          "cornerRadius": 12,
+          "stroke": "$otp-border",
+          "strokeWidth": 1,
+          "justifyContent": "center",
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "text",
+              "id": "FsMLc",
+              "name": "Digit",
+              "fill": "$text-primary",
+              "fontFamily": "$font",
+              "fontSize": 22,
+              "fontWeight": "normal"
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "zdhuP",
+          "name": "Toast",
+          "reusable": true,
+          "width": 328,
+          "fill": "$success",
+          "cornerRadius": 12,
+          "effect": {
+            "type": "shadow",
+            "shadowType": "outer",
+            "color": "#00000033",
+            "offset": {
+              "x": 0,
+              "y": 3
+            },
+            "blur": 8
+          },
+          "gap": 12,
+          "padding": [
+            14,
+            16
+          ],
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "icon",
+              "id": "ARqGc",
+              "name": "Icon",
+              "width": 24,
+              "height": 24,
+              "icon": "check_circle",
+              "library": "Material Symbols Rounded",
+              "fill": "#FFFFFF"
+            },
+            {
+              "type": "text",
+              "id": "ikr62",
+              "name": "Message",
+              "fill": "#FFFFFF",
+              "textGrowth": "fixed-width",
+              "width": "fill_container",
+              "content": "Mensaje",
+              "lineHeight": 1.35,
+              "fontFamily": "$font",
+              "fontSize": 14,
+              "fontWeight": "500"
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "dVjl5",
+          "name": "GestureBar",
+          "reusable": true,
+          "width": 360,
+          "height": 24,
+          "justifyContent": "center",
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "rectangle",
+              "cornerRadius": 2,
+              "id": "rnRar",
+              "name": "Pill",
+              "fill": "#1F1F1F",
+              "width": 108,
+              "height": 4
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "frame",
+      "id": "CZicp",
+      "x": 0,
+      "y": 340,
+      "name": "Section · Generar OTP",
+      "fill": "$canvas",
+      "layout": "vertical",
+      "gap": 28,
+      "padding": 48,
+      "children": [
+        {
+          "type": "frame",
+          "id": "gHRb3",
+          "name": "Header",
+          "layout": "vertical",
+          "gap": 8,
+          "children": [
+            {
+              "type": "text",
+              "id": "AhPwl",
+              "name": "Title",
+              "fill": "$text-primary",
+              "content": "1 · Generar OTP",
+              "fontFamily": "$font",
+              "fontSize": 32,
+              "fontWeight": "700"
+            },
+            {
+              "type": "text",
+              "id": "mpKOo",
+              "name": "Subtitle",
+              "fill": "$text-muted",
+              "content": "SignInGenerateOtpScreen · POST /auth/otp-generate · estados de OtpGenerateState",
+              "fontFamily": "$font",
+              "fontSize": 16,
+              "fontWeight": "normal"
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "uO1ng",
+          "name": "States",
+          "gap": 40,
+          "children": [
+            {
+              "type": "frame",
+              "id": "x26CVo",
+              "name": "State · Idle",
+              "layout": "vertical",
+              "gap": 14,
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "VJbAu",
+                  "name": "Chip",
+                  "fill": "#FFFFFF",
+                  "cornerRadius": 999,
+                  "stroke": "#E2DDF2",
+                  "strokeWidth": 1,
+                  "gap": 8,
+                  "padding": [
+                    6,
+                    12
+                  ],
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "ellipse",
+                      "id": "ip4Qf",
+                      "name": "Dot",
+                      "fill": "#9AA0A6",
+                      "width": 8,
+                      "height": 8
+                    },
+                    {
+                      "type": "text",
+                      "id": "NMuMy",
+                      "name": "Label",
+                      "fill": "$text-primary",
+                      "content": "Idle",
+                      "fontFamily": "$font",
+                      "fontSize": 14,
+                      "fontWeight": "600"
+                    }
+                  ]
+                },
+                {
+                  "type": "text",
+                  "id": "iEHfg",
+                  "name": "Caption",
+                  "fill": "$text-muted",
+                  "textGrowth": "fixed-width-height",
+                  "width": 360,
+                  "height": 36,
+                  "content": "Formulario vacío; «Ingresar» deshabilitado hasta 9 dígitos",
+                  "fontFamily": "$font",
+                  "fontSize": 13,
+                  "fontWeight": "normal"
+                },
+                {
+                  "type": "frame",
+                  "id": "z9DFGw",
+                  "name": "Screen · Generar OTP · Idle",
+                  "clip": true,
+                  "width": 360,
+                  "height": 800,
+                  "fill": "$surface",
+                  "cornerRadius": 28,
+                  "stroke": "#E2DDF2",
+                  "strokeWidth": 1,
+                  "layout": "none",
+                  "children": [
+                    {
+                      "id": "hsWlX",
+                      "type": "ref",
+                      "ref": "MHD2U",
+                      "name": "StatusBar",
+                      "x": 0,
+                      "y": 0
+                    },
+                    {
+                      "type": "frame",
+                      "id": "MvsIz",
+                      "x": 0,
+                      "y": 52,
+                      "name": "Illustration",
+                      "width": 360,
+                      "height": 450,
+                      "fill": {
+                        "type": "image",
+                        "enabled": true,
+                        "url": "design-assets/feature_signin_picture.png",
+                        "mode": "fit"
+                      }
+                    },
+                    {
+                      "type": "frame",
+                      "id": "qQ5nz",
+                      "x": 0,
+                      "y": 524,
+                      "name": "BottomCard",
+                      "width": 360,
+                      "fill": "$surface-card",
+                      "cornerRadius": [
+                        24,
+                        24,
+                        0,
+                        0
+                      ],
+                      "layout": "vertical",
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "hJjTB",
+                          "name": "Content",
+                          "width": "fill_container",
+                          "layout": "vertical",
+                          "gap": 20,
+                          "padding": [
+                            28,
+                            24
+                          ],
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "XqCgi",
+                              "name": "Headline",
+                              "fill": "$text-primary",
+                              "textGrowth": "fixed-width",
+                              "width": "fill_container",
+                              "content": "Validaremos tu identidad, con tu número de teléfono",
+                              "lineHeight": 1.4,
+                              "fontFamily": "$font",
+                              "fontSize": 16,
+                              "fontWeight": "500"
+                            },
+                            {
+                              "id": "VPGTO",
+                              "type": "ref",
+                              "ref": "eD7Ds",
+                              "name": "PhoneInput",
+                              "width": "fill_container"
+                            },
+                            {
+                              "id": "RhVCF",
+                              "type": "ref",
+                              "ref": "v3VVY",
+                              "name": "PrimaryButton",
+                              "width": "fill_container",
+                              "opacity": 0.4,
+                              "effect": {
+                                "type": "shadow",
+                                "shadowType": "outer",
+                                "enabled": false,
+                                "color": "#000000"
+                              }
+                            }
+                          ]
+                        },
+                        {
+                          "id": "t4MXmX",
+                          "type": "ref",
+                          "ref": "dVjl5",
+                          "name": "GestureBar",
+                          "width": "fill_container"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "BCwDJ",
+              "name": "State · Idle · 9 dígitos",
+              "layout": "vertical",
+              "gap": 14,
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "qTuHR",
+                  "name": "Chip",
+                  "fill": "#FFFFFF",
+                  "cornerRadius": 999,
+                  "stroke": "#E2DDF2",
+                  "strokeWidth": 1,
+                  "gap": 8,
+                  "padding": [
+                    6,
+                    12
+                  ],
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "ellipse",
+                      "id": "y7hrC",
+                      "name": "Dot",
+                      "fill": "#9AA0A6",
+                      "width": 8,
+                      "height": 8
+                    },
+                    {
+                      "type": "text",
+                      "id": "NKFls",
+                      "name": "Label",
+                      "fill": "$text-primary",
+                      "content": "Idle · 9 dígitos",
+                      "fontFamily": "$font",
+                      "fontSize": 14,
+                      "fontWeight": "600"
+                    }
+                  ]
+                },
+                {
+                  "type": "text",
+                  "id": "jiTUr",
+                  "name": "Caption",
+                  "fill": "$text-muted",
+                  "textGrowth": "fixed-width-height",
+                  "width": 360,
+                  "height": 36,
+                  "content": "Número completo: «Ingresar» habilitado",
+                  "fontFamily": "$font",
+                  "fontSize": 13,
+                  "fontWeight": "normal"
+                },
+                {
+                  "type": "frame",
+                  "id": "tbYOW",
+                  "name": "Screen · Generar OTP · Idle completo",
+                  "clip": true,
+                  "width": 360,
+                  "height": 800,
+                  "fill": "$surface",
+                  "cornerRadius": 28,
+                  "stroke": "#E2DDF2",
+                  "strokeWidth": 1,
+                  "layout": "none",
+                  "children": [
+                    {
+                      "id": "V3wIbi",
+                      "type": "ref",
+                      "ref": "MHD2U",
+                      "name": "StatusBar",
+                      "x": 0,
+                      "y": 0
+                    },
+                    {
+                      "type": "frame",
+                      "id": "hpgh1",
+                      "x": 0,
+                      "y": 52,
+                      "name": "Illustration",
+                      "width": 360,
+                      "height": 450,
+                      "fill": {
+                        "type": "image",
+                        "enabled": true,
+                        "url": "design-assets/feature_signin_picture.png",
+                        "mode": "fit"
+                      }
+                    },
+                    {
+                      "type": "frame",
+                      "id": "WXuPr",
+                      "x": 0,
+                      "y": 524,
+                      "name": "BottomCard",
+                      "width": 360,
+                      "fill": "$surface-card",
+                      "cornerRadius": [
+                        24,
+                        24,
+                        0,
+                        0
+                      ],
+                      "layout": "vertical",
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "FkDxG",
+                          "name": "Content",
+                          "width": "fill_container",
+                          "layout": "vertical",
+                          "gap": 20,
+                          "padding": [
+                            28,
+                            24
+                          ],
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "Pih2p",
+                              "name": "Headline",
+                              "fill": "$text-primary",
+                              "textGrowth": "fixed-width",
+                              "width": "fill_container",
+                              "content": "Validaremos tu identidad, con tu número de teléfono",
+                              "lineHeight": 1.4,
+                              "fontFamily": "$font",
+                              "fontSize": 16,
+                              "fontWeight": "500"
+                            },
+                            {
+                              "id": "jwmYJ",
+                              "type": "ref",
+                              "ref": "eD7Ds",
+                              "name": "PhoneInput",
+                              "width": "fill_container",
+                              "descendants": {
+                                "YVk1T": {
+                                  "enabled": true
+                                },
+                                "J64YZ": {
+                                  "content": "987654321",
+                                  "fill": "$text-primary"
+                                }
+                              }
+                            },
+                            {
+                              "id": "vZjlY",
+                              "type": "ref",
+                              "ref": "v3VVY",
+                              "opacity": 1,
+                              "effect": {
+                                "type": "shadow",
+                                "shadowType": "outer",
+                                "color": "#7843E640",
+                                "offset": {
+                                  "x": 0,
+                                  "y": 4
+                                },
+                                "blur": 10
+                              },
+                              "name": "PrimaryButton",
+                              "width": "fill_container"
+                            }
+                          ]
+                        },
+                        {
+                          "id": "DwtlE",
+                          "type": "ref",
+                          "ref": "dVjl5",
+                          "name": "GestureBar",
+                          "width": "fill_container"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "V1OIh",
+              "name": "State · Loading",
+              "layout": "vertical",
+              "gap": 14,
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "h6kHs",
+                  "name": "Chip",
+                  "fill": "#FFFFFF",
+                  "cornerRadius": 999,
+                  "stroke": "#E2DDF2",
+                  "strokeWidth": 1,
+                  "gap": 8,
+                  "padding": [
+                    6,
+                    12
+                  ],
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "ellipse",
+                      "id": "hLoJV",
+                      "name": "Dot",
+                      "fill": "#7843E6",
+                      "width": 8,
+                      "height": 8
+                    },
+                    {
+                      "type": "text",
+                      "id": "WWEwS",
+                      "name": "Label",
+                      "fill": "$text-primary",
+                      "content": "Loading",
+                      "fontFamily": "$font",
+                      "fontSize": 14,
+                      "fontWeight": "600"
+                    }
+                  ]
+                },
+                {
+                  "type": "text",
+                  "id": "v18uH",
+                  "name": "Caption",
+                  "fill": "$text-muted",
+                  "textGrowth": "fixed-width-height",
+                  "width": 360,
+                  "height": 36,
+                  "content": "Campo bloqueado y spinner en el botón; evita doble envío",
+                  "fontFamily": "$font",
+                  "fontSize": 13,
+                  "fontWeight": "normal"
+                },
+                {
+                  "type": "frame",
+                  "id": "ETZ3f",
+                  "name": "Screen · Generar OTP · Loading",
+                  "clip": true,
+                  "width": 360,
+                  "height": 800,
+                  "fill": "$surface",
+                  "cornerRadius": 28,
+                  "stroke": "#E2DDF2",
+                  "strokeWidth": 1,
+                  "layout": "none",
+                  "children": [
+                    {
+                      "id": "c1mlG7",
+                      "type": "ref",
+                      "ref": "MHD2U",
+                      "name": "StatusBar",
+                      "x": 0,
+                      "y": 0
+                    },
+                    {
+                      "type": "frame",
+                      "id": "r166m9",
+                      "x": 0,
+                      "y": 52,
+                      "name": "Illustration",
+                      "width": 360,
+                      "height": 450,
+                      "fill": {
+                        "type": "image",
+                        "enabled": true,
+                        "url": "design-assets/feature_signin_picture.png",
+                        "mode": "fit"
+                      }
+                    },
+                    {
+                      "type": "frame",
+                      "id": "G0vdn",
+                      "x": 0,
+                      "y": 524,
+                      "name": "BottomCard",
+                      "width": 360,
+                      "fill": "$surface-card",
+                      "cornerRadius": [
+                        24,
+                        24,
+                        0,
+                        0
+                      ],
+                      "layout": "vertical",
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "XIKNl",
+                          "name": "Content",
+                          "width": "fill_container",
+                          "layout": "vertical",
+                          "gap": 20,
+                          "padding": [
+                            28,
+                            24
+                          ],
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "lSqXt",
+                              "name": "Headline",
+                              "fill": "$text-primary",
+                              "textGrowth": "fixed-width",
+                              "width": "fill_container",
+                              "content": "Validaremos tu identidad, con tu número de teléfono",
+                              "lineHeight": 1.4,
+                              "fontFamily": "$font",
+                              "fontSize": 16,
+                              "fontWeight": "500"
+                            },
+                            {
+                              "id": "F1EgC",
+                              "type": "ref",
+                              "ref": "eD7Ds",
+                              "opacity": 0.6,
+                              "name": "PhoneInput",
+                              "width": "fill_container",
+                              "descendants": {
+                                "YVk1T": {
+                                  "enabled": true
+                                },
+                                "J64YZ": {
+                                  "content": "987654321",
+                                  "fill": "$text-primary"
+                                }
+                              }
+                            },
+                            {
+                              "id": "rn3Oa",
+                              "type": "ref",
+                              "ref": "v3VVY",
+                              "name": "PrimaryButton",
+                              "width": "fill_container",
+                              "opacity": 0.4,
+                              "effect": {
+                                "type": "shadow",
+                                "shadowType": "outer",
+                                "enabled": false,
+                                "color": "#000000"
+                              },
+                              "descendants": {
+                                "HxIcd": {
+                                  "enabled": false
+                                },
+                                "Libkt": {
+                                  "enabled": true
+                                }
+                              }
+                            }
+                          ]
+                        },
+                        {
+                          "id": "ZIovj",
+                          "type": "ref",
+                          "ref": "dVjl5",
+                          "name": "GestureBar",
+                          "width": "fill_container"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "v9yUpw",
+              "name": "State · Error",
+              "layout": "vertical",
+              "gap": 14,
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "TQAId",
+                  "name": "Chip",
+                  "fill": "#FFFFFF",
+                  "cornerRadius": 999,
+                  "stroke": "#E2DDF2",
+                  "strokeWidth": 1,
+                  "gap": 8,
+                  "padding": [
+                    6,
+                    12
+                  ],
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "ellipse",
+                      "id": "T6VDS",
+                      "name": "Dot",
+                      "fill": "#C62828",
+                      "width": 8,
+                      "height": 8
+                    },
+                    {
+                      "type": "text",
+                      "id": "GfUB4",
+                      "name": "Label",
+                      "fill": "$text-primary",
+                      "content": "Error",
+                      "fontFamily": "$font",
+                      "fontSize": 14,
+                      "fontWeight": "600"
+                    }
+                  ]
+                },
+                {
+                  "type": "text",
+                  "id": "KAXH9",
+                  "name": "Caption",
+                  "fill": "$text-muted",
+                  "textGrowth": "fixed-width-height",
+                  "width": 360,
+                  "height": 36,
+                  "content": "Toast rojo 3 s con el mensaje del backend (422) y vuelve a Idle",
+                  "fontFamily": "$font",
+                  "fontSize": 13,
+                  "fontWeight": "normal"
+                },
+                {
+                  "type": "frame",
+                  "id": "ysdcd",
+                  "name": "Screen · Generar OTP · Error",
+                  "clip": true,
+                  "width": 360,
+                  "height": 800,
+                  "fill": "$surface",
+                  "cornerRadius": 28,
+                  "stroke": "#E2DDF2",
+                  "strokeWidth": 1,
+                  "layout": "none",
+                  "children": [
+                    {
+                      "id": "AbKmW",
+                      "type": "ref",
+                      "ref": "MHD2U",
+                      "name": "StatusBar",
+                      "x": 0,
+                      "y": 0
+                    },
+                    {
+                      "type": "frame",
+                      "id": "Ok4wc",
+                      "x": 0,
+                      "y": 52,
+                      "name": "Illustration",
+                      "width": 360,
+                      "height": 450,
+                      "fill": {
+                        "type": "image",
+                        "enabled": true,
+                        "url": "design-assets/feature_signin_picture.png",
+                        "mode": "fit"
+                      }
+                    },
+                    {
+                      "type": "frame",
+                      "id": "IpM8Q",
+                      "x": 0,
+                      "y": 524,
+                      "name": "BottomCard",
+                      "width": 360,
+                      "fill": "$surface-card",
+                      "cornerRadius": [
+                        24,
+                        24,
+                        0,
+                        0
+                      ],
+                      "layout": "vertical",
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "Ya0aX",
+                          "name": "Content",
+                          "width": "fill_container",
+                          "layout": "vertical",
+                          "gap": 20,
+                          "padding": [
+                            28,
+                            24
+                          ],
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "CIo2L",
+                              "name": "Headline",
+                              "fill": "$text-primary",
+                              "textGrowth": "fixed-width",
+                              "width": "fill_container",
+                              "content": "Validaremos tu identidad, con tu número de teléfono",
+                              "lineHeight": 1.4,
+                              "fontFamily": "$font",
+                              "fontSize": 16,
+                              "fontWeight": "500"
+                            },
+                            {
+                              "id": "l9bUS",
+                              "type": "ref",
+                              "ref": "eD7Ds",
+                              "name": "PhoneInput",
+                              "width": "fill_container",
+                              "descendants": {
+                                "YVk1T": {
+                                  "enabled": true
+                                },
+                                "J64YZ": {
+                                  "content": "987654321",
+                                  "fill": "$text-primary"
+                                }
+                              }
+                            },
+                            {
+                              "id": "Ukuwj",
+                              "type": "ref",
+                              "ref": "v3VVY",
+                              "opacity": 1,
+                              "effect": {
+                                "type": "shadow",
+                                "shadowType": "outer",
+                                "color": "#7843E640",
+                                "offset": {
+                                  "x": 0,
+                                  "y": 4
+                                },
+                                "blur": 10
+                              },
+                              "name": "PrimaryButton",
+                              "width": "fill_container"
+                            }
+                          ]
+                        },
+                        {
+                          "id": "FYlFe",
+                          "type": "ref",
+                          "ref": "dVjl5",
+                          "name": "GestureBar",
+                          "width": "fill_container"
+                        }
+                      ]
+                    },
+                    {
+                      "id": "EeLXw",
+                      "type": "ref",
+                      "ref": "zdhuP",
+                      "name": "Toast · Error",
+                      "x": 16,
+                      "y": 36,
+                      "fill": "$error",
+                      "descendants": {
+                        "ARqGc": {
+                          "icon": "warning"
+                        },
+                        "ikr62": {
+                          "content": "Ya existe un código activo. Espera 1 minuto antes de solicitar uno nuevo."
+                        }
+                      }
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "u7FFQ9",
+              "name": "State · Success",
+              "layout": "vertical",
+              "gap": 14,
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "WWwKj",
+                  "name": "Chip",
+                  "fill": "#FFFFFF",
+                  "cornerRadius": 999,
+                  "stroke": "#E2DDF2",
+                  "strokeWidth": 1,
+                  "gap": 8,
+                  "padding": [
+                    6,
+                    12
+                  ],
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "ellipse",
+                      "id": "VAiGu",
+                      "name": "Dot",
+                      "fill": "#2E7D32",
+                      "width": 8,
+                      "height": 8
+                    },
+                    {
+                      "type": "text",
+                      "id": "Rq6dA",
+                      "name": "Label",
+                      "fill": "$text-primary",
+                      "content": "Success",
+                      "fontFamily": "$font",
+                      "fontSize": 14,
+                      "fontWeight": "600"
+                    }
+                  ]
+                },
+                {
+                  "type": "text",
+                  "id": "KiGLb",
+                  "name": "Caption",
+                  "fill": "$text-muted",
+                  "textGrowth": "fixed-width-height",
+                  "width": 360,
+                  "height": 36,
+                  "content": "OtpGenerateState.Success: navega a «Validar OTP», que muestra el toast verde",
+                  "fontFamily": "$font",
+                  "fontSize": 13,
+                  "fontWeight": "normal"
+                },
+                {
+                  "type": "frame",
+                  "id": "s46jw",
+                  "name": "Screen · Generar OTP · Success → Validar OTP",
+                  "clip": true,
+                  "width": 360,
+                  "height": 800,
+                  "fill": "$surface",
+                  "cornerRadius": 28,
+                  "stroke": "#E2DDF2",
+                  "strokeWidth": 1,
+                  "layout": "vertical",
+                  "justifyContent": "space_between",
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "Eb14C",
+                      "name": "Top",
+                      "width": "fill_container",
+                      "layout": "vertical",
+                      "children": [
+                        {
+                          "id": "Mmn6g",
+                          "type": "ref",
+                          "ref": "MHD2U",
+                          "name": "StatusBar",
+                          "width": "fill_container"
+                        },
+                        {
+                          "type": "frame",
+                          "id": "kezWs",
+                          "name": "Content",
+                          "width": "fill_container",
+                          "layout": "vertical",
+                          "gap": 20,
+                          "padding": [
+                            88,
+                            24,
+                            0,
+                            24
+                          ],
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "Pg1aU",
+                              "name": "Title",
+                              "fill": "$text-primary",
+                              "content": "Ingresa el código",
+                              "fontFamily": "$font",
+                              "fontSize": 24,
+                              "fontWeight": "700"
+                            },
+                            {
+                              "type": "text",
+                              "id": "azq3w",
+                              "name": "Body",
+                              "fill": "$text-secondary",
+                              "textGrowth": "fixed-width",
+                              "width": "fill_container",
+                              "content": "Hemos enviado un código de 4 dígitos al número +51 987 654 321",
+                              "lineHeight": 1.45,
+                              "fontFamily": "$font",
+                              "fontSize": 16,
+                              "fontWeight": "normal"
+                            },
+                            {
+                              "type": "frame",
+                              "id": "mpozw",
+                              "name": "OtpCodeInput",
+                              "width": "fill_container",
+                              "gap": 12,
+                              "children": [
+                                {
+                                  "id": "OqB59",
+                                  "type": "ref",
+                                  "ref": "VCTMf",
+                                  "stroke": "$otp-border",
+                                  "name": "OtpBox 1",
+                                  "width": "fill_container",
+                                  "descendants": {
+                                    "FsMLc": {
+                                      "content": ""
+                                    }
+                                  }
+                                },
+                                {
+                                  "id": "vWSgQ",
+                                  "type": "ref",
+                                  "ref": "VCTMf",
+                                  "stroke": "$otp-border",
+                                  "name": "OtpBox 2",
+                                  "width": "fill_container",
+                                  "descendants": {
+                                    "FsMLc": {
+                                      "content": ""
+                                    }
+                                  }
+                                },
+                                {
+                                  "id": "OEDc0",
+                                  "type": "ref",
+                                  "ref": "VCTMf",
+                                  "stroke": "$otp-border",
+                                  "name": "OtpBox 3",
+                                  "width": "fill_container",
+                                  "descendants": {
+                                    "FsMLc": {
+                                      "content": ""
+                                    }
+                                  }
+                                },
+                                {
+                                  "id": "afQSv",
+                                  "type": "ref",
+                                  "ref": "VCTMf",
+                                  "stroke": "$otp-border",
+                                  "name": "OtpBox 4",
+                                  "width": "fill_container",
+                                  "descendants": {
+                                    "FsMLc": {
+                                      "content": ""
+                                    }
+                                  }
+                                }
+                              ]
+                            },
+                            {
+                              "type": "frame",
+                              "id": "p542ms",
+                              "name": "ResendRow",
+                              "width": "fill_container",
+                              "justifyContent": "end",
+                              "children": [
+                                {
+                                  "type": "text",
+                                  "id": "pTD7f",
+                                  "name": "Countdown",
+                                  "fill": "$text-muted",
+                                  "content": "Puedes volver a enviar un código en 02:00",
+                                  "fontFamily": "$font",
+                                  "fontSize": 14,
+                                  "fontWeight": "normal"
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "AZhpe",
+                      "name": "Bottom",
+                      "width": "fill_container",
+                      "layout": "vertical",
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "InHxy",
+                          "name": "ButtonWrap",
+                          "width": "fill_container",
+                          "layout": "vertical",
+                          "padding": [
+                            0,
+                            24,
+                            24,
+                            24
+                          ],
+                          "children": [
+                            {
+                              "id": "XTyPS",
+                              "type": "ref",
+                              "ref": "v3VVY",
+                              "opacity": 0.4,
+                              "effect": {
+                                "type": "shadow",
+                                "shadowType": "outer",
+                                "enabled": false,
+                                "color": "#000000"
+                              },
+                              "name": "PrimaryButton",
+                              "width": "fill_container",
+                              "descendants": {
+                                "HxIcd": {
+                                  "content": "Validar"
+                                }
+                              }
+                            }
+                          ]
+                        },
+                        {
+                          "id": "tYuq6",
+                          "type": "ref",
+                          "ref": "dVjl5",
+                          "name": "GestureBar",
+                          "width": "fill_container"
+                        }
+                      ]
+                    },
+                    {
+                      "id": "SL2zB",
+                      "type": "ref",
+                      "ref": "zdhuP",
+                      "name": "Toast · Success",
+                      "layoutPosition": "absolute",
+                      "x": 16,
+                      "y": 36,
+                      "fill": "$success",
+                      "descendants": {
+                        "ARqGc": {
+                          "icon": "check_circle"
+                        },
+                        "ikr62": {
+                          "content": "Enviamos un código al +51 987 654 321"
+                        }
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "frame",
+      "id": "f9C2VF",
+      "x": 0,
+      "y": 1480,
+      "name": "Section · Validar OTP",
+      "fill": "$canvas",
+      "layout": "vertical",
+      "gap": 28,
+      "padding": 48,
+      "children": [
+        {
+          "type": "frame",
+          "id": "GVHCs",
+          "name": "Header",
+          "layout": "vertical",
+          "gap": 8,
+          "children": [
+            {
+              "type": "text",
+              "id": "p01Eh7",
+              "name": "Title",
+              "fill": "$text-primary",
+              "content": "2 · Validar OTP",
+              "fontFamily": "$font",
+              "fontSize": 32,
+              "fontWeight": "700"
+            },
+            {
+              "type": "text",
+              "id": "oKS4w",
+              "name": "Subtitle",
+              "fill": "$text-muted",
+              "content": "SignInValidateOtpScreen · POST /auth/otp-validate (y reenvío con /auth/otp-generate) · estados de OtpValidateState y OtpGenerateState",
+              "fontFamily": "$font",
+              "fontSize": 16,
+              "fontWeight": "normal"
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "m41Quu",
+          "name": "States",
+          "gap": 40,
+          "children": [
+            {
+              "type": "frame",
+              "id": "JuPVu",
+              "name": "State · Success (generar) · código enviado",
+              "layout": "vertical",
+              "gap": 14,
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "uMhpR",
+                  "name": "Chip",
+                  "fill": "#FFFFFF",
+                  "cornerRadius": 999,
+                  "stroke": "#E2DDF2",
+                  "strokeWidth": 1,
+                  "gap": 8,
+                  "padding": [
+                    6,
+                    12
+                  ],
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "ellipse",
+                      "id": "XajmZ",
+                      "name": "Dot",
+                      "fill": "#2E7D32",
+                      "width": 8,
+                      "height": 8
+                    },
+                    {
+                      "type": "text",
+                      "id": "x67VSV",
+                      "name": "Label",
+                      "fill": "$text-primary",
+                      "content": "Success (generar) · código enviado",
+                      "fontFamily": "$font",
+                      "fontSize": 14,
+                      "fontWeight": "600"
+                    }
+                  ]
+                },
+                {
+                  "type": "text",
+                  "id": "S3accC",
+                  "name": "Caption",
+                  "fill": "$text-muted",
+                  "textGrowth": "fixed-width-height",
+                  "width": 360,
+                  "height": 36,
+                  "content": "Llega desde «Generar OTP»: toast verde 3 s y cuenta de 02:00",
+                  "fontFamily": "$font",
+                  "fontSize": 13,
+                  "fontWeight": "normal"
+                },
+                {
+                  "type": "frame",
+                  "id": "JjOvs",
+                  "name": "Screen · Validar OTP · Código enviado",
+                  "clip": true,
+                  "width": 360,
+                  "height": 800,
+                  "fill": "$surface",
+                  "cornerRadius": 28,
+                  "stroke": "#E2DDF2",
+                  "strokeWidth": 1,
+                  "layout": "vertical",
+                  "justifyContent": "space_between",
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "RwPrU",
+                      "name": "Top",
+                      "width": "fill_container",
+                      "layout": "vertical",
+                      "children": [
+                        {
+                          "id": "OK1oF",
+                          "type": "ref",
+                          "ref": "MHD2U",
+                          "name": "StatusBar",
+                          "width": "fill_container"
+                        },
+                        {
+                          "type": "frame",
+                          "id": "HGShu",
+                          "name": "Content",
+                          "width": "fill_container",
+                          "layout": "vertical",
+                          "gap": 20,
+                          "padding": [
+                            88,
+                            24,
+                            0,
+                            24
+                          ],
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "dPwwC",
+                              "name": "Title",
+                              "fill": "$text-primary",
+                              "content": "Ingresa el código",
+                              "fontFamily": "$font",
+                              "fontSize": 24,
+                              "fontWeight": "700"
+                            },
+                            {
+                              "type": "text",
+                              "id": "sjZiO",
+                              "name": "Body",
+                              "fill": "$text-secondary",
+                              "textGrowth": "fixed-width",
+                              "width": "fill_container",
+                              "content": "Hemos enviado un código de 4 dígitos al número +51 987 654 321",
+                              "lineHeight": 1.45,
+                              "fontFamily": "$font",
+                              "fontSize": 16,
+                              "fontWeight": "normal"
+                            },
+                            {
+                              "type": "frame",
+                              "id": "dWvsX",
+                              "name": "OtpCodeInput",
+                              "width": "fill_container",
+                              "gap": 12,
+                              "children": [
+                                {
+                                  "id": "J0tQ1s",
+                                  "type": "ref",
+                                  "ref": "VCTMf",
+                                  "stroke": "$otp-border",
+                                  "name": "OtpBox 1",
+                                  "width": "fill_container",
+                                  "descendants": {
+                                    "FsMLc": {
+                                      "content": ""
+                                    }
+                                  }
+                                },
+                                {
+                                  "id": "sVvEx",
+                                  "type": "ref",
+                                  "ref": "VCTMf",
+                                  "stroke": "$otp-border",
+                                  "name": "OtpBox 2",
+                                  "width": "fill_container",
+                                  "descendants": {
+                                    "FsMLc": {
+                                      "content": ""
+                                    }
+                                  }
+                                },
+                                {
+                                  "id": "sEgX6",
+                                  "type": "ref",
+                                  "ref": "VCTMf",
+                                  "stroke": "$otp-border",
+                                  "name": "OtpBox 3",
+                                  "width": "fill_container",
+                                  "descendants": {
+                                    "FsMLc": {
+                                      "content": ""
+                                    }
+                                  }
+                                },
+                                {
+                                  "id": "gut3h",
+                                  "type": "ref",
+                                  "ref": "VCTMf",
+                                  "stroke": "$otp-border",
+                                  "name": "OtpBox 4",
+                                  "width": "fill_container",
+                                  "descendants": {
+                                    "FsMLc": {
+                                      "content": ""
+                                    }
+                                  }
+                                }
+                              ]
+                            },
+                            {
+                              "type": "frame",
+                              "id": "y1yLQU",
+                              "name": "ResendRow",
+                              "width": "fill_container",
+                              "justifyContent": "end",
+                              "children": [
+                                {
+                                  "type": "text",
+                                  "id": "SKVzN",
+                                  "name": "Countdown",
+                                  "fill": "$text-muted",
+                                  "content": "Puedes volver a enviar un código en 02:00",
+                                  "fontFamily": "$font",
+                                  "fontSize": 14,
+                                  "fontWeight": "normal"
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "dTNT6",
+                      "name": "Bottom",
+                      "width": "fill_container",
+                      "layout": "vertical",
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "wbuET",
+                          "name": "ButtonWrap",
+                          "width": "fill_container",
+                          "layout": "vertical",
+                          "padding": [
+                            0,
+                            24,
+                            24,
+                            24
+                          ],
+                          "children": [
+                            {
+                              "id": "Hrz0F",
+                              "type": "ref",
+                              "ref": "v3VVY",
+                              "opacity": 0.4,
+                              "effect": {
+                                "type": "shadow",
+                                "shadowType": "outer",
+                                "enabled": false,
+                                "color": "#000000"
+                              },
+                              "name": "PrimaryButton",
+                              "width": "fill_container",
+                              "descendants": {
+                                "HxIcd": {
+                                  "content": "Validar"
+                                }
+                              }
+                            }
+                          ]
+                        },
+                        {
+                          "id": "k7QQe",
+                          "type": "ref",
+                          "ref": "dVjl5",
+                          "name": "GestureBar",
+                          "width": "fill_container"
+                        }
+                      ]
+                    },
+                    {
+                      "id": "E0XtZW",
+                      "type": "ref",
+                      "ref": "zdhuP",
+                      "name": "Toast · Success",
+                      "layoutPosition": "absolute",
+                      "x": 16,
+                      "y": 36,
+                      "fill": "$success",
+                      "descendants": {
+                        "ARqGc": {
+                          "icon": "check_circle"
+                        },
+                        "ikr62": {
+                          "content": "Enviamos un código al +51 987 654 321"
+                        }
+                      }
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "mxSKM",
+              "name": "State · Idle",
+              "layout": "vertical",
+              "gap": 14,
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "K8Mzq",
+                  "name": "Chip",
+                  "fill": "#FFFFFF",
+                  "cornerRadius": 999,
+                  "stroke": "#E2DDF2",
+                  "strokeWidth": 1,
+                  "gap": 8,
+                  "padding": [
+                    6,
+                    12
+                  ],
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "ellipse",
+                      "id": "BPxZ3",
+                      "name": "Dot",
+                      "fill": "#9AA0A6",
+                      "width": 8,
+                      "height": 8
+                    },
+                    {
+                      "type": "text",
+                      "id": "r8ulh",
+                      "name": "Label",
+                      "fill": "$text-primary",
+                      "content": "Idle · código completo",
+                      "fontFamily": "$font",
+                      "fontSize": 14,
+                      "fontWeight": "600"
+                    }
+                  ]
+                },
+                {
+                  "type": "text",
+                  "id": "B4yBAe",
+                  "name": "Caption",
+                  "fill": "$text-muted",
+                  "textGrowth": "fixed-width-height",
+                  "width": 360,
+                  "height": 36,
+                  "content": "Cuenta regresiva activa; «Validar» habilitado con 4 dígitos",
+                  "fontFamily": "$font",
+                  "fontSize": 13,
+                  "fontWeight": "normal"
+                },
+                {
+                  "type": "frame",
+                  "id": "itOAt",
+                  "name": "Screen · Validar OTP · Idle",
+                  "clip": true,
+                  "width": 360,
+                  "height": 800,
+                  "fill": "$surface",
+                  "cornerRadius": 28,
+                  "stroke": "#E2DDF2",
+                  "strokeWidth": 1,
+                  "layout": "vertical",
+                  "justifyContent": "space_between",
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "zKKIg",
+                      "name": "Top",
+                      "width": "fill_container",
+                      "layout": "vertical",
+                      "children": [
+                        {
+                          "id": "Xa1RG",
+                          "type": "ref",
+                          "ref": "MHD2U",
+                          "name": "StatusBar",
+                          "width": "fill_container"
+                        },
+                        {
+                          "type": "frame",
+                          "id": "fchzD",
+                          "name": "Content",
+                          "width": "fill_container",
+                          "layout": "vertical",
+                          "gap": 20,
+                          "padding": [
+                            88,
+                            24,
+                            0,
+                            24
+                          ],
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "XEp63",
+                              "name": "Title",
+                              "fill": "$text-primary",
+                              "content": "Ingresa el código",
+                              "fontFamily": "$font",
+                              "fontSize": 24,
+                              "fontWeight": "700"
+                            },
+                            {
+                              "type": "text",
+                              "id": "NQ4Ff",
+                              "name": "Body",
+                              "fill": "$text-secondary",
+                              "textGrowth": "fixed-width",
+                              "width": "fill_container",
+                              "content": "Hemos enviado un código de 4 dígitos al número +51 987 654 321",
+                              "lineHeight": 1.45,
+                              "fontFamily": "$font",
+                              "fontSize": 16,
+                              "fontWeight": "normal"
+                            },
+                            {
+                              "type": "frame",
+                              "id": "yb16d",
+                              "name": "OtpCodeInput",
+                              "width": "fill_container",
+                              "gap": 12,
+                              "children": [
+                                {
+                                  "id": "V9BxHR",
+                                  "type": "ref",
+                                  "ref": "VCTMf",
+                                  "name": "OtpBox 1",
+                                  "width": "fill_container",
+                                  "stroke": "$otp-border-filled",
+                                  "descendants": {
+                                    "FsMLc": {
+                                      "content": "4"
+                                    }
+                                  }
+                                },
+                                {
+                                  "id": "Spupn",
+                                  "type": "ref",
+                                  "ref": "VCTMf",
+                                  "name": "OtpBox 2",
+                                  "width": "fill_container",
+                                  "stroke": "$otp-border-filled",
+                                  "descendants": {
+                                    "FsMLc": {
+                                      "content": "8"
+                                    }
+                                  }
+                                },
+                                {
+                                  "id": "ahJYO",
+                                  "type": "ref",
+                                  "ref": "VCTMf",
+                                  "name": "OtpBox 3",
+                                  "width": "fill_container",
+                                  "stroke": "$otp-border-filled",
+                                  "descendants": {
+                                    "FsMLc": {
+                                      "content": "1"
+                                    }
+                                  }
+                                },
+                                {
+                                  "id": "O8egZT",
+                                  "type": "ref",
+                                  "ref": "VCTMf",
+                                  "name": "OtpBox 4",
+                                  "width": "fill_container",
+                                  "stroke": "$otp-border-filled",
+                                  "descendants": {
+                                    "FsMLc": {
+                                      "content": "5"
+                                    }
+                                  }
+                                }
+                              ]
+                            },
+                            {
+                              "type": "frame",
+                              "id": "YF0I4",
+                              "name": "ResendRow",
+                              "width": "fill_container",
+                              "justifyContent": "end",
+                              "children": [
+                                {
+                                  "type": "text",
+                                  "id": "No2m4",
+                                  "name": "Countdown",
+                                  "fill": "$text-muted",
+                                  "content": "Puedes volver a enviar un código en 01:45",
+                                  "fontFamily": "$font",
+                                  "fontSize": 14,
+                                  "fontWeight": "normal"
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "gUOWo",
+                      "name": "Bottom",
+                      "width": "fill_container",
+                      "layout": "vertical",
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "tsSth",
+                          "name": "ButtonWrap",
+                          "width": "fill_container",
+                          "layout": "vertical",
+                          "padding": [
+                            0,
+                            24,
+                            24,
+                            24
+                          ],
+                          "children": [
+                            {
+                              "id": "a05lbE",
+                              "type": "ref",
+                              "ref": "v3VVY",
+                              "name": "PrimaryButton",
+                              "width": "fill_container",
+                              "descendants": {
+                                "HxIcd": {
+                                  "content": "Validar"
+                                }
+                              }
+                            }
+                          ]
+                        },
+                        {
+                          "id": "J9H45O",
+                          "type": "ref",
+                          "ref": "dVjl5",
+                          "name": "GestureBar",
+                          "width": "fill_container"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "E6sNfX",
+              "name": "State · Loading",
+              "layout": "vertical",
+              "gap": 14,
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "WXUtE",
+                  "name": "Chip",
+                  "fill": "#FFFFFF",
+                  "cornerRadius": 999,
+                  "stroke": "#E2DDF2",
+                  "strokeWidth": 1,
+                  "gap": 8,
+                  "padding": [
+                    6,
+                    12
+                  ],
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "ellipse",
+                      "id": "A2FpSj",
+                      "name": "Dot",
+                      "fill": "#7843E6",
+                      "width": 8,
+                      "height": 8
+                    },
+                    {
+                      "type": "text",
+                      "id": "kfQfe",
+                      "name": "Label",
+                      "fill": "$text-primary",
+                      "content": "Loading",
+                      "fontFamily": "$font",
+                      "fontSize": 14,
+                      "fontWeight": "600"
+                    }
+                  ]
+                },
+                {
+                  "type": "text",
+                  "id": "uOiZn",
+                  "name": "Caption",
+                  "fill": "$text-muted",
+                  "textGrowth": "fixed-width-height",
+                  "width": 360,
+                  "height": 36,
+                  "content": "Validando: spinner en «Validar»; no se puede reenviar",
+                  "fontFamily": "$font",
+                  "fontSize": 13,
+                  "fontWeight": "normal"
+                },
+                {
+                  "type": "frame",
+                  "id": "TtcS5",
+                  "name": "Screen · Validar OTP · Loading",
+                  "clip": true,
+                  "width": 360,
+                  "height": 800,
+                  "fill": "$surface",
+                  "cornerRadius": 28,
+                  "stroke": "#E2DDF2",
+                  "strokeWidth": 1,
+                  "layout": "vertical",
+                  "justifyContent": "space_between",
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "I4G7k6",
+                      "name": "Top",
+                      "width": "fill_container",
+                      "layout": "vertical",
+                      "children": [
+                        {
+                          "id": "nxRUS",
+                          "type": "ref",
+                          "ref": "MHD2U",
+                          "name": "StatusBar",
+                          "width": "fill_container"
+                        },
+                        {
+                          "type": "frame",
+                          "id": "h8tugm",
+                          "name": "Content",
+                          "width": "fill_container",
+                          "layout": "vertical",
+                          "gap": 20,
+                          "padding": [
+                            88,
+                            24,
+                            0,
+                            24
+                          ],
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "C2LgGR",
+                              "name": "Title",
+                              "fill": "$text-primary",
+                              "content": "Ingresa el código",
+                              "fontFamily": "$font",
+                              "fontSize": 24,
+                              "fontWeight": "700"
+                            },
+                            {
+                              "type": "text",
+                              "id": "QBvJX",
+                              "name": "Body",
+                              "fill": "$text-secondary",
+                              "textGrowth": "fixed-width",
+                              "width": "fill_container",
+                              "content": "Hemos enviado un código de 4 dígitos al número +51 987 654 321",
+                              "lineHeight": 1.45,
+                              "fontFamily": "$font",
+                              "fontSize": 16,
+                              "fontWeight": "normal"
+                            },
+                            {
+                              "type": "frame",
+                              "id": "oK94A",
+                              "name": "OtpCodeInput",
+                              "width": "fill_container",
+                              "gap": 12,
+                              "children": [
+                                {
+                                  "id": "w3nTT5",
+                                  "type": "ref",
+                                  "ref": "VCTMf",
+                                  "stroke": "$otp-border-filled",
+                                  "name": "OtpBox 1",
+                                  "width": "fill_container",
+                                  "descendants": {
+                                    "FsMLc": {
+                                      "content": "4"
+                                    }
+                                  }
+                                },
+                                {
+                                  "id": "tB3gw",
+                                  "type": "ref",
+                                  "ref": "VCTMf",
+                                  "stroke": "$otp-border-filled",
+                                  "name": "OtpBox 2",
+                                  "width": "fill_container",
+                                  "descendants": {
+                                    "FsMLc": {
+                                      "content": "8"
+                                    }
+                                  }
+                                },
+                                {
+                                  "id": "icWe8",
+                                  "type": "ref",
+                                  "ref": "VCTMf",
+                                  "stroke": "$otp-border-filled",
+                                  "name": "OtpBox 3",
+                                  "width": "fill_container",
+                                  "descendants": {
+                                    "FsMLc": {
+                                      "content": "1"
+                                    }
+                                  }
+                                },
+                                {
+                                  "id": "lYJFn",
+                                  "type": "ref",
+                                  "ref": "VCTMf",
+                                  "stroke": "$otp-border-filled",
+                                  "name": "OtpBox 4",
+                                  "width": "fill_container",
+                                  "descendants": {
+                                    "FsMLc": {
+                                      "content": "5"
+                                    }
+                                  }
+                                }
+                              ]
+                            },
+                            {
+                              "type": "frame",
+                              "id": "x0Qpg",
+                              "name": "ResendRow",
+                              "width": "fill_container",
+                              "justifyContent": "end",
+                              "children": [
+                                {
+                                  "type": "text",
+                                  "id": "r8CucR",
+                                  "name": "Countdown",
+                                  "fill": "$text-muted",
+                                  "content": "Puedes volver a enviar un código en 01:45",
+                                  "fontFamily": "$font",
+                                  "fontSize": 14,
+                                  "fontWeight": "normal"
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "p5ge7",
+                      "name": "Bottom",
+                      "width": "fill_container",
+                      "layout": "vertical",
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "ze02W",
+                          "name": "ButtonWrap",
+                          "width": "fill_container",
+                          "layout": "vertical",
+                          "padding": [
+                            0,
+                            24,
+                            24,
+                            24
+                          ],
+                          "children": [
+                            {
+                              "id": "eKnTj",
+                              "type": "ref",
+                              "ref": "v3VVY",
+                              "opacity": 0.4,
+                              "effect": {
+                                "type": "shadow",
+                                "shadowType": "outer",
+                                "enabled": false,
+                                "color": "#000000"
+                              },
+                              "name": "PrimaryButton",
+                              "width": "fill_container",
+                              "descendants": {
+                                "HxIcd": {
+                                  "enabled": false,
+                                  "content": "Validar"
+                                },
+                                "Libkt": {
+                                  "enabled": true
+                                }
+                              }
+                            }
+                          ]
+                        },
+                        {
+                          "id": "xHLqN",
+                          "type": "ref",
+                          "ref": "dVjl5",
+                          "name": "GestureBar",
+                          "width": "fill_container"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "uWReq",
+              "name": "State · Error",
+              "layout": "vertical",
+              "gap": 14,
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "q4GWHD",
+                  "name": "Chip",
+                  "fill": "#FFFFFF",
+                  "cornerRadius": 999,
+                  "stroke": "#E2DDF2",
+                  "strokeWidth": 1,
+                  "gap": 8,
+                  "padding": [
+                    6,
+                    12
+                  ],
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "ellipse",
+                      "id": "Di3qo",
+                      "name": "Dot",
+                      "fill": "#C62828",
+                      "width": 8,
+                      "height": 8
+                    },
+                    {
+                      "type": "text",
+                      "id": "EG7Z5",
+                      "name": "Label",
+                      "fill": "$text-primary",
+                      "content": "Error",
+                      "fontFamily": "$font",
+                      "fontSize": 14,
+                      "fontWeight": "600"
+                    }
+                  ]
+                },
+                {
+                  "type": "text",
+                  "id": "BC8Cj",
+                  "name": "Caption",
+                  "fill": "$text-muted",
+                  "textGrowth": "fixed-width-height",
+                  "width": 360,
+                  "height": 36,
+                  "content": "422 código inválido (o 429 «Superaste el número de intentos…»): toast rojo 3 s",
+                  "fontFamily": "$font",
+                  "fontSize": 13,
+                  "fontWeight": "normal"
+                },
+                {
+                  "type": "frame",
+                  "id": "etUKI",
+                  "name": "Screen · Validar OTP · Error",
+                  "clip": true,
+                  "width": 360,
+                  "height": 800,
+                  "fill": "$surface",
+                  "cornerRadius": 28,
+                  "stroke": "#E2DDF2",
+                  "strokeWidth": 1,
+                  "layout": "vertical",
+                  "justifyContent": "space_between",
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "y9EsSj",
+                      "name": "Top",
+                      "width": "fill_container",
+                      "layout": "vertical",
+                      "children": [
+                        {
+                          "id": "xRy3k",
+                          "type": "ref",
+                          "ref": "MHD2U",
+                          "name": "StatusBar",
+                          "width": "fill_container"
+                        },
+                        {
+                          "type": "frame",
+                          "id": "hox8q",
+                          "name": "Content",
+                          "width": "fill_container",
+                          "layout": "vertical",
+                          "gap": 20,
+                          "padding": [
+                            88,
+                            24,
+                            0,
+                            24
+                          ],
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "Lxkkw",
+                              "name": "Title",
+                              "fill": "$text-primary",
+                              "content": "Ingresa el código",
+                              "fontFamily": "$font",
+                              "fontSize": 24,
+                              "fontWeight": "700"
+                            },
+                            {
+                              "type": "text",
+                              "id": "eP1VU",
+                              "name": "Body",
+                              "fill": "$text-secondary",
+                              "textGrowth": "fixed-width",
+                              "width": "fill_container",
+                              "content": "Hemos enviado un código de 4 dígitos al número +51 987 654 321",
+                              "lineHeight": 1.45,
+                              "fontFamily": "$font",
+                              "fontSize": 16,
+                              "fontWeight": "normal"
+                            },
+                            {
+                              "type": "frame",
+                              "id": "e7XTIv",
+                              "name": "OtpCodeInput",
+                              "width": "fill_container",
+                              "gap": 12,
+                              "children": [
+                                {
+                                  "id": "NekK6",
+                                  "type": "ref",
+                                  "ref": "VCTMf",
+                                  "stroke": "$otp-border-filled",
+                                  "name": "OtpBox 1",
+                                  "width": "fill_container",
+                                  "descendants": {
+                                    "FsMLc": {
+                                      "content": "4"
+                                    }
+                                  }
+                                },
+                                {
+                                  "id": "m9gej",
+                                  "type": "ref",
+                                  "ref": "VCTMf",
+                                  "stroke": "$otp-border-filled",
+                                  "name": "OtpBox 2",
+                                  "width": "fill_container",
+                                  "descendants": {
+                                    "FsMLc": {
+                                      "content": "8"
+                                    }
+                                  }
+                                },
+                                {
+                                  "id": "khcqL",
+                                  "type": "ref",
+                                  "ref": "VCTMf",
+                                  "stroke": "$otp-border-filled",
+                                  "name": "OtpBox 3",
+                                  "width": "fill_container",
+                                  "descendants": {
+                                    "FsMLc": {
+                                      "content": "1"
+                                    }
+                                  }
+                                },
+                                {
+                                  "id": "k1ukrv",
+                                  "type": "ref",
+                                  "ref": "VCTMf",
+                                  "stroke": "$otp-border-filled",
+                                  "name": "OtpBox 4",
+                                  "width": "fill_container",
+                                  "descendants": {
+                                    "FsMLc": {
+                                      "content": "5"
+                                    }
+                                  }
+                                }
+                              ]
+                            },
+                            {
+                              "type": "frame",
+                              "id": "wv6zj",
+                              "name": "ResendRow",
+                              "width": "fill_container",
+                              "justifyContent": "end",
+                              "children": [
+                                {
+                                  "type": "text",
+                                  "id": "ohqmm",
+                                  "name": "Countdown",
+                                  "fill": "$text-muted",
+                                  "content": "Puedes volver a enviar un código en 01:45",
+                                  "fontFamily": "$font",
+                                  "fontSize": 14,
+                                  "fontWeight": "normal"
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "esfey",
+                      "name": "Bottom",
+                      "width": "fill_container",
+                      "layout": "vertical",
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "U7GBOb",
+                          "name": "ButtonWrap",
+                          "width": "fill_container",
+                          "layout": "vertical",
+                          "padding": [
+                            0,
+                            24,
+                            24,
+                            24
+                          ],
+                          "children": [
+                            {
+                              "id": "AJZSN",
+                              "type": "ref",
+                              "ref": "v3VVY",
+                              "name": "PrimaryButton",
+                              "width": "fill_container",
+                              "descendants": {
+                                "HxIcd": {
+                                  "content": "Validar"
+                                }
+                              }
+                            }
+                          ]
+                        },
+                        {
+                          "id": "y108tf",
+                          "type": "ref",
+                          "ref": "dVjl5",
+                          "name": "GestureBar",
+                          "width": "fill_container"
+                        }
+                      ]
+                    },
+                    {
+                      "id": "a1sm5",
+                      "type": "ref",
+                      "ref": "zdhuP",
+                      "name": "Toast · Error",
+                      "layoutPosition": "absolute",
+                      "x": 16,
+                      "y": 36,
+                      "fill": "$error",
+                      "descendants": {
+                        "ARqGc": {
+                          "icon": "warning"
+                        },
+                        "ikr62": {
+                          "content": "El código OTP es inválido o ha expirado."
+                        }
+                      }
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "Owpjx",
+              "name": "State · Código expirado",
+              "layout": "vertical",
+              "gap": 14,
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "Cp2Pb",
+                  "name": "Chip",
+                  "fill": "#FFFFFF",
+                  "cornerRadius": 999,
+                  "stroke": "#E2DDF2",
+                  "strokeWidth": 1,
+                  "gap": 8,
+                  "padding": [
+                    6,
+                    12
+                  ],
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "ellipse",
+                      "id": "xYIoT",
+                      "name": "Dot",
+                      "fill": "#E0A100",
+                      "width": 8,
+                      "height": 8
+                    },
+                    {
+                      "type": "text",
+                      "id": "EMQRf",
+                      "name": "Label",
+                      "fill": "$text-primary",
+                      "content": "Código expirado",
+                      "fontFamily": "$font",
+                      "fontSize": 14,
+                      "fontWeight": "600"
+                    }
+                  ]
+                },
+                {
+                  "type": "text",
+                  "id": "a6v1E1",
+                  "name": "Caption",
+                  "fill": "$text-muted",
+                  "textGrowth": "fixed-width-height",
+                  "width": 360,
+                  "height": 36,
+                  "content": "La cuenta llegó a 00:00: aparece «Reenviar código» y «Validar» se deshabilita",
+                  "fontFamily": "$font",
+                  "fontSize": 13,
+                  "fontWeight": "normal"
+                },
+                {
+                  "type": "frame",
+                  "id": "Jyfaq",
+                  "name": "Screen · Validar OTP · Expirado",
+                  "clip": true,
+                  "width": 360,
+                  "height": 800,
+                  "fill": "$surface",
+                  "cornerRadius": 28,
+                  "stroke": "#E2DDF2",
+                  "strokeWidth": 1,
+                  "layout": "vertical",
+                  "justifyContent": "space_between",
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "s4NUdm",
+                      "name": "Top",
+                      "width": "fill_container",
+                      "layout": "vertical",
+                      "children": [
+                        {
+                          "id": "N5aYd",
+                          "type": "ref",
+                          "ref": "MHD2U",
+                          "name": "StatusBar",
+                          "width": "fill_container"
+                        },
+                        {
+                          "type": "frame",
+                          "id": "J1clMh",
+                          "name": "Content",
+                          "width": "fill_container",
+                          "layout": "vertical",
+                          "gap": 20,
+                          "padding": [
+                            88,
+                            24,
+                            0,
+                            24
+                          ],
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "O0LEf3",
+                              "name": "Title",
+                              "fill": "$text-primary",
+                              "content": "Ingresa el código",
+                              "fontFamily": "$font",
+                              "fontSize": 24,
+                              "fontWeight": "700"
+                            },
+                            {
+                              "type": "text",
+                              "id": "VE0iZ",
+                              "name": "Body",
+                              "fill": "$text-secondary",
+                              "textGrowth": "fixed-width",
+                              "width": "fill_container",
+                              "content": "Hemos enviado un código de 4 dígitos al número +51 987 654 321",
+                              "lineHeight": 1.45,
+                              "fontFamily": "$font",
+                              "fontSize": 16,
+                              "fontWeight": "normal"
+                            },
+                            {
+                              "type": "frame",
+                              "id": "gB9yd",
+                              "name": "OtpCodeInput",
+                              "width": "fill_container",
+                              "gap": 12,
+                              "children": [
+                                {
+                                  "id": "wjsnX",
+                                  "type": "ref",
+                                  "ref": "VCTMf",
+                                  "stroke": "$otp-border-filled",
+                                  "name": "OtpBox 1",
+                                  "width": "fill_container",
+                                  "descendants": {
+                                    "FsMLc": {
+                                      "content": "4"
+                                    }
+                                  }
+                                },
+                                {
+                                  "id": "ZZ5bD",
+                                  "type": "ref",
+                                  "ref": "VCTMf",
+                                  "stroke": "$otp-border-filled",
+                                  "name": "OtpBox 2",
+                                  "width": "fill_container",
+                                  "descendants": {
+                                    "FsMLc": {
+                                      "content": "8"
+                                    }
+                                  }
+                                },
+                                {
+                                  "id": "OseB4",
+                                  "type": "ref",
+                                  "ref": "VCTMf",
+                                  "stroke": "$otp-border",
+                                  "name": "OtpBox 3",
+                                  "width": "fill_container",
+                                  "descendants": {
+                                    "FsMLc": {
+                                      "content": ""
+                                    }
+                                  }
+                                },
+                                {
+                                  "id": "LJxGx",
+                                  "type": "ref",
+                                  "ref": "VCTMf",
+                                  "stroke": "$otp-border",
+                                  "name": "OtpBox 4",
+                                  "width": "fill_container",
+                                  "descendants": {
+                                    "FsMLc": {
+                                      "content": ""
+                                    }
+                                  }
+                                }
+                              ]
+                            },
+                            {
+                              "type": "frame",
+                              "id": "p7sxx",
+                              "name": "ResendRow",
+                              "width": "fill_container",
+                              "justifyContent": "end",
+                              "children": [
+                                {
+                                  "type": "text",
+                                  "id": "t8vv1",
+                                  "name": "Countdown",
+                                  "fill": "$text-primary",
+                                  "content": "Reenviar código",
+                                  "fontFamily": "$font",
+                                  "fontSize": 14,
+                                  "fontWeight": "600"
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "R7YQtb",
+                      "name": "Bottom",
+                      "width": "fill_container",
+                      "layout": "vertical",
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "ezSXU",
+                          "name": "ButtonWrap",
+                          "width": "fill_container",
+                          "layout": "vertical",
+                          "padding": [
+                            0,
+                            24,
+                            24,
+                            24
+                          ],
+                          "children": [
+                            {
+                              "id": "fpH5p",
+                              "type": "ref",
+                              "ref": "v3VVY",
+                              "opacity": 0.4,
+                              "effect": {
+                                "type": "shadow",
+                                "shadowType": "outer",
+                                "enabled": false,
+                                "color": "#000000"
+                              },
+                              "name": "PrimaryButton",
+                              "width": "fill_container",
+                              "descendants": {
+                                "HxIcd": {
+                                  "content": "Validar"
+                                }
+                              }
+                            }
+                          ]
+                        },
+                        {
+                          "id": "Y59D3",
+                          "type": "ref",
+                          "ref": "dVjl5",
+                          "name": "GestureBar",
+                          "width": "fill_container"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "J9DZm9",
+              "name": "State · Reenvío · Loading",
+              "layout": "vertical",
+              "gap": 14,
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "d8iME8",
+                  "name": "Chip",
+                  "fill": "#FFFFFF",
+                  "cornerRadius": 999,
+                  "stroke": "#E2DDF2",
+                  "strokeWidth": 1,
+                  "gap": 8,
+                  "padding": [
+                    6,
+                    12
+                  ],
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "ellipse",
+                      "id": "fky6a",
+                      "name": "Dot",
+                      "fill": "#7843E6",
+                      "width": 8,
+                      "height": 8
+                    },
+                    {
+                      "type": "text",
+                      "id": "S3wrU",
+                      "name": "Label",
+                      "fill": "$text-primary",
+                      "content": "Reenvío · Loading",
+                      "fontFamily": "$font",
+                      "fontSize": 14,
+                      "fontWeight": "600"
+                    }
+                  ]
+                },
+                {
+                  "type": "text",
+                  "id": "X23Js",
+                  "name": "Caption",
+                  "fill": "$text-muted",
+                  "textGrowth": "fixed-width-height",
+                  "width": 360,
+                  "height": 36,
+                  "content": "Tras pulsar «Reenviar código»: OtpGenerateState.Loading",
+                  "fontFamily": "$font",
+                  "fontSize": 13,
+                  "fontWeight": "normal"
+                },
+                {
+                  "type": "frame",
+                  "id": "sQqnD",
+                  "name": "Screen · Validar OTP · Reenviando",
+                  "clip": true,
+                  "width": 360,
+                  "height": 800,
+                  "fill": "$surface",
+                  "cornerRadius": 28,
+                  "stroke": "#E2DDF2",
+                  "strokeWidth": 1,
+                  "layout": "vertical",
+                  "justifyContent": "space_between",
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "F0Ek71",
+                      "name": "Top",
+                      "width": "fill_container",
+                      "layout": "vertical",
+                      "children": [
+                        {
+                          "id": "ahDrO",
+                          "type": "ref",
+                          "ref": "MHD2U",
+                          "name": "StatusBar",
+                          "width": "fill_container"
+                        },
+                        {
+                          "type": "frame",
+                          "id": "xEdq8",
+                          "name": "Content",
+                          "width": "fill_container",
+                          "layout": "vertical",
+                          "gap": 20,
+                          "padding": [
+                            88,
+                            24,
+                            0,
+                            24
+                          ],
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "pXqjg",
+                              "name": "Title",
+                              "fill": "$text-primary",
+                              "content": "Ingresa el código",
+                              "fontFamily": "$font",
+                              "fontSize": 24,
+                              "fontWeight": "700"
+                            },
+                            {
+                              "type": "text",
+                              "id": "J7PGO",
+                              "name": "Body",
+                              "fill": "$text-secondary",
+                              "textGrowth": "fixed-width",
+                              "width": "fill_container",
+                              "content": "Hemos enviado un código de 4 dígitos al número +51 987 654 321",
+                              "lineHeight": 1.45,
+                              "fontFamily": "$font",
+                              "fontSize": 16,
+                              "fontWeight": "normal"
+                            },
+                            {
+                              "type": "frame",
+                              "id": "g8CgT7",
+                              "name": "OtpCodeInput",
+                              "width": "fill_container",
+                              "gap": 12,
+                              "children": [
+                                {
+                                  "id": "D8ryh3",
+                                  "type": "ref",
+                                  "ref": "VCTMf",
+                                  "stroke": "$otp-border-filled",
+                                  "name": "OtpBox 1",
+                                  "width": "fill_container",
+                                  "descendants": {
+                                    "FsMLc": {
+                                      "content": "4"
+                                    }
+                                  }
+                                },
+                                {
+                                  "id": "DmpZd",
+                                  "type": "ref",
+                                  "ref": "VCTMf",
+                                  "stroke": "$otp-border-filled",
+                                  "name": "OtpBox 2",
+                                  "width": "fill_container",
+                                  "descendants": {
+                                    "FsMLc": {
+                                      "content": "8"
+                                    }
+                                  }
+                                },
+                                {
+                                  "id": "e7hMxV",
+                                  "type": "ref",
+                                  "ref": "VCTMf",
+                                  "stroke": "$otp-border",
+                                  "name": "OtpBox 3",
+                                  "width": "fill_container",
+                                  "descendants": {
+                                    "FsMLc": {
+                                      "content": ""
+                                    }
+                                  }
+                                },
+                                {
+                                  "id": "aKXQe",
+                                  "type": "ref",
+                                  "ref": "VCTMf",
+                                  "stroke": "$otp-border",
+                                  "name": "OtpBox 4",
+                                  "width": "fill_container",
+                                  "descendants": {
+                                    "FsMLc": {
+                                      "content": ""
+                                    }
+                                  }
+                                }
+                              ]
+                            },
+                            {
+                              "type": "frame",
+                              "id": "R6KYJu",
+                              "name": "ResendRow",
+                              "width": "fill_container",
+                              "justifyContent": "end",
+                              "children": [
+                                {
+                                  "type": "text",
+                                  "id": "VbfNS",
+                                  "name": "Countdown",
+                                  "fill": "$text-muted",
+                                  "content": "Enviando un nuevo código…",
+                                  "fontFamily": "$font",
+                                  "fontSize": 14,
+                                  "fontWeight": "normal"
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "MVRWl",
+                      "name": "Bottom",
+                      "width": "fill_container",
+                      "layout": "vertical",
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "IGjII",
+                          "name": "ButtonWrap",
+                          "width": "fill_container",
+                          "layout": "vertical",
+                          "padding": [
+                            0,
+                            24,
+                            24,
+                            24
+                          ],
+                          "children": [
+                            {
+                              "id": "iBGKO",
+                              "type": "ref",
+                              "ref": "v3VVY",
+                              "opacity": 0.4,
+                              "effect": {
+                                "type": "shadow",
+                                "shadowType": "outer",
+                                "enabled": false,
+                                "color": "#000000"
+                              },
+                              "name": "PrimaryButton",
+                              "width": "fill_container",
+                              "descendants": {
+                                "HxIcd": {
+                                  "content": "Validar"
+                                }
+                              }
+                            }
+                          ]
+                        },
+                        {
+                          "id": "hnGAX",
+                          "type": "ref",
+                          "ref": "dVjl5",
+                          "name": "GestureBar",
+                          "width": "fill_container"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "uhl6E",
+              "name": "State · Reenvío · Success",
+              "layout": "vertical",
+              "gap": 14,
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "KhaUR",
+                  "name": "Chip",
+                  "fill": "#FFFFFF",
+                  "cornerRadius": 999,
+                  "stroke": "#E2DDF2",
+                  "strokeWidth": 1,
+                  "gap": 8,
+                  "padding": [
+                    6,
+                    12
+                  ],
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "ellipse",
+                      "id": "x7Vu5C",
+                      "name": "Dot",
+                      "fill": "#2E7D32",
+                      "width": 8,
+                      "height": 8
+                    },
+                    {
+                      "type": "text",
+                      "id": "zFsVW",
+                      "name": "Label",
+                      "fill": "$text-primary",
+                      "content": "Reenvío · Success",
+                      "fontFamily": "$font",
+                      "fontSize": 14,
+                      "fontWeight": "600"
+                    }
+                  ]
+                },
+                {
+                  "type": "text",
+                  "id": "us2GP",
+                  "name": "Caption",
+                  "fill": "$text-muted",
+                  "textGrowth": "fixed-width-height",
+                  "width": 360,
+                  "height": 36,
+                  "content": "Nuevo expiresAt: se limpian las casillas y se reinicia la cuenta",
+                  "fontFamily": "$font",
+                  "fontSize": 13,
+                  "fontWeight": "normal"
+                },
+                {
+                  "type": "frame",
+                  "id": "mDzLz",
+                  "name": "Screen · Validar OTP · Reenvío exitoso",
+                  "clip": true,
+                  "width": 360,
+                  "height": 800,
+                  "fill": "$surface",
+                  "cornerRadius": 28,
+                  "stroke": "#E2DDF2",
+                  "strokeWidth": 1,
+                  "layout": "vertical",
+                  "justifyContent": "space_between",
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "a8bcn6",
+                      "name": "Top",
+                      "width": "fill_container",
+                      "layout": "vertical",
+                      "children": [
+                        {
+                          "id": "F0IZ9",
+                          "type": "ref",
+                          "ref": "MHD2U",
+                          "name": "StatusBar",
+                          "width": "fill_container"
+                        },
+                        {
+                          "type": "frame",
+                          "id": "P4I0u",
+                          "name": "Content",
+                          "width": "fill_container",
+                          "layout": "vertical",
+                          "gap": 20,
+                          "padding": [
+                            88,
+                            24,
+                            0,
+                            24
+                          ],
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "cVsSJ",
+                              "name": "Title",
+                              "fill": "$text-primary",
+                              "content": "Ingresa el código",
+                              "fontFamily": "$font",
+                              "fontSize": 24,
+                              "fontWeight": "700"
+                            },
+                            {
+                              "type": "text",
+                              "id": "WvngP",
+                              "name": "Body",
+                              "fill": "$text-secondary",
+                              "textGrowth": "fixed-width",
+                              "width": "fill_container",
+                              "content": "Hemos enviado un código de 4 dígitos al número +51 987 654 321",
+                              "lineHeight": 1.45,
+                              "fontFamily": "$font",
+                              "fontSize": 16,
+                              "fontWeight": "normal"
+                            },
+                            {
+                              "type": "frame",
+                              "id": "tpVS3",
+                              "name": "OtpCodeInput",
+                              "width": "fill_container",
+                              "gap": 12,
+                              "children": [
+                                {
+                                  "id": "M2xuCZ",
+                                  "type": "ref",
+                                  "ref": "VCTMf",
+                                  "stroke": "$otp-border",
+                                  "name": "OtpBox 1",
+                                  "width": "fill_container",
+                                  "descendants": {
+                                    "FsMLc": {
+                                      "content": ""
+                                    }
+                                  }
+                                },
+                                {
+                                  "id": "Wmhbl",
+                                  "type": "ref",
+                                  "ref": "VCTMf",
+                                  "stroke": "$otp-border",
+                                  "name": "OtpBox 2",
+                                  "width": "fill_container",
+                                  "descendants": {
+                                    "FsMLc": {
+                                      "content": ""
+                                    }
+                                  }
+                                },
+                                {
+                                  "id": "jQxmM",
+                                  "type": "ref",
+                                  "ref": "VCTMf",
+                                  "stroke": "$otp-border",
+                                  "name": "OtpBox 3",
+                                  "width": "fill_container",
+                                  "descendants": {
+                                    "FsMLc": {
+                                      "content": ""
+                                    }
+                                  }
+                                },
+                                {
+                                  "id": "ODLJk",
+                                  "type": "ref",
+                                  "ref": "VCTMf",
+                                  "stroke": "$otp-border",
+                                  "name": "OtpBox 4",
+                                  "width": "fill_container",
+                                  "descendants": {
+                                    "FsMLc": {
+                                      "content": ""
+                                    }
+                                  }
+                                }
+                              ]
+                            },
+                            {
+                              "type": "frame",
+                              "id": "p000Dr",
+                              "name": "ResendRow",
+                              "width": "fill_container",
+                              "justifyContent": "end",
+                              "children": [
+                                {
+                                  "type": "text",
+                                  "id": "oegl1",
+                                  "name": "Countdown",
+                                  "fill": "$text-muted",
+                                  "content": "Puedes volver a enviar un código en 02:00",
+                                  "fontFamily": "$font",
+                                  "fontSize": 14,
+                                  "fontWeight": "normal"
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "WbHWZ",
+                      "name": "Bottom",
+                      "width": "fill_container",
+                      "layout": "vertical",
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "zbxtj",
+                          "name": "ButtonWrap",
+                          "width": "fill_container",
+                          "layout": "vertical",
+                          "padding": [
+                            0,
+                            24,
+                            24,
+                            24
+                          ],
+                          "children": [
+                            {
+                              "id": "a7hrjA",
+                              "type": "ref",
+                              "ref": "v3VVY",
+                              "opacity": 0.4,
+                              "effect": {
+                                "type": "shadow",
+                                "shadowType": "outer",
+                                "enabled": false,
+                                "color": "#000000"
+                              },
+                              "name": "PrimaryButton",
+                              "width": "fill_container",
+                              "descendants": {
+                                "HxIcd": {
+                                  "content": "Validar"
+                                }
+                              }
+                            }
+                          ]
+                        },
+                        {
+                          "id": "CT1fC",
+                          "type": "ref",
+                          "ref": "dVjl5",
+                          "name": "GestureBar",
+                          "width": "fill_container"
+                        }
+                      ]
+                    },
+                    {
+                      "id": "r25Ne",
+                      "type": "ref",
+                      "ref": "zdhuP",
+                      "name": "Toast · Success",
+                      "layoutPosition": "absolute",
+                      "x": 16,
+                      "y": 36,
+                      "fill": "$success",
+                      "descendants": {
+                        "ARqGc": {
+                          "icon": "check_circle"
+                        },
+                        "ikr62": {
+                          "content": "Te enviamos un nuevo código"
+                        }
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "frame",
+      "id": "TgVbR",
+      "x": 0,
+      "y": 2635,
+      "name": "Section · Splash, Home y Registro",
+      "fill": "$canvas",
+      "layout": "vertical",
+      "gap": 28,
+      "padding": 48,
+      "children": [
+        {
+          "type": "frame",
+          "id": "u55HYv",
+          "name": "Header",
+          "layout": "vertical",
+          "gap": 8,
+          "children": [
+            {
+              "type": "text",
+              "id": "HUB7n",
+              "name": "Title",
+              "fill": "$text-primary",
+              "content": "3 · Splash y resultado del login",
+              "fontFamily": "$font",
+              "fontSize": 32,
+              "fontWeight": "700"
+            },
+            {
+              "type": "text",
+              "id": "xIRLI",
+              "name": "Subtitle",
+              "fill": "$text-muted",
+              "content": "OtpValidateState.Success(showRegister): ACTIVE → Home · INACTIVE_REGISTER → Registro. «Cerrar sesión» ejecuta SignOutUseCase",
+              "fontFamily": "$font",
+              "fontSize": 16,
+              "fontWeight": "normal"
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "yHQLL",
+          "name": "States",
+          "gap": 40,
+          "children": [
+            {
+              "type": "frame",
+              "id": "iX5v8",
+              "name": "State · Splash · Loading",
+              "layout": "vertical",
+              "gap": 14,
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "OJYIL",
+                  "name": "Chip",
+                  "fill": "#FFFFFF",
+                  "cornerRadius": 999,
+                  "stroke": "#E2DDF2",
+                  "strokeWidth": 1,
+                  "gap": 8,
+                  "padding": [
+                    6,
+                    12
+                  ],
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "ellipse",
+                      "id": "xSS1n",
+                      "name": "Dot",
+                      "fill": "#7843E6",
+                      "width": 8,
+                      "height": 8
+                    },
+                    {
+                      "type": "text",
+                      "id": "B1cd0",
+                      "name": "Label",
+                      "fill": "$text-primary",
+                      "content": "Splash · Loading",
+                      "fontFamily": "$font",
+                      "fontSize": 14,
+                      "fontWeight": "600"
+                    }
+                  ]
+                },
+                {
+                  "type": "text",
+                  "id": "hWQAh",
+                  "name": "Caption",
+                  "fill": "$text-muted",
+                  "textGrowth": "fixed-width-height",
+                  "width": 360,
+                  "height": 36,
+                  "content": "Loader 1.5 s y navega a «Generar OTP» limpiando el back stack",
+                  "fontFamily": "$font",
+                  "fontSize": 13,
+                  "fontWeight": "normal"
+                },
+                {
+                  "type": "frame",
+                  "id": "Fg6Q8",
+                  "name": "Screen · Splash",
+                  "clip": true,
+                  "width": 360,
+                  "height": 800,
+                  "fill": "$primary",
+                  "cornerRadius": 28,
+                  "stroke": "#E2DDF2",
+                  "strokeWidth": 1,
+                  "layout": "vertical",
+                  "justifyContent": "space_between",
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "id": "pRBvt",
+                      "type": "ref",
+                      "ref": "MHD2U",
+                      "name": "StatusBar",
+                      "width": "fill_container",
+                      "descendants": {
+                        "q0ChZ": {
+                          "fill": "#FFFFFF"
+                        },
+                        "XcSjS": {
+                          "fill": "#FFFFFF"
+                        },
+                        "O8iRx": {
+                          "fill": "#FFFFFF"
+                        },
+                        "dupQT": {
+                          "fill": "#FFFFFF"
+                        }
+                      }
+                    },
+                    {
+                      "type": "frame",
+                      "id": "t3NBAF",
+                      "name": "Center",
+                      "layout": "vertical",
+                      "gap": 24,
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "EnLtA",
+                          "name": "Logo",
+                          "width": 160,
+                          "height": 160,
+                          "fill": {
+                            "type": "image",
+                            "enabled": true,
+                            "url": "design-assets/feature_splash_logo.png",
+                            "mode": "fit"
+                          }
+                        },
+                        {
+                          "type": "ellipse",
+                          "id": "M32B9r",
+                          "name": "Spinner",
+                          "innerRadius": 0.88,
+                          "startAngle": 90,
+                          "sweepAngle": -270,
+                          "fill": "$secondary",
+                          "width": 40,
+                          "height": 40
+                        }
+                      ]
+                    },
+                    {
+                      "id": "HCUqM",
+                      "type": "ref",
+                      "ref": "dVjl5",
+                      "name": "GestureBar",
+                      "width": "fill_container",
+                      "descendants": {
+                        "rnRar": {
+                          "fill": "#FFFFFF"
+                        }
+                      }
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "BWyZc",
+              "name": "State · Home · Success",
+              "layout": "vertical",
+              "gap": 14,
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "eWi0z",
+                  "name": "Chip",
+                  "fill": "#FFFFFF",
+                  "cornerRadius": 999,
+                  "stroke": "#E2DDF2",
+                  "strokeWidth": 1,
+                  "gap": 8,
+                  "padding": [
+                    6,
+                    12
+                  ],
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "ellipse",
+                      "id": "i4mcU",
+                      "name": "Dot",
+                      "fill": "#2E7D32",
+                      "width": 8,
+                      "height": 8
+                    },
+                    {
+                      "type": "text",
+                      "id": "KnEiI",
+                      "name": "Label",
+                      "fill": "$text-primary",
+                      "content": "Home · Success",
+                      "fontFamily": "$font",
+                      "fontSize": 14,
+                      "fontWeight": "600"
+                    }
+                  ]
+                },
+                {
+                  "type": "text",
+                  "id": "FjWks",
+                  "name": "Caption",
+                  "fill": "$text-muted",
+                  "textGrowth": "fixed-width-height",
+                  "width": 360,
+                  "height": 36,
+                  "content": "Pasajero ACTIVE: toast verde 3 s «Sesión iniciada correctamente»",
+                  "fontFamily": "$font",
+                  "fontSize": 13,
+                  "fontWeight": "normal"
+                },
+                {
+                  "type": "frame",
+                  "id": "Rbaps",
+                  "name": "Screen · Home",
+                  "clip": true,
+                  "width": 360,
+                  "height": 800,
+                  "fill": "$surface",
+                  "cornerRadius": 28,
+                  "stroke": "#E2DDF2",
+                  "strokeWidth": 1,
+                  "layout": "vertical",
+                  "justifyContent": "space_between",
+                  "children": [
+                    {
+                      "id": "yJESB",
+                      "type": "ref",
+                      "ref": "MHD2U",
+                      "name": "StatusBar",
+                      "width": "fill_container"
+                    },
+                    {
+                      "type": "frame",
+                      "id": "RSW0M",
+                      "name": "Center",
+                      "width": "fill_container",
+                      "layout": "vertical",
+                      "gap": 8,
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "vTxkc",
+                          "name": "Title",
+                          "fill": "$text-primary",
+                          "content": "Home",
+                          "fontFamily": "$font",
+                          "fontSize": 28,
+                          "fontWeight": "700"
+                        },
+                        {
+                          "type": "text",
+                          "id": "fNwYS",
+                          "name": "Subtitle",
+                          "fill": "$text-muted",
+                          "content": "Tu sesión está activa",
+                          "fontFamily": "$font",
+                          "fontSize": 16,
+                          "fontWeight": "normal"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "B7vDxW",
+                      "name": "Bottom",
+                      "width": "fill_container",
+                      "layout": "vertical",
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "CpFUK",
+                          "name": "ButtonWrap",
+                          "width": "fill_container",
+                          "layout": "vertical",
+                          "padding": [
+                            0,
+                            24,
+                            24,
+                            24
+                          ],
+                          "children": [
+                            {
+                              "id": "o4LHl",
+                              "type": "ref",
+                              "ref": "v3VVY",
+                              "name": "PrimaryButton",
+                              "width": "fill_container",
+                              "descendants": {
+                                "HxIcd": {
+                                  "content": "Cerrar sesión"
+                                }
+                              }
+                            }
+                          ]
+                        },
+                        {
+                          "id": "lJj1d",
+                          "type": "ref",
+                          "ref": "dVjl5",
+                          "name": "GestureBar",
+                          "width": "fill_container"
+                        }
+                      ]
+                    },
+                    {
+                      "id": "V5KAn9",
+                      "type": "ref",
+                      "ref": "zdhuP",
+                      "name": "Toast · Success",
+                      "layoutPosition": "absolute",
+                      "x": 16,
+                      "y": 36,
+                      "descendants": {
+                        "ikr62": {
+                          "content": "Sesión iniciada correctamente"
+                        }
+                      }
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "sIU2G",
+              "name": "State · Registro · Success",
+              "layout": "vertical",
+              "gap": 14,
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "cuqGM",
+                  "name": "Chip",
+                  "fill": "#FFFFFF",
+                  "cornerRadius": 999,
+                  "stroke": "#E2DDF2",
+                  "strokeWidth": 1,
+                  "gap": 8,
+                  "padding": [
+                    6,
+                    12
+                  ],
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "ellipse",
+                      "id": "ciqgJ",
+                      "name": "Dot",
+                      "fill": "#2E7D32",
+                      "width": 8,
+                      "height": 8
+                    },
+                    {
+                      "type": "text",
+                      "id": "yNmAL",
+                      "name": "Label",
+                      "fill": "$text-primary",
+                      "content": "Registro · Success",
+                      "fontFamily": "$font",
+                      "fontSize": 14,
+                      "fontWeight": "600"
+                    }
+                  ]
+                },
+                {
+                  "type": "text",
+                  "id": "R6HY4k",
+                  "name": "Caption",
+                  "fill": "$text-muted",
+                  "textGrowth": "fixed-width-height",
+                  "width": 360,
+                  "height": 36,
+                  "content": "Pasajero INACTIVE_REGISTER: inicia el grafo de registro (placeholder)",
+                  "fontFamily": "$font",
+                  "fontSize": 13,
+                  "fontWeight": "normal"
+                },
+                {
+                  "type": "frame",
+                  "id": "A7JIla",
+                  "name": "Screen · Sign Up · Paso 1",
+                  "clip": true,
+                  "width": 360,
+                  "height": 800,
+                  "fill": "$surface",
+                  "cornerRadius": 28,
+                  "stroke": "#E2DDF2",
+                  "strokeWidth": 1,
+                  "layout": "vertical",
+                  "justifyContent": "space_between",
+                  "children": [
+                    {
+                      "id": "vklcd",
+                      "type": "ref",
+                      "ref": "MHD2U",
+                      "name": "StatusBar",
+                      "width": "fill_container"
+                    },
+                    {
+                      "type": "frame",
+                      "id": "aizrB",
+                      "name": "Center",
+                      "width": "fill_container",
+                      "layout": "vertical",
+                      "gap": 8,
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "xPFrP",
+                          "name": "Title",
+                          "fill": "$text-primary",
+                          "content": "sign up – step 1",
+                          "fontFamily": "$font",
+                          "fontSize": 28,
+                          "fontWeight": "700"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "j6UQN",
+                      "name": "Bottom",
+                      "width": "fill_container",
+                      "layout": "vertical",
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "nTnNz",
+                          "name": "ButtonWrap",
+                          "width": "fill_container",
+                          "layout": "vertical",
+                          "padding": [
+                            0,
+                            24,
+                            24,
+                            24
+                          ],
+                          "children": [
+                            {
+                              "id": "IZd54",
+                              "type": "ref",
+                              "ref": "v3VVY",
+                              "name": "PrimaryButton",
+                              "width": "fill_container",
+                              "descendants": {
+                                "HxIcd": {
+                                  "content": "Continuar"
+                                }
+                              }
+                            }
+                          ]
+                        },
+                        {
+                          "id": "cvPmu",
+                          "type": "ref",
+                          "ref": "dVjl5",
+                          "name": "GestureBar",
+                          "width": "fill_container"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "frame",
+      "id": "zQwrR",
+      "x": 2072,
+      "y": 0,
+      "name": "Section · Launcher Icon",
+      "fill": "$canvas",
+      "layout": "vertical",
+      "gap": 28,
+      "padding": 48,
+      "children": [
+        {
+          "type": "text",
+          "id": "CPGcj",
+          "name": "Title",
+          "fill": "$text-primary",
+          "content": "Launcher icon",
+          "fontFamily": "$font",
+          "fontSize": 32,
+          "fontWeight": "700"
+        },
+        {
+          "type": "frame",
+          "id": "g5GZF",
+          "name": "Components",
+          "gap": 48,
+          "children": [
+            {
+              "type": "frame",
+              "id": "cIq2z",
+              "name": "Item · Launcher / Background",
+              "width": 160,
+              "layout": "vertical",
+              "gap": 10,
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "WurOP",
+                  "name": "Stage",
+                  "clip": true,
+                  "width": 160,
+                  "height": 160,
+                  "cornerRadius": 12,
+                  "justifyContent": "center",
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "G1aYGh",
+                      "name": "Launcher / Background",
+                      "reusable": true,
+                      "width": 108,
+                      "height": 108,
+                      "fill": "#FFFFFF",
+                      "layout": "none"
+                    }
+                  ]
+                },
+                {
+                  "type": "text",
+                  "id": "MlWUv",
+                  "name": "Name",
+                  "fill": "$text-primary",
+                  "textGrowth": "fixed-width",
+                  "width": "fill_container",
+                  "content": "Launcher / Background",
+                  "lineHeight": 1.3,
+                  "fontFamily": "$font",
+                  "fontSize": 14,
+                  "fontWeight": "600"
+                },
+                {
+                  "type": "text",
+                  "id": "ACPEn",
+                  "name": "Desc",
+                  "fill": "$text-muted",
+                  "textGrowth": "fixed-width",
+                  "width": "fill_container",
+                  "content": "Exportar · 108 dp",
+                  "lineHeight": 1.35,
+                  "fontFamily": "$font",
+                  "fontSize": 12,
+                  "fontWeight": "normal"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "U08YW",
+              "name": "Item · Launcher / Foreground",
+              "width": 160,
+              "layout": "vertical",
+              "gap": 10,
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "d3TxYz",
+                  "name": "Stage",
+                  "clip": true,
+                  "width": 160,
+                  "height": 160,
+                  "cornerRadius": 12,
+                  "justifyContent": "center",
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "HwcEu",
+                      "name": "Launcher / Foreground",
+                      "reusable": true,
+                      "clip": true,
+                      "width": 108,
+                      "height": 108,
+                      "layout": "none",
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "rn3Wa",
+                          "x": 27.131,
+                          "y": 61.029,
+                          "name": "Clip 1",
+                          "clip": true,
+                          "width": 53.652,
+                          "height": 3.369,
+                          "layout": "none",
+                          "children": [
+                            {
+                              "type": "path",
+                              "id": "yuOPo",
+                              "x": -5.207,
+                              "y": -38.808,
+                              "name": "Path 1 #8c52ff",
+                              "geometry": "M8.05 49.15c-0.87 0-1.57 0.7-1.57 1.57l0 2.94 68.04 0 0-2.94c0-0.87-0.71-1.57-1.57-1.57l-64.9 0",
+                              "viewBox": [
+                                0,
+                                0,
+                                81,
+                                81
+                              ],
+                              "fill": "#8c52ff",
+                              "width": 64.152,
+                              "height": 64.152
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "aBFgs",
+                          "x": 26.676,
+                          "y": 43.605,
+                          "name": "Clip 2",
+                          "clip": true,
+                          "width": 54.648,
+                          "height": 21.384,
+                          "layout": "none",
+                          "children": [
+                            {
+                              "type": "path",
+                              "id": "LZICs",
+                              "x": -4.752,
+                              "y": -21.384,
+                              "name": "Path 2 #8c52ff",
+                              "geometry": "M36.34 38.18l0.4 0-0.21-0.81z",
+                              "viewBox": [
+                                0,
+                                0,
+                                81,
+                                81
+                              ],
+                              "fill": "#8c52ff",
+                              "width": 64.152,
+                              "height": 64.152
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "p5Ug6",
+                          "x": 29.844,
+                          "y": 43.855,
+                          "name": "Clip 3",
+                          "clip": true,
+                          "width": 48.312,
+                          "height": 16.382,
+                          "layout": "none",
+                          "children": [
+                            {
+                              "type": "path",
+                              "id": "RBiHo",
+                              "x": -7.92,
+                              "y": -21.634,
+                              "name": "Path 3 #8c52ff",
+                              "geometry": "M60.25 43.9c0 0.38-0.3 0.69-0.69 0.69l-3.15 0c-0.38 0-0.69-0.31-0.69-0.69l0-11.73c0-0.38 0.31-0.69 0.69-0.69l3.15 0c0.39 0 0.69 0.31 0.69 0.69z m-5.64 0.35c-0.13 0.21-0.35 0.34-0.6 0.34l-3.63 0c-0.28 0-0.53-0.16-0.64-0.41l-0.85-1.91c-0.09-0.18-0.17-0.36-0.24-0.52-0.06 0.15-0.12 0.3-0.18 0.47l-0.79 1.94c-0.11 0.26-0.36 0.43-0.65 0.43l-3.56 0c-0.25 0-0.48-0.13-0.6-0.34-0.02-0.02-0.02-0.04-0.03-0.06-0.02 0.04-0.04 0.08-0.07 0.12-0.13 0.18-0.34 0.28-0.55 0.28l-3.4 0c-0.31 0-0.59-0.21-0.67-0.51l-0.61-2.2-1.95 0-0.53 2.18c-0.08 0.32-0.36 0.53-0.68 0.53l-3.25 0c-0.22 0-0.42-0.1-0.56-0.27-0.12-0.18-0.17-0.41-0.11-0.62l3.42-11.72c0.08-0.3 0.35-0.5 0.66-0.5l4.18 0c0.3 0 0.57 0.2 0.66 0.49l3.47 11.62 0.01-0.03 3.12-5.6-3-5.46c-0.12-0.21-0.11-0.47 0.01-0.68 0.13-0.21 0.35-0.34 0.6-0.34l3.6 0c0.28 0 0.53 0.16 0.64 0.41l0.8 1.87c0.04 0.1 0.09 0.21 0.13 0.3 0.03-0.08 0.06-0.17 0.09-0.26l0.72-1.88c0.1-0.27 0.36-0.44 0.65-0.44l3.58 0c0.25 0 0.47 0.13 0.6 0.34 0.12 0.21 0.13 0.47 0.01 0.69l-3 5.38 3.2 5.66c0.13 0.22 0.12 0.48 0 0.7z m-26.34-0.35c0 0.38-0.31 0.69-0.69 0.69l-3.15 0c-0.38 0-0.69-0.31-0.69-0.69l0-8.39-2.3 0c-0.39 0-0.7-0.31-0.7-0.69l0-2.65c0-0.38 0.31-0.69 0.7-0.69l9.19 0c0.38 0 0.69 0.31 0.69 0.69l0 2.65c0 0.38-0.31 0.69-0.69 0.69l-2.36 0z m33.27-16.56l-42.08 0c-2.03 0-3.86 1.27-4.57 3.16l-4.23 17.27 59.68 0-4.23-17.27c-0.72-1.89-2.54-3.16-4.57-3.16",
+                              "viewBox": [
+                                0,
+                                0,
+                                81,
+                                81
+                              ],
+                              "fill": "#8c52ff",
+                              "width": 64.152,
+                              "height": 64.152
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "RBBso",
+                          "x": 34.484,
+                          "y": 45.579,
+                          "name": "Clip 4",
+                          "clip": true,
+                          "width": 37.451,
+                          "height": 12.957,
+                          "layout": "none",
+                          "children": [
+                            {
+                              "type": "path",
+                              "id": "Z7royR",
+                              "x": -12.56,
+                              "y": -23.358,
+                              "name": "Path 4 #8c52ff",
+                              "geometry": "M15.86 29.49l47.29 0 0 16.36-47.29 0z",
+                              "viewBox": [
+                                0,
+                                0,
+                                81,
+                                81
+                              ],
+                              "fill": "#8c52ff",
+                              "width": 64.152,
+                              "height": 64.152
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "oqpgX",
+                          "x": 36.972,
+                          "y": 45.189,
+                          "name": "Clip 5",
+                          "clip": true,
+                          "width": 34.848,
+                          "height": 12.672,
+                          "layout": "none",
+                          "children": [
+                            {
+                              "type": "path",
+                              "id": "uQ0J1",
+                              "x": -15.048,
+                              "y": -22.968,
+                              "name": "Path 5 #ff00ff",
+                              "geometry": "M26.05 42.95l-2.42 0c-0.2 0-0.34-0.04-0.42-0.13-0.09-0.08-0.13-0.22-0.13-0.42l0-7.38-2.2 0c-0.2 0-0.34-0.03-0.42-0.12-0.09-0.08-0.13-0.22-0.13-0.42l0-1.81c0-0.19 0.04-0.32 0.13-0.41 0.08-0.09 0.22-0.14 0.42-0.14l7.94 0c0.19 0 0.32 0.05 0.41 0.14 0.08 0.09 0.12 0.22 0.12 0.41l0 1.81c0 0.2-0.04 0.34-0.12 0.42-0.09 0.09-0.22 0.12-0.41 0.12l-2.22 0 0 7.38c0 0.2-0.04 0.34-0.12 0.42-0.09 0.09-0.23 0.13-0.43 0.13z",
+                              "viewBox": [
+                                0,
+                                0,
+                                81,
+                                81
+                              ],
+                              "fill": "#ff00ff",
+                              "width": 64.152,
+                              "height": 64.152
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "lWEo2",
+                          "x": 36.972,
+                          "y": 45.189,
+                          "name": "Clip 6",
+                          "clip": true,
+                          "width": 34.848,
+                          "height": 12.672,
+                          "layout": "none",
+                          "children": [
+                            {
+                              "type": "path",
+                              "id": "mSK7A",
+                              "x": -15.048,
+                              "y": -22.968,
+                              "name": "Path 6 #ff00ff",
+                              "geometry": "M34.12 35.27l-0.7 2.3 2.36 0-0.71-2.3c-0.04-0.08-0.08-0.14-0.12-0.18-0.04-0.04-0.1-0.07-0.16-0.07l-0.37 0c-0.07 0-0.12 0.03-0.18 0.07-0.04 0.04-0.08 0.1-0.12 0.18z m-0.84 7.13c0 0.2-0.05 0.34-0.15 0.42-0.08 0.09-0.21 0.13-0.4 0.13l-2.2 0c-0.2 0-0.34-0.04-0.43-0.13-0.08-0.08-0.12-0.22-0.12-0.42l0-3.97c0-0.29 0.05-0.63 0.14-1.01 0.09-0.4 0.24-0.86 0.44-1.4l1.31-3.4c0.06-0.17 0.16-0.29 0.28-0.38 0.13-0.08 0.29-0.12 0.48-0.12l4.05 0c0.19 0 0.35 0.04 0.47 0.12 0.13 0.09 0.22 0.21 0.28 0.38l1.31 3.4c0.2 0.54 0.35 1 0.44 1.4 0.1 0.38 0.14 0.72 0.14 1.01l0 3.97c0 0.2-0.04 0.34-0.12 0.42-0.09 0.09-0.22 0.13-0.41 0.13l-2.28 0c-0.2 0-0.34-0.04-0.44-0.13-0.09-0.08-0.14-0.22-0.14-0.42l0-2.09-2.65 0z",
+                              "viewBox": [
+                                0,
+                                0,
+                                81,
+                                81
+                              ],
+                              "fill": "#ff00ff",
+                              "width": 64.152,
+                              "height": 64.152
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "Fi70O",
+                          "x": 36.972,
+                          "y": 45.189,
+                          "name": "Clip 7",
+                          "clip": true,
+                          "width": 34.848,
+                          "height": 12.672,
+                          "layout": "none",
+                          "children": [
+                            {
+                              "type": "path",
+                              "id": "nT3WF",
+                              "x": -15.048,
+                              "y": -22.968,
+                              "name": "Path 7 #ff00ff",
+                              "geometry": "M44.4 42.4c0 0.2-0.04 0.34-0.13 0.42-0.08 0.09-0.22 0.13-0.4 0.13l-2.3 0c-0.19 0-0.32-0.04-0.41-0.13-0.08-0.08-0.12-0.22-0.12-0.42l0-1.61c0-0.46 0.04-0.8 0.11-1.03 0.08-0.23 0.23-0.5 0.45-0.81l1.22-1.64-1.22-1.64c-0.23-0.3-0.38-0.57-0.45-0.8-0.07-0.24-0.11-0.59-0.11-1.05l0-1.15c0-0.19 0.04-0.32 0.12-0.41 0.09-0.09 0.22-0.14 0.41-0.14l2.33 0c0.19 0 0.32 0.05 0.4 0.14 0.09 0.09 0.13 0.22 0.13 0.41l0 1.03c0 0.1 0 0.21 0.02 0.32 0 0.11 0.05 0.22 0.12 0.32l0.66 0.93c0.05 0.09 0.1 0.16 0.15 0.21 0.07 0.04 0.13 0.06 0.21 0.06l0.18 0c0.07 0 0.14-0.02 0.19-0.06 0.05-0.05 0.11-0.12 0.17-0.21l0.67-0.93c0.08-0.1 0.12-0.21 0.13-0.32 0.01-0.11 0.02-0.22 0.02-0.32l0-1.03c0-0.19 0.03-0.32 0.12-0.41 0.08-0.09 0.22-0.14 0.41-0.14l2.29 0c0.19 0 0.32 0.05 0.41 0.14 0.08 0.09 0.12 0.22 0.12 0.41l0 1.15c0 0.46-0.04 0.81-0.12 1.05-0.07 0.23-0.22 0.5-0.44 0.8l-1.22 1.65 1.22 1.63c0.23 0.31 0.38 0.58 0.46 0.81 0.07 0.23 0.1 0.57 0.1 1.03l0 1.61c0 0.2-0.04 0.34-0.12 0.42-0.09 0.09-0.22 0.13-0.41 0.13l-2.29 0c-0.19 0-0.33-0.04-0.41-0.13-0.09-0.08-0.12-0.22-0.12-0.42l0-1.48c0-0.1-0.01-0.2-0.02-0.32-0.01-0.11-0.05-0.22-0.13-0.31l-0.65-0.95c-0.06-0.1-0.12-0.16-0.17-0.19-0.06-0.04-0.12-0.06-0.19-0.06l-0.22 0c-0.07 0-0.14 0.02-0.19 0.06-0.05 0.03-0.11 0.09-0.17 0.19l-0.67 0.95c-0.07 0.09-0.12 0.2-0.13 0.31-0.01 0.12-0.01 0.22-0.01 0.32z",
+                              "viewBox": [
+                                0,
+                                0,
+                                81,
+                                81
+                              ],
+                              "fill": "#ff00ff",
+                              "width": 64.152,
+                              "height": 64.152
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "UXb7J",
+                          "x": 36.972,
+                          "y": 45.189,
+                          "name": "Clip 8",
+                          "clip": true,
+                          "width": 34.848,
+                          "height": 12.672,
+                          "layout": "none",
+                          "children": [
+                            {
+                              "type": "path",
+                              "id": "KjFq7",
+                              "x": -15.048,
+                              "y": -22.968,
+                              "name": "Path 8 #ff00ff",
+                              "geometry": "M52.55 42.95c-0.2 0-0.34-0.04-0.42-0.13-0.09-0.08-0.13-0.22-0.13-0.42l0-1.78c0-0.19 0.04-0.32 0.13-0.41 0.08-0.09 0.22-0.14 0.42-0.14l1.48 0 0-5.05-1.48 0c-0.2 0-0.34-0.03-0.42-0.12-0.09-0.08-0.13-0.22-0.13-0.42l0-1.81c0-0.19 0.04-0.32 0.13-0.41 0.08-0.09 0.22-0.14 0.42-0.14l6.39 0c0.19 0 0.34 0.05 0.42 0.14 0.08 0.09 0.13 0.22 0.13 0.41l0 1.81c0 0.2-0.05 0.34-0.13 0.42-0.08 0.09-0.23 0.12-0.42 0.12l-1.45 0 0 5.05 1.45 0c0.19 0 0.34 0.05 0.42 0.14 0.08 0.09 0.13 0.22 0.13 0.41l0 1.78c0 0.2-0.05 0.34-0.13 0.42-0.08 0.09-0.23 0.13-0.42 0.13z",
+                              "viewBox": [
+                                0,
+                                0,
+                                81,
+                                81
+                              ],
+                              "fill": "#ff00ff",
+                              "width": 64.152,
+                              "height": 64.152
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "DNc6B",
+                          "x": 36.972,
+                          "y": 45.189,
+                          "name": "Clip 9",
+                          "clip": true,
+                          "width": 34.848,
+                          "height": 12.672,
+                          "layout": "none",
+                          "children": [
+                            {
+                              "type": "path",
+                              "id": "BCpX3",
+                              "x": -15.048,
+                              "y": -22.968,
+                              "name": "Path 9 #00ffff",
+                              "geometry": "M26.84 42.22l-2.43 0c-0.2 0-0.34-0.04-0.42-0.13-0.08-0.08-0.12-0.22-0.12-0.42l0-7.37-2.21 0c-0.2 0-0.34-0.04-0.42-0.13-0.08-0.08-0.12-0.22-0.12-0.42l0-1.82c0-0.18 0.04-0.32 0.12-0.4 0.08-0.1 0.22-0.14 0.42-0.14l7.94 0c0.19 0 0.32 0.04 0.41 0.14 0.08 0.08 0.12 0.22 0.12 0.4l0 1.82c0 0.2-0.04 0.34-0.12 0.42-0.09 0.09-0.22 0.13-0.41 0.13l-2.22 0 0 7.37c0 0.2-0.04 0.34-0.12 0.42-0.09 0.09-0.23 0.13-0.42 0.13z",
+                              "viewBox": [
+                                0,
+                                0,
+                                81,
+                                81
+                              ],
+                              "fill": "#00ffff",
+                              "width": 64.152,
+                              "height": 64.152
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "mPFpi",
+                          "x": 36.972,
+                          "y": 45.189,
+                          "name": "Clip 10",
+                          "clip": true,
+                          "width": 34.848,
+                          "height": 12.672,
+                          "layout": "none",
+                          "children": [
+                            {
+                              "type": "path",
+                              "id": "bi5xG",
+                              "x": -15.048,
+                              "y": -22.968,
+                              "name": "Path 10 #00ffff",
+                              "geometry": "M34.9 34.55l-0.7 2.29 2.36 0-0.7-2.29c-0.05-0.09-0.09-0.15-0.13-0.19-0.04-0.04-0.09-0.06-0.15-0.06l-0.38 0c-0.06 0-0.12 0.02-0.17 0.06-0.05 0.04-0.09 0.1-0.13 0.19z m-0.84 7.12c0 0.2-0.05 0.34-0.14 0.42-0.09 0.09-0.22 0.13-0.41 0.13l-2.2 0c-0.2 0-0.34-0.04-0.42-0.13-0.09-0.08-0.13-0.22-0.13-0.42l0-3.97c0-0.29 0.05-0.63 0.14-1.01 0.1-0.4 0.24-0.86 0.44-1.39l1.31-3.41c0.07-0.17 0.16-0.29 0.28-0.38 0.13-0.08 0.29-0.12 0.49-0.12l4.05 0c0.18 0 0.34 0.04 0.46 0.12 0.13 0.09 0.22 0.21 0.29 0.38l1.31 3.41c0.19 0.53 0.34 0.99 0.44 1.39 0.09 0.38 0.14 0.72 0.14 1.01l0 3.97c0 0.2-0.05 0.34-0.13 0.42-0.08 0.09-0.22 0.13-0.4 0.13l-2.29 0c-0.2 0-0.34-0.04-0.43-0.13-0.1-0.08-0.14-0.22-0.14-0.42l0-2.09-2.66 0z",
+                              "viewBox": [
+                                0,
+                                0,
+                                81,
+                                81
+                              ],
+                              "fill": "#00ffff",
+                              "width": 64.152,
+                              "height": 64.152
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "A2891h",
+                          "x": 36.972,
+                          "y": 45.189,
+                          "name": "Clip 11",
+                          "clip": true,
+                          "width": 34.848,
+                          "height": 12.672,
+                          "layout": "none",
+                          "children": [
+                            {
+                              "type": "path",
+                              "id": "QVAOO",
+                              "x": -15.048,
+                              "y": -22.968,
+                              "name": "Path 11 #00ffff",
+                              "geometry": "M45.18 41.67c0 0.2-0.04 0.34-0.12 0.42-0.09 0.09-0.22 0.13-0.41 0.13l-2.3 0c-0.18 0-0.32-0.04-0.4-0.13-0.09-0.08-0.13-0.22-0.13-0.42l0-1.61c0-0.46 0.04-0.8 0.11-1.03 0.09-0.23 0.24-0.5 0.46-0.81l1.21-1.64-1.21-1.64c-0.23-0.31-0.39-0.57-0.46-0.8-0.07-0.24-0.11-0.59-0.11-1.05l0-1.16c0-0.18 0.04-0.32 0.13-0.4 0.08-0.1 0.22-0.14 0.4-0.14l2.33 0c0.19 0 0.32 0.04 0.41 0.14 0.08 0.08 0.12 0.22 0.12 0.4l0 1.04c0 0.1 0.01 0.21 0.02 0.33 0.01 0.1 0.05 0.21 0.12 0.31l0.66 0.94c0.05 0.08 0.1 0.15 0.16 0.2 0.06 0.04 0.13 0.06 0.2 0.06l0.19 0c0.07 0 0.13-0.02 0.18-0.06 0.06-0.05 0.11-0.12 0.18-0.2l0.67-0.94c0.07-0.1 0.11-0.21 0.12-0.31 0.01-0.12 0.02-0.23 0.02-0.33l0-1.04c0-0.18 0.04-0.32 0.12-0.4 0.09-0.1 0.22-0.14 0.41-0.14l2.3 0c0.18 0 0.32 0.04 0.4 0.14 0.09 0.08 0.13 0.22 0.13 0.4l0 1.16c0 0.46-0.04 0.81-0.13 1.05-0.07 0.23-0.22 0.49-0.43 0.8l-1.22 1.65 1.22 1.63c0.22 0.31 0.38 0.58 0.45 0.81 0.07 0.23 0.11 0.57 0.11 1.03l0 1.61c0 0.2-0.04 0.34-0.13 0.42-0.08 0.09-0.22 0.13-0.4 0.13l-2.3 0c-0.19 0-0.32-0.04-0.41-0.13-0.08-0.08-0.12-0.22-0.12-0.42l0-1.48c0-0.1-0.01-0.2-0.02-0.32-0.01-0.11-0.05-0.22-0.12-0.31l-0.66-0.95c-0.06-0.1-0.12-0.16-0.17-0.19-0.05-0.04-0.12-0.06-0.19-0.06l-0.22 0c-0.07 0-0.13 0.02-0.18 0.06-0.06 0.03-0.11 0.09-0.18 0.19l-0.67 0.95c-0.07 0.09-0.11 0.2-0.12 0.31-0.01 0.12-0.02 0.22-0.02 0.32z",
+                              "viewBox": [
+                                0,
+                                0,
+                                81,
+                                81
+                              ],
+                              "fill": "#00ffff",
+                              "width": 64.152,
+                              "height": 64.152
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "N71TBo",
+                          "x": 36.972,
+                          "y": 45.189,
+                          "name": "Clip 12",
+                          "clip": true,
+                          "width": 34.848,
+                          "height": 12.672,
+                          "layout": "none",
+                          "children": [
+                            {
+                              "type": "path",
+                              "id": "HVHV9",
+                              "x": -15.048,
+                              "y": -22.968,
+                              "name": "Path 12 #00ffff",
+                              "geometry": "M53.33 42.22c-0.2 0-0.34-0.04-0.42-0.13-0.08-0.08-0.12-0.22-0.12-0.42l0-1.78c0-0.19 0.04-0.32 0.12-0.41 0.08-0.09 0.22-0.14 0.42-0.14l1.49 0 0-5.04-1.49 0c-0.2 0-0.34-0.04-0.42-0.13-0.08-0.08-0.12-0.22-0.12-0.42l0-1.82c0-0.18 0.04-0.32 0.12-0.4 0.08-0.1 0.22-0.14 0.42-0.14l6.39 0c0.2 0 0.34 0.04 0.43 0.14 0.08 0.08 0.12 0.22 0.12 0.4l0 1.82c0 0.2-0.04 0.34-0.12 0.42-0.09 0.09-0.23 0.13-0.43 0.13l-1.45 0 0 5.04 1.45 0c0.2 0 0.34 0.05 0.43 0.14 0.08 0.09 0.12 0.22 0.12 0.41l0 1.78c0 0.2-0.04 0.34-0.12 0.42-0.09 0.09-0.23 0.13-0.43 0.13z",
+                              "viewBox": [
+                                0,
+                                0,
+                                81,
+                                81
+                              ],
+                              "fill": "#00ffff",
+                              "width": 64.152,
+                              "height": 64.152
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "xFEDl",
+                          "x": 36.972,
+                          "y": 45.189,
+                          "name": "Clip 13",
+                          "clip": true,
+                          "width": 34.848,
+                          "height": 12.672,
+                          "layout": "none",
+                          "children": [
+                            {
+                              "type": "path",
+                              "id": "EmhE3",
+                              "x": -15.048,
+                              "y": -22.968,
+                              "name": "Path 13 #ffffff",
+                              "geometry": "M26.45 42.58l-2.43 0c-0.2 0-0.34-0.04-0.42-0.12-0.08-0.08-0.12-0.23-0.12-0.43l0-7.37-2.21 0c-0.2 0-0.34-0.04-0.42-0.13-0.08-0.08-0.12-0.22-0.12-0.42l0-1.81c0-0.19 0.04-0.32 0.12-0.41 0.08-0.09 0.22-0.14 0.42-0.14l7.94 0c0.19 0 0.32 0.05 0.41 0.14 0.08 0.09 0.12 0.22 0.12 0.41l0 1.81c0 0.2-0.04 0.34-0.12 0.42-0.09 0.09-0.22 0.13-0.41 0.13l-2.22 0 0 7.37c0 0.2-0.04 0.35-0.12 0.43-0.09 0.08-0.23 0.12-0.42 0.12z",
+                              "viewBox": [
+                                0,
+                                0,
+                                81,
+                                81
+                              ],
+                              "fill": "#ffffff",
+                              "width": 64.152,
+                              "height": 64.152
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "pn41a",
+                          "x": 36.972,
+                          "y": 45.189,
+                          "name": "Clip 14",
+                          "clip": true,
+                          "width": 34.848,
+                          "height": 12.672,
+                          "layout": "none",
+                          "children": [
+                            {
+                              "type": "path",
+                              "id": "Que1c",
+                              "x": -15.048,
+                              "y": -22.968,
+                              "name": "Path 14 #ffffff",
+                              "geometry": "M34.51 34.91l-0.7 2.3 2.36 0-0.71-2.3c-0.04-0.08-0.08-0.14-0.12-0.19-0.04-0.04-0.09-0.06-0.16-0.06l-0.37 0c-0.06 0-0.12 0.02-0.17 0.06-0.05 0.05-0.09 0.11-0.13 0.19z m-0.84 7.12c0 0.2-0.05 0.35-0.14 0.43-0.09 0.08-0.22 0.12-0.41 0.12l-2.2 0c-0.2 0-0.34-0.04-0.42-0.12-0.09-0.08-0.13-0.23-0.13-0.43l0-3.96c0-0.29 0.05-0.63 0.14-1.02 0.1-0.39 0.24-0.86 0.44-1.39l1.31-3.41c0.06-0.16 0.16-0.29 0.28-0.37 0.13-0.08 0.29-0.13 0.49-0.13l4.04 0c0.19 0 0.35 0.05 0.47 0.13 0.13 0.08 0.22 0.21 0.28 0.37l1.32 3.41c0.19 0.53 0.34 1 0.43 1.39 0.1 0.39 0.14 0.73 0.14 1.02l0 3.96c0 0.2-0.04 0.35-0.12 0.43-0.09 0.08-0.22 0.12-0.41 0.12l-2.28 0c-0.2 0-0.34-0.04-0.44-0.12-0.09-0.08-0.14-0.23-0.14-0.43l0-2.09-2.65 0z",
+                              "viewBox": [
+                                0,
+                                0,
+                                81,
+                                81
+                              ],
+                              "fill": "#ffffff",
+                              "width": 64.152,
+                              "height": 64.152
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "fcJJM",
+                          "x": 36.972,
+                          "y": 45.189,
+                          "name": "Clip 15",
+                          "clip": true,
+                          "width": 34.848,
+                          "height": 12.672,
+                          "layout": "none",
+                          "children": [
+                            {
+                              "type": "path",
+                              "id": "STAbg",
+                              "x": -15.048,
+                              "y": -22.968,
+                              "name": "Path 15 #ffffff",
+                              "geometry": "M44.79 42.03c0 0.2-0.04 0.35-0.12 0.43-0.09 0.08-0.22 0.12-0.41 0.12l-2.3 0c-0.19 0-0.32-0.04-0.4-0.12-0.09-0.08-0.13-0.23-0.13-0.43l0-1.6c0-0.46 0.04-0.8 0.11-1.04 0.08-0.22 0.23-0.5 0.45-0.81l1.22-1.64-1.22-1.64c-0.23-0.3-0.38-0.57-0.45-0.8-0.07-0.23-0.11-0.58-0.11-1.04l0-1.16c0-0.19 0.04-0.32 0.13-0.41 0.08-0.09 0.21-0.14 0.4-0.14l2.33 0c0.19 0 0.32 0.05 0.41 0.14 0.08 0.09 0.12 0.22 0.12 0.41l0 1.03c0 0.11 0.01 0.22 0.02 0.33 0 0.11 0.05 0.21 0.12 0.31l0.66 0.94c0.05 0.09 0.1 0.15 0.15 0.2 0.07 0.05 0.13 0.07 0.21 0.07l0.19 0c0.07 0 0.13-0.02 0.18-0.07 0.05-0.05 0.11-0.11 0.17-0.2l0.68-0.94c0.07-0.1 0.11-0.2 0.12-0.31 0.01-0.11 0.02-0.22 0.02-0.33l0-1.03c0-0.19 0.04-0.32 0.12-0.41 0.09-0.09 0.22-0.14 0.41-0.14l2.3 0c0.18 0 0.32 0.05 0.4 0.14 0.08 0.09 0.13 0.22 0.13 0.41l0 1.16c0 0.46-0.05 0.81-0.13 1.04-0.07 0.23-0.22 0.5-0.44 0.8l-1.21 1.66 1.21 1.62c0.23 0.31 0.38 0.59 0.46 0.81 0.07 0.24 0.11 0.58 0.11 1.04l0 1.6c0 0.2-0.05 0.35-0.13 0.43-0.08 0.08-0.22 0.12-0.4 0.12l-2.3 0c-0.19 0-0.32-0.04-0.41-0.12-0.08-0.08-0.12-0.23-0.12-0.43l0-1.48c0-0.09-0.01-0.2-0.02-0.31-0.01-0.11-0.05-0.22-0.12-0.31l-0.66-0.96c-0.06-0.09-0.12-0.15-0.17-0.19-0.06-0.03-0.12-0.06-0.19-0.06l-0.22 0c-0.07 0-0.13 0.03-0.19 0.06-0.05 0.04-0.1 0.1-0.17 0.19l-0.67 0.96c-0.07 0.09-0.12 0.2-0.12 0.31-0.01 0.11-0.02 0.22-0.02 0.31z",
+                              "viewBox": [
+                                0,
+                                0,
+                                81,
+                                81
+                              ],
+                              "fill": "#ffffff",
+                              "width": 64.152,
+                              "height": 64.152
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "aHRG4",
+                          "x": 36.972,
+                          "y": 45.189,
+                          "name": "Clip 16",
+                          "clip": true,
+                          "width": 34.848,
+                          "height": 12.672,
+                          "layout": "none",
+                          "children": [
+                            {
+                              "type": "path",
+                              "id": "X1znyx",
+                              "x": -15.048,
+                              "y": -22.968,
+                              "name": "Path 16 #ffffff",
+                              "geometry": "M52.94 42.58c-0.2 0-0.34-0.04-0.42-0.12-0.09-0.08-0.13-0.23-0.13-0.43l0-1.78c0-0.18 0.04-0.32 0.13-0.4 0.08-0.1 0.22-0.14 0.42-0.14l1.49 0 0-5.05-1.49 0c-0.2 0-0.34-0.04-0.42-0.13-0.09-0.08-0.13-0.22-0.13-0.42l0-1.81c0-0.19 0.04-0.32 0.13-0.41 0.08-0.09 0.22-0.14 0.42-0.14l6.39 0c0.2 0 0.34 0.05 0.42 0.14 0.09 0.09 0.13 0.22 0.13 0.41l0 1.81c0 0.2-0.04 0.34-0.13 0.42-0.08 0.09-0.22 0.13-0.42 0.13l-1.45 0 0 5.05 1.45 0c0.2 0 0.34 0.04 0.42 0.14 0.09 0.08 0.13 0.22 0.13 0.4l0 1.78c0 0.2-0.04 0.35-0.13 0.43-0.08 0.08-0.22 0.12-0.42 0.12z",
+                              "viewBox": [
+                                0,
+                                0,
+                                81,
+                                81
+                              ],
+                              "fill": "#ffffff",
+                              "width": 64.152,
+                              "height": 64.152
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "text",
+                  "id": "WWpMx",
+                  "name": "Name",
+                  "fill": "$text-primary",
+                  "textGrowth": "fixed-width",
+                  "width": "fill_container",
+                  "content": "Launcher / Foreground",
+                  "lineHeight": 1.3,
+                  "fontFamily": "$font",
+                  "fontSize": 14,
+                  "fontWeight": "600"
+                },
+                {
+                  "type": "text",
+                  "id": "dwi3D",
+                  "name": "Desc",
+                  "fill": "$text-muted",
+                  "textGrowth": "fixed-width",
+                  "width": "fill_container",
+                  "content": "Exportar · 108 dp · transparente",
+                  "lineHeight": 1.35,
+                  "fontFamily": "$font",
+                  "fontSize": 12,
+                  "fontWeight": "normal"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "TrEe1",
+              "name": "Item · Preview",
+              "width": 160,
+              "layout": "vertical",
+              "gap": 10,
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "x4mDE",
+                  "name": "Stage",
+                  "clip": true,
+                  "width": 160,
+                  "height": 160,
+                  "cornerRadius": 12,
+                  "justifyContent": "center",
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "XY1A1",
+                      "name": "Preview (Background + Foreground)",
+                      "clip": true,
+                      "width": 108,
+                      "height": 108,
+                      "layout": "none",
+                      "children": [
+                        {
+                          "id": "S2qlAb",
+                          "type": "ref",
+                          "ref": "G1aYGh",
+                          "name": "Background",
+                          "x": 0,
+                          "y": 0
+                        },
+                        {
+                          "id": "FH7NC",
+                          "type": "ref",
+                          "ref": "HwcEu",
+                          "name": "Foreground",
+                          "x": 0,
+                          "y": 0
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "text",
+                  "id": "iXCeq",
+                  "name": "Name",
+                  "fill": "$text-primary",
+                  "textGrowth": "fixed-width",
+                  "width": "fill_container",
+                  "content": "Preview",
+                  "lineHeight": 1.3,
+                  "fontFamily": "$font",
+                  "fontSize": 14,
+                  "fontWeight": "600"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "WKKcG",
+          "name": "Components · Circle",
+          "gap": 48,
+          "children": [
+            {
+              "type": "frame",
+              "id": "Uj6se",
+              "name": "Item · Launcher Round / Background",
+              "width": 160,
+              "layout": "vertical",
+              "gap": 10,
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "gKZZQ",
+                  "name": "Stage",
+                  "clip": true,
+                  "width": 160,
+                  "height": 160,
+                  "justifyContent": "center",
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "j6CAGv",
+                      "name": "Launcher Round / Background",
+                      "reusable": true,
+                      "width": 108,
+                      "height": 108,
+                      "fill": "#FFFFFF",
+                      "cornerRadius": 54,
+                      "layout": "none"
+                    }
+                  ]
+                },
+                {
+                  "type": "text",
+                  "id": "OHExr",
+                  "name": "Name",
+                  "fill": "$text-primary",
+                  "textGrowth": "fixed-width",
+                  "width": "fill_container",
+                  "content": "Launcher Round / Background",
+                  "lineHeight": 1.3,
+                  "fontFamily": "$font",
+                  "fontSize": 14,
+                  "fontWeight": "600"
+                },
+                {
+                  "type": "text",
+                  "id": "A2Evm",
+                  "name": "Desc",
+                  "fill": "$text-muted",
+                  "textGrowth": "fixed-width",
+                  "width": "fill_container",
+                  "content": "Exportar · 108 dp",
+                  "lineHeight": 1.35,
+                  "fontFamily": "$font",
+                  "fontSize": 12,
+                  "fontWeight": "normal"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "SqZkG",
+              "name": "Item · Launcher Round / Foreground",
+              "width": 160,
+              "layout": "vertical",
+              "gap": 10,
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "g0tPP",
+                  "name": "Stage",
+                  "clip": true,
+                  "width": 160,
+                  "height": 160,
+                  "justifyContent": "center",
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "Bueou",
+                      "name": "Launcher Round / Foreground",
+                      "reusable": true,
+                      "clip": true,
+                      "width": 108,
+                      "height": 108,
+                      "cornerRadius": 54,
+                      "layout": "none",
+                      "children": [
+                        {
+                          "id": "vYtsf",
+                          "type": "ref",
+                          "ref": "HwcEu",
+                          "name": "Foreground",
+                          "x": 0,
+                          "y": 0
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "text",
+                  "id": "PfNAj",
+                  "name": "Name",
+                  "fill": "$text-primary",
+                  "textGrowth": "fixed-width",
+                  "width": "fill_container",
+                  "content": "Launcher Round / Foreground",
+                  "lineHeight": 1.3,
+                  "fontFamily": "$font",
+                  "fontSize": 14,
+                  "fontWeight": "600"
+                },
+                {
+                  "type": "text",
+                  "id": "nUS59",
+                  "name": "Desc",
+                  "fill": "$text-muted",
+                  "textGrowth": "fixed-width",
+                  "width": "fill_container",
+                  "content": "Exportar · 108 dp · transparente",
+                  "lineHeight": 1.35,
+                  "fontFamily": "$font",
+                  "fontSize": 12,
+                  "fontWeight": "normal"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "qaPsH",
+              "name": "Item · Preview",
+              "width": 160,
+              "layout": "vertical",
+              "gap": 10,
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "rsOq6",
+                  "name": "Stage",
+                  "clip": true,
+                  "width": 160,
+                  "height": 160,
+                  "justifyContent": "center",
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "sZQev",
+                      "name": "Preview Round (Background + Foreground)",
+                      "clip": true,
+                      "width": 108,
+                      "height": 108,
+                      "cornerRadius": 54,
+                      "layout": "none",
+                      "children": [
+                        {
+                          "id": "mA6Qs",
+                          "type": "ref",
+                          "ref": "j6CAGv",
+                          "name": "Background",
+                          "x": 0,
+                          "y": 0
+                        },
+                        {
+                          "id": "nY3tG",
+                          "type": "ref",
+                          "ref": "Bueou",
+                          "name": "Foreground",
+                          "x": 0,
+                          "y": 0
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "text",
+                  "id": "N1pPc",
+                  "name": "Name",
+                  "fill": "$text-primary",
+                  "textGrowth": "fixed-width",
+                  "width": "fill_container",
+                  "content": "Preview",
+                  "lineHeight": 1.3,
+                  "fontFamily": "$font",
+                  "fontSize": 14,
+                  "fontWeight": "600"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "variables": {
+    "primary": {
+      "type": "color",
+      "value": "#7843E6"
+    },
+    "secondary": {
+      "type": "color",
+      "value": "#00FFFF"
+    },
+    "success": {
+      "type": "color",
+      "value": "#2E7D32"
+    },
+    "error": {
+      "type": "color",
+      "value": "#C62828"
+    },
+    "text-primary": {
+      "type": "color",
+      "value": "#0F0F0F"
+    },
+    "text-secondary": {
+      "type": "color",
+      "value": "#4A4A4A"
+    },
+    "text-muted": {
+      "type": "color",
+      "value": "#6B6B6B"
+    },
+    "placeholder": {
+      "type": "color",
+      "value": "#9AA0A6"
+    },
+    "surface": {
+      "type": "color",
+      "value": "#FFFFFF"
+    },
+    "surface-card": {
+      "type": "color",
+      "value": "#F0F0F0"
+    },
+    "otp-bg": {
+      "type": "color",
+      "value": "#F8F8F8"
+    },
+    "otp-border": {
+      "type": "color",
+      "value": "#CFCFCF"
+    },
+    "otp-border-filled": {
+      "type": "color",
+      "value": "#222222"
+    },
+    "canvas": {
+      "type": "color",
+      "value": "#F4F2FA"
+    },
+    "font": {
+      "type": "string",
+      "value": "Roboto"
+    }
+  },
+  "fileToken": "19de33db-d71e-41c8-9d71-4bc3298b9a7f"
+}

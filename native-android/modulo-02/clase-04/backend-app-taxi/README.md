@@ -1,277 +1,394 @@
-# Backend AppTaxi (NestJS + TypeORM)
+# Backend AppTaxi — API de inicio de sesión con OTP
 
-Servicio backend de ejemplo para el curso — arquitectura modular con **NestJS**, **TypeORM (MySQL)**, **JWT**, **i18n**, **Pino logger** y **Swagger**. Incluye un flujo de **login por teléfono** para pasajeros.
+API NestJS que implementa el **inicio de sesión por OTP** (código de 4 dígitos por SMS) que consume la app [`../android-app-taxi`](../android-app-taxi/README.md):
 
----
-
-## Requisitos
-
-- **Node.js** >= 22 (recomendado 20 LTS)
-- **npm** (o yarn/pnpm)
-- **MySQL** 8.x
-- Acceso para crear base de datos y usuario
+1. `POST /auth/otp-generate` → crea el pasajero si no existe, genera la OTP y la envía por SMS (Brevo o LabsMobile).
+2. `POST /auth/otp-validate` → valida la OTP y devuelve `accessToken`, `refreshToken` y el perfil del pasajero.
 
 ---
 
-## Tecnologías principales
+## 1. Stack técnico y arquitectura
 
-- **NestJS** (controllers, services, modules)
-- **TypeORM 0.3** (migraciones, repos, DataSource)
-- **MySQL** (DB relacional)
-- **JWT** (`@nestjs/jwt`) — access & refresh tokens
-- **i18n** (`nestjs-i18n`) — mensajes en ES/EN via `Accept-Language`
-- **Pino** (`nestjs-pino`) — logs estructurados con `x-request-id`
-- **Swagger** — documentación de API en `/api/docs`
+### Stack técnico
+
+| Área | Tecnología | Versión | Para qué se usa |
+| --- | --- | --- | --- |
+| Runtime | Node.js | 24 LTS (mínimo `^22.22.3`) | Ejecución; `fetch` nativo para el SMS |
+| Paquetes | pnpm | 12.5.1 (`packageManager`) | Siempre pnpm, nunca npm ni yarn |
+| Framework | NestJS (`common`, `core`, `platform-express`) | 12.0 | Módulos, inyección de dependencias, HTTP |
+| Lenguaje | TypeScript | 6.0 | Tipado estático |
+| Validación | `class-validator` + `class-transformer` | 0.15 / 0.5 | DTOs de entrada con `ValidationPipe` |
+| Base de datos | TypeORM + `@nestjs/typeorm` + `mysql2` | 1.1 / 12 / 3.24 | Entidades, DAOs y migraciones sobre MySQL 9.7 |
+| Caché | `redis` (cliente) | 6.2 | Lock de reenvío e intentos de OTP en Redis 8.10 |
+| Seguridad | `@nestjs/jwt` + `crypto.randomInt` | 12 / nativo | Tokens JWT y OTP con CSPRNG |
+| Configuración | `@nestjs/config` + `dotenv` | 12 / 18 | Variables de `.env` vía `ConfigService` |
+| Idiomas | `nestjs-i18n` | 10.8 | Mensajes ES/EN según `Accept-Language` |
+| Logs | `nestjs-pino` + `pino` | 5.2 / 10 | Logs JSON con `x-request-id` |
+| Documentación | `@nestjs/swagger` | 12 | OpenAPI en `/api/docs` |
+| Pruebas | Jest + `ts-jest` | 30 / 29 | Pruebas unitarias con dependencias simuladas |
+
+### Arquitectura en capas
+
+![Arquitectura en capas](docs/gif/architecture.gif)
+
+| Capa | Piezas | Responsabilidad | No debe |
+| --- | --- | --- | --- |
+| **Presentación** | `AuthController`, DTOs, `ValidationPipe` | HTTP, validación de entrada, Swagger, idioma | Tener reglas de negocio |
+| **Aplicación** | `AuthService` | Reglas de OTP, rate limit, intentos, emisión de JWT | Escribir SQL ni llamar APIs directamente |
+| **Datos** | `PassengerDao`, `PassengerOtpDao`, entidades | Consultas TypeORM | Decidir reglas de negocio |
+| **Infraestructura** | `CacheService`, `SmsSender`, `JwtService` | Redis, proveedor SMS, firma de tokens | Conocer HTTP |
+
+Nest resuelve todas las dependencias por constructor (inyección de dependencias). Los errores de **cualquier** capa terminan en `HttpExceptionFilter`, que responde siempre con el mismo formato (ver [3.1](#31-corehttp--errores-con-un-solo-formato)).
 
 ---
 
-## Instalación
+## 2. Organización del código: core, commons y features
 
-```bash
-# 1) Instalar dependencias
-pnpm install
+![core, commons y features](docs/gif/modules.gif)
 
-# 2) Copiar variables de entorno
-cp .env.example .env   # (si el repositorio incluye un ejemplo)
+| Carpeta | Qué va aquí | Ejemplos |
+| --- | --- | --- |
+| **`core/`** | Infraestructura transversal que usa toda la API | Filtro de errores, base de datos, Redis, i18n, runners de migraciones |
+| **`commons/`** | Utilidades sin reglas de negocio | `utils/UtilDate` |
+| **`features/`** | Un módulo Nest por dominio, con todas sus capas | `passengers/` (`PassengerModule`) |
 
-# 3) Configurar .env (ver sección Configuración)
+`AppModule` arma la infraestructura global (`ConfigModule`, `LoggerModule`, `I18nModule`, `TypeOrmModule`, `APP_FILTER`) e importa cada feature. Las features usan `core` y `commons`; **`core` nunca importa una feature**.
+
+```
+src/
+├─ app.module.ts                 # Config, Pino, i18n, TypeORM, PassengerModule, APP_FILTER
+├─ main.ts                       # ValidationPipe, filtros globales, Swagger
+├─ commons/utils/UtilDate.ts
+├─ core/
+│  ├─ cache/cache.service.ts     # Cliente Redis (get / set con TTL / del)
+│  ├─ cli/                       # run-migrations.ts, run-seeders.ts
+│  ├─ database/                  # DataSource, migrations/, seeders/
+│  ├─ http/                      # HttpCustomException, HttpExceptionFilter
+│  └─ i18n/{es,en}/              # auth.json, otp.json, passenger.json, common.json
+└─ features/passengers/
+   ├─ passenger.module.ts
+   ├─ controllers/               # AuthController (/auth/*), PassengerController
+   ├─ services/                  # AuthService (+ spec), PassengerService
+   ├─ dao/                       # PassengerDao, PassengerOtpDao
+   ├─ entities/                  # PassengerEntity, PassengerOtpEntity
+   ├─ dto/                       # Requests y responses (Swagger + class-validator)
+   ├─ remote/                    # SmsSender, Brevo, LabsMobile, sms-sender.provider (+ spec)
+   ├─ mapper/                    # Entity → DTO (+ spec)
+   └─ enum/                      # PassengerStatus: ACTIVE, INACTIVE_REGISTER, SUSPENDED
 ```
 
-> Si prefieres **yarn/pnpm**, reemplaza los comandos de `npm` por tu gestor.
+---
+
+## 3. Core
+
+### 3.1 `core/http` — errores con un solo formato
+
+![Tres orígenes de error, un formato](docs/gif/core-errors.gif)
+
+| Archivo | Qué hace |
+| --- | --- |
+| `exception/http.exception.ts` | `HttpCustomException(message, status = 422)`: error de negocio con texto ya traducido |
+| `filters/http-exception.filter.ts` | `@Catch()` global: formatea **toda** excepción como `{status_code, message, errors}`. Traduce los errores de validación con i18n y, ante un error no controlado, registra el stack y responde 500 genérico |
+| `main.ts` | `ValidationPipe({whitelist, forbidNonWhitelisted, transform})` y registro de filtros |
+
+| Origen | Código | Cuerpo |
+| --- | --- | --- |
+| DTO inválido (`ValidationPipe`) | 400 | `{"status_code":400,"message":"Bad Request","errors":[{"field":"general","message":"…"}]}` |
+| `HttpCustomException` de `AuthService` | 422 / 429 | `{"status_code":422,"message":"Ya existe un código activo…"}` |
+| Error no controlado (MySQL o Redis caídos, bug) | 500 | `{"status_code":500,"message":"Ocurrió un error inesperado en el servidor.","errors":[]}` |
+
+Librerías: `@nestjs/common` (excepciones y filtros), `class-validator` y `class-transformer` (DTOs), `nestjs-i18n` (mensajes).
+
+### 3.2 `core/i18n` — mensajes en español e inglés
+
+| Archivo | Claves | Quién las usa |
+| --- | --- | --- |
+| `auth.json` | `activeCodeExists`, `deliveryFailed`, `invalidOrExpired`, `alreadyUsed`, `tooManyAttempts`, `passenger.notExists` | `AuthService` |
+| `passenger.json` | `validation.*` del teléfono | DTOs |
+| `otp.json` | `validation.*` del código | DTOs |
+| `common.json` | `internalError` | `HttpExceptionFilter` (500) |
+
+`I18nModule` usa `AcceptLanguageResolver` con `fallbackLanguage: "es"`. La app Android no envía `Accept-Language`, así que siempre recibe español.
+
+### 3.3 `core/database` y `core/cli` — MySQL y migraciones
+
+![Arranque y migraciones](docs/gif/core-database.gif)
+
+| Migración | Qué hace |
+| --- | --- |
+| `Schema1759303438196` | La misma de la clase 03: crea `entity_passenger` |
+| `Schema1759768881969` | Incremental: agrega `INACTIVE_REGISTER` al enum `status` y crea `entity_passenger_otp` (FK con `ON DELETE CASCADE`) |
+
+Una BD nueva ejecuta ambas; una BD que viene de la clase 03 solo ejecuta la segunda y conserva sus datos. Para actualizar un stack Docker de la clase 03 sigue [«Actualizar un stack existente de la clase 03»](../infra-app-taxi/README.md#5-actualizar-un-stack-existente-de-la-clase-03).
+
+| Archivo | Qué hace |
+| --- | --- |
+| `database/typeorm.config.ts` | `DataSource` de la app (sin `synchronize`) |
+| `database/typeorm.migration.ts` | `DataSource` del CLI; historial en `migrations_history` |
+| `database/seeders/` | `passengers.json` + seeder idempotente (omite teléfonos existentes) |
+| `cli/run-migrations.ts`, `cli/run-seeders.ts` | Runners que usa `entrypoint.sh` en Docker |
+
+Librerías: `typeorm` 1.1, `@nestjs/typeorm` 12, `mysql2` 3.24.
+
+### 3.4 `core/cache` — Redis
+
+`CacheService` envuelve el cliente `redis` 6 con `get`, `set` (con TTL en segundos) y `del`. Usa `disableOfflineQueue` y `connectTimeout` de 5 s: si Redis cae, la petición falla al instante con 500 en lugar de quedar colgada. Las claves que usa la feature están en [5.4](#54-redis-en-el-tiempo).
+
+### 3.5 Configuración, logs y documentación
+
+| Pieza | Librería | Detalle |
+| --- | --- | --- |
+| Variables de entorno | `@nestjs/config` | `ConfigModule.forRoot({isGlobal: true})`; se leen con `ConfigService` al usarlas |
+| Logs | `nestjs-pino` | JSON con `x-request-id`; con `NODE_DEBUG=true`, `pino-pretty` (solo local) |
+| Swagger | `@nestjs/swagger` | `/api/docs` (UI) y `/api/docs-json` (OpenAPI) |
 
 ---
 
-## Configuración (.env)
+## 4. Commons
 
-Variables usadas por la app (según `src/core/database/typeorm.config.ts`, `src/main.ts` y servicios):
+| Archivo | Qué hace |
+| --- | --- |
+| `utils/UtilDate.ts` | Fecha actual en formato MySQL y timestamp |
+
+Hoy es mínimo a propósito: algo pasa a `commons` recién cuando lo necesitan dos features y no tiene reglas de negocio. Sin librerías propias.
+
+---
+
+## 5. Feature `passengers` — autenticación por OTP
+
+| Capa | Archivos |
+| --- | --- |
+| Presentación | `controllers/auth.controller.ts`, `dto/` |
+| Aplicación | `services/auth.service.ts` |
+| Datos | `dao/passenger.dao.ts`, `dao/passenger-otp.dao.ts`, `entities/`, `mapper/` |
+| Infraestructura | `remote/` (SMS), `CacheService` (core), `JwtService` |
+| Módulo | `passenger.module.ts`: `TypeOrmModule.forFeature`, `JwtModule`, proveedores y `smsSenderProvider` |
+
+### 5.1 `POST /auth/otp-generate`
+
+![Flujo de otp-generate](docs/gif/otp-generate.gif)
+
+| Paso | Dónde | Qué hace | Si falla |
+| --- | --- | --- | --- |
+| 1 | Nest | `ValidationPipe`: `phone` de 11 dígitos | **400** |
+| 2 | MySQL | Busca el pasajero; si no existe, lo crea con `INACTIVE_REGISTER` | — |
+| 3 | Redis | ¿Existe `otp:passenger:{id}:lock`? | **422** `activeCodeExists` |
+| 4 | MySQL | Genera 4 dígitos con `crypto.randomInt` y guarda la OTP con `expiresAt` | — |
+| 5 | SMS | `SmsSender.sendOtp(phone, code)` | **422** `deliveryFailed` |
+| 6 | Redis | Lock por `OTP_RATE_TTL_SEC` (60 s) y borra los intentos | — |
+| ✓ | — | **200** `{success, expiresAt, ttlSec, messageId}` | — |
+
+### 5.2 `POST /auth/otp-validate`
+
+![Flujo de otp-validate](docs/gif/otp-validate.gif)
+
+| Paso | Dónde | Qué hace | Si falla |
+| --- | --- | --- | --- |
+| 1 | Nest | `ValidationPipe`: `phone` de 11 dígitos y `code` de 4 a 6 | **400** |
+| 2 | MySQL | Busca el pasajero | **422** `passenger.notExists` |
+| 3 | Redis | ¿Intentos fallidos ≥ `OTP_MAX_ATTEMPTS`? | **429** `tooManyAttempts` |
+| 4 | MySQL | OTP con ese código, `used = false` y no expirada | **422** `invalidOrExpired` y suma un intento |
+| 5 | MySQL | `markAsUsed` y `touchLastLoginAt` | **422** `alreadyUsed` |
+| 6 | JWT | Firma `accessToken` y `refreshToken` | — |
+| 7 | Redis | Borra lock e intentos | — |
+| ✓ | — | **200** `{accessToken, refreshToken, user}` | — |
+
+Payload de los JWT: `sub` (id), `typ: "passenger"`, `phone`, `iat`, `exp` (y `rt: true` en el refresh).
+
+### 5.3 Envío de SMS (Brevo o LabsMobile)
+
+![Envío de SMS con patrón Strategy](docs/gif/sms-strategy.gif)
+
+`AuthService` depende del contrato `SmsSender` (patrón **Strategy**). `SMS_PROVIDER` decide al arrancar qué implementación inyecta Nest.
+
+| Pieza | Archivo (`remote/`) | Responsabilidad |
+| --- | --- | --- |
+| `SmsSender` (clase abstracta) | `sms-sender.ts` | Contrato y lógica común: modo desarrollo, *timeout* de 5 s, log y captura de errores |
+| `BrevoSmsService` | `brevo-sms.service.ts` | API de Brevo |
+| `LabsMobileSmsService` | `labsmobile-sms.service.ts` | API de LabsMobile |
+| `smsSenderProvider` | `sms-sender.provider.ts` | Elige la implementación; un valor desconocido **detiene el arranque** |
+
+| Proveedor | `brevo` (por defecto) | `labsmobile` |
+| --- | --- | --- |
+| Endpoint | `POST https://api.brevo.com/v3/transactionalSMS/sms` | `POST https://api.labsmobile.com/json/send` |
+| Autenticación | Header `api-key: BREVO_API_KEY` | `Authorization: Basic base64(LABSMOBILE_USER:LABSMOBILE_API_KEY)` |
+| Body | `{type, sender, recipient: "+51…", content, tag}` | `{message, tpoa, recipient: [{msisdn: "51…"}]}` |
+| Éxito | HTTP 2xx con `messageId` | HTTP 2xx con `code: "0"` y `subid` |
+
+| Credenciales del proveedor activo | `NODE_ENV` | Resultado |
+| --- | --- | --- |
+| Completas | cualquiera | Envía el SMS. Si el proveedor rechaza o vence el *timeout* → **422** `deliveryFailed` |
+| Incompletas | ≠ `production` | **Modo desarrollo**: escribe `[DEV] OTP para +51987654321: 1234` en el log y responde 200 |
+| Incompletas | `production` | No envía → **422** `deliveryFailed` |
+
+Para agregar un proveedor: una clase que extienda `SmsSender`, registrada en `passenger.module.ts` y agregada a `SMS_PROVIDERS` y al `switch` de `sms-sender.provider.ts`. `AuthService` no cambia.
+
+### 5.4 Redis en el tiempo
+
+![Vigencia, lock e intentos](docs/gif/otp-timeline.gif)
+
+| Clave | Valor | TTL | Se crea | Se borra |
+| --- | --- | --- | --- | --- |
+| `otp:passenger:{id}:lock` | `"1"` | `OTP_RATE_TTL_SEC` (60 s) | Tras enviar el SMS | Al validar con éxito o al vencer |
+| `otp:passenger:{id}:attempts` | contador | `OTP_TTL_SEC` (120 s) | Al fallar una validación | Al generar una OTP nueva o validar con éxito |
+
+La vigencia de la OTP (`OTP_TTL_SEC`) vive en MySQL (`expires_at`), no en Redis.
+
+### Contrato de la API con la app
+
+Fuente de verdad del contrato con `../android-app-taxi`: cada respuesta indica el DTO de Retrofit que la recibe y, para los errores, la `DomainException` de la app y el texto que ve el usuario.
+
+| Aspecto | Backend | App |
+| --- | --- | --- |
+| Base URL | `http://<host>:${APPLICATION_PORT}/` (3001) | `BuildConfig.API_BASE_URL`, termina en `/` (emulador: `http://10.0.2.2:3001/`) |
+| Formato | JSON, `Content-Type: application/json` | Retrofit 3 + `converter-gson` |
+| Teléfono | E.164 sin `+`, 11 caracteres (`51` + 9 dígitos) | El usuario escribe 9 dígitos; los casos de uso anteponen `51` |
+| Código OTP | 4 dígitos (el DTO acepta 4 a 6) | `OtpCodeInput` de 4 casillas |
+| Fechas | ISO-8601 en UTC | `Instant.parse(expiresAt)` |
+| Idioma | `Accept-Language` (`es`/`en`), fallback `es` | No lo envía: todo llega en español |
+| `Authorization` | No se requiere en `/auth` | `AuthInterceptor` lo agrega si hay sesión; aquí se ignora |
+| Tiempos | Respuesta típica < 100 ms; SMS corta a los 5 s | OkHttp: 10 s. Si se superan → `SocketTimeoutException` |
+
+**Respuestas exitosas**
+
+| Endpoint | DTO en la app | Cuerpo |
+| --- | --- | --- |
+| `otp-generate` | `AuthOtpGenerateResponse` | `{"success":true,"expiresAt":"2026-09-28T18:47:00.255Z","ttlSec":120,"messageId":"dev-log"}` |
+| `otp-validate` | `AuthOtpValidateResponse` | `{"accessToken":"…","refreshToken":"…","user":{"id","phoneNumber","givenName","familyName","email","photoUrl","status"}}` |
+
+`user.status` decide la navegación de la app: `ACTIVE` → Home, `INACTIVE_REGISTER` → registro. Los campos de nombre, `email` y `photoUrl` pueden ser `null` (pasajero nuevo).
+
+**Errores** (todos con el formato de [3.1](#31-corehttp--errores-con-un-solo-formato)). `ErrorMapper` de la app muestra el texto del servidor en los 4xx (`errors[0].message` o `message`) y un texto propio en los 5xx:
+
+| HTTP | Endpoint | Clave i18n / origen | `DomainException` | Texto que ve el usuario |
+| --- | --- | --- | --- | --- |
+| 400 | ambos | `passenger.validation.*`, `otp.validation.*` | `ValidationException` | Primer `errors[].message` |
+| 400 | ambos | Campo no permitido / JSON mal formado | `ValidationException` | «property x should not exist» / «Bad Request» |
+| 404 | — | Ruta inexistente | `ClientException` | «Not Found» |
+| 422 | generate | `auth.activeCodeExists` | `ValidationException` | «Ya existe un código activo. Espera 1 minuto…» |
+| 422 | generate | `auth.deliveryFailed` | `ValidationException` | «No se pudo enviar el código OTP por SMS…» |
+| 422 | validate | `auth.invalidOrExpired` | `ValidationException` | «El código OTP es inválido o ha expirado.» |
+| 422 | validate | `auth.alreadyUsed` | `ValidationException` | «El código OTP ya fue utilizado.» |
+| 422 | validate | `auth.passenger.notExists` | `ValidationException` | «No existe un pasajero registrado con este número…» |
+| 429 | validate | `auth.tooManyAttempts` | `ClientException` | «Superaste el número de intentos…» |
+| 500 | ambos | `common.internalError` | `ServerException` | «El servidor no está disponible. Inténtalo más tarde» |
+| — | ambos | Sin conexión | `NetworkException` | «No se pudo conectar con el servidor…» |
+| — | ambos | Más de 10 s sin respuesta | `NetworkException` | «El servidor tardó demasiado en responder» |
+
+Reglas que mantienen el contrato: todo texto de un 4xx va en i18n porque la app lo muestra tal cual; los 5xx no llevan detalles internos; y todo falla antes de 10 s (Redis y SMS cortan a los 5 s) para que la app reciba un código y no un timeout.
+
+---
+
+## 6. Ejecutar, probar y mantener
+
+### Requisitos e instalación
+
+| Herramienta | Versión | Notas |
+| --- | --- | --- |
+| Node.js | 24 LTS | Con Node 22.14 `pnpm build` falla con `ERR_REQUIRE_CYCLE_MODULE` |
+| pnpm | 12.5.1 | `corepack enable` descarga la versión de `packageManager` |
+| MySQL / Redis | 9.7 LTS / 8.10 | Se levantan con [`../infra-app-taxi`](../infra-app-taxi/README.md) |
+| Proveedor SMS | Brevo o LabsMobile | Opcional en desarrollo |
+
+```bash
+corepack enable
+pnpm install
+touch .env          # ver variables abajo; .env está en .gitignore
+```
+
+`pnpm-workspace.yaml` declara `allowBuilds` (desde pnpm 11 la instalación falla con `ERR_PNPM_IGNORED_BUILDS` si una dependencia trae script de build sin declarar).
+
+### Configuración (`.env`)
 
 ```bash
 # App
 APPLICATION_PORT=3001
-NODE_DEBUG=false                  # habilita logs bonitos con pino-pretty
+NODE_ENV=development              # "production" desactiva el modo SMS de desarrollo
+NODE_DEBUG=false                  # true = logs con pino-pretty (solo local)
 
-# DB
+# MySQL (valores de ../infra-app-taxi/.env)
 DB_HOST=127.0.0.1
 DB_PORT=3306
-DB_USERNAME=app_user
-DB_PASSWORD=app_pass
-DB_NAME=app_taxi
+DB_USERNAME=root
+DB_PASSWORD=change-me
+DB_NAME=db_app_taxi
 DB_POOL=10
+
+# Redis
+REDIS_HOST=127.0.0.1
+REDIS_PORT=6379
 
 # JWT
 JWT_ACCESS_SECRET=change-this-access
 JWT_REFRESH_SECRET=change-this-refresh
-JWT_ACCESS_TTL_SEC=900          # 15m
-JWT_REFRESH_TTL_SEC=2592000     # 30d
+JWT_ACCESS_TTL_SEC=900            # 15 min
+JWT_REFRESH_TTL_SEC=2592000       # 30 días
 
-# I18N
-# El módulo i18n usa Accept-Language y fallback "es"
+# OTP (opcionales; valores por defecto)
+OTP_TTL_SEC=120
+OTP_RATE_TTL_SEC=60
+OTP_MAX_ATTEMPTS=5
+
+# SMS: "brevo" (por defecto) o "labsmobile"
+SMS_PROVIDER=brevo
+BREVO_API_KEY=                    # vacío = modo desarrollo
+BREVO_TEXT_SMS="Tu código de App Taxi es:"
+BREVO_SENDER=AppTaxi
+LABSMOBILE_USER=
+LABSMOBILE_API_KEY=
+LABSMOBILE_TEXT_SMS="Tu código de App Taxi es:"
+LABSMOBILE_SENDER=AppTaxi
 ```
 
-> La app **no** usa `synchronize` en producción. Asegúrate de correr **migraciones**.
-
----
-
-## Base de datos: migraciones y seeders
-
-### Ejecutar migraciones
-
-Hay dos formas equivalentes:
-
-**A) CLI de TypeORM** (usa el `DataSource` de `src/core/database/typeorm.migration.ts`):
+### Ejecución, migraciones y pruebas
 
 ```bash
-# generar nueva migración (opcional)
-pnpm run migration:generate -- src/core/database/migrations/<nombre>
+pnpm migration:run                 # aplicar migraciones pendientes
+pnpm migration:revert              # revertir la última
+pnpm migration:generate src/core/database/migrations/<nombre>   # sin "--"
+pnpm exec ts-node -r tsconfig-paths/register src/core/cli/run-seeders.ts
 
-# aplicar migraciones pendientes
-pnpm run migration:run
+pnpm start:dev                     # desarrollo · Swagger en /api/docs
+pnpm build && pnpm start:prod
 
-# revertir última migración
-pnpm run migration:revert
+pnpm test                          # 21 pruebas: AuthService (8), proveedores SMS (11), mapper (2)
+pnpm lint                          # ESLint con --fix
 ```
 
-**B) Runners TS incluidos**
+- NestJS 12 se publica solo como ESM: el script `test` corre Jest con `--experimental-vm-modules`, y `jest.moduleNameMapper` resuelve los imports `src/...`.
 
-```bash
-# ejecutar migraciones desde código
-npx ts-node -r tsconfig-paths/register src/core/cli/run-migrations.ts
-```
+### Docker
 
-### Seeders
+`Dockerfile` multi-stage sobre `node:24-alpine` con pnpm 12.5.1. `entrypoint.sh` espera a MySQL, migra, siembra y arranca `node dist/main.js` (ver [3.3](#33-coredatabase-y-corecli--mysql-y-migraciones)). Para levantar o actualizar el stack sigue [`../infra-app-taxi/README.md`](../infra-app-taxi/README.md). Con `NODE_DEBUG=true` la imagen no arranca (`pino-pretty` es dependencia de desarrollo).
 
-Incluye un seeder de pasajeros (`src/core/database/seeders/passenger-seed.ts`) que carga `passengers.json`.
+### Seguridad
 
-```bash
-npx ts-node -r tsconfig-paths/register src/core/cli/run-seeders.ts
-```
+| Control | Estado |
+| --- | --- |
+| Generación de la OTP | `crypto.randomInt` (CSPRNG) |
+| Fuerza bruta | Máximo `OTP_MAX_ATTEMPTS` fallos → **429** |
+| Reenvío abusivo de SMS | Lock por pasajero en Redis (`OTP_RATE_TTL_SEC`) |
+| Reutilización del código | `markAsUsed` + `findValidOtp` filtra `used = false` y `expires_at > NOW()` |
+| Almacenamiento de la OTP | En claro en `entity_passenger_otp.code`. **Pendiente**: guardar un hash (p. ej. HMAC-SHA256) |
+| Enumeración de teléfonos | `otp-generate` responde igual exista o no el pasajero |
+| JWT | Secretos fuertes; payload sin datos sensibles. **Pendiente**: rotación y revocación de refresh tokens |
+| Secretos | `.env` fuera de git; credenciales SMS nunca en el repositorio ni en el log |
 
----
+### Troubleshooting
 
-## Ejecución
-
-### Desarrollo
-
-```bash
-pnpm run start:dev
-# Swagger: http://localhost:${APPLICATION_PORT}/api/docs
-```
-
-### Producción
-
-```bash
-pnpm run build
-pnpm run start:prod
-```
-
-> Por defecto, la app levanta en el puerto `APPLICATION_PORT` (defínelo en `.env`).
-
----
-
-## Endpoints principales
-
-### POST `/passenger/login`
-
-Login por número de teléfono (E.164 **sin** `+` ni símbolos).
-
-**Request body**
-
-```json
-{
-    "phone": "51987654321"
-}
-```
-
-**Responses**
-
-- **200 OK**
-
-```json
-{
-    "access_token": "jwt_access",
-    "refresh_token": "jwt_refresh",
-    "user": {
-        "id": "uuid",
-        "phoneNumber": "51987654321",
-        "givenName": "Nombre",
-        "familyName": "Apellido",
-        "email": "mail@dominio.com",
-        "photoUrl": null,
-        "status": "ACTIVE",
-        "lastLoginAt": "2025-10-01T08:13:09.000Z",
-        "createdAt": "2025-09-30T00:00:00.000Z",
-        "updatedAt": "2025-09-30T00:00:00.000Z",
-        "deletedAt": null
-    }
-}
-```
-
-- **404 Not Found** – pasajero no existe  
-  El mensaje proviene de i18n (`passenger.notExists`), respetando `Accept-Language`:
-
-```json
-{
-    "status_code": 404,
-    "message": "Tu número de teléfono no existe.",
-    "errors": []
-}
-```
-
-- **400 Bad Request** – validaciones (pipe global + i18n)  
-  Formato manejado por `ValidationExceptionFilter`:
-
-```json
-{
-    "status_code": 400,
-    "error": "Validation Failed",
-    "message": [
-        "validation.isString",
-        "validation.minLength",
-        "validation.maxLength"
-    ]
-}
-```
-
----
-
-## Arquitectura y estructura
-
-Organización modular por **feature** y utilidades en `core/`:
-
-```
-src/
-├─ app.module.ts
-├─ main.ts
-├─ core/
-│  ├─ database/
-│  │  ├─ typeorm.config.ts            # DataSource app
-│  │  ├─ typeorm.migration.ts         # DataSource CLI
-│  │  ├─ migrations/                  # Migraciones TypeORM
-│  │  └─ seeders/                     # Seeders y datos (passengers.json)
-│  ├─ http/
-│  │  └─ filters/
-│  │     ├─ http-exception.filter.ts  # Formato uniforme de errores
-│  │     └─ validation-exception.filter.ts
-│  ├─ i18n/
-│  │  ├─ es/passenger.json            # i18n ES
-│  │  └─ en/passenger.json            # i18n EN
-│  └─ cli/                            # Runners de migraciones/seeders
-│
-└─ features/
-   └─ passengers/
-      ├─ passenger.module.ts
-      ├─ controllers/passenger.controller.ts   # POST /passenger/login
-      ├─ services/passenger.service.ts         # Emite JWTs y toca lastLoginAt
-      ├─ dao/passenger.dao.ts                  # Acceso puro a BD
-      ├─ entities/passenger.entity.ts          # TypeORM entity
-      ├─ dto/                                  # Request/Response DTOs
-      ├─ enum/passenger-status.enum.ts
-      └─ mapper/passenger.mapper.ts
-```
-
-**Capa de presentación**: Controllers (Swagger, validación)  
-**Capa de aplicación**: Services (orquestan DAO + emisión JWT)  
-**Capa de acceso a datos**: DAO (TypeORM)  
-**Dominio**: Entidades/DTOs/enums/mappers
-
----
-
-## Seguridad
-
-- **JWT**: usa `JWT_ACCESS_SECRET` y `JWT_REFRESH_SECRET` **fuertes**.
-- **No** incluir datos sensibles en el payload JWT.
-- Recomendada **rotación** de refresh tokens y almacenamiento/blacklist (Redis/DB).
-- Considera **rate limit** en `/passenger/login`.
-- Habilita CORS si expones la API a frontends externos.
-- No loguees datos personales sensibles.
-
----
-
-## Logging
-
-- `nestjs-pino` agrega `x-request-id` y logs JSON.
-- En `NODE_DEBUG=true`, usa `pino-pretty` (color, tiempos legibles).
-- Todas las excepciones HTTP pasan por `HttpExceptionFilter` para formato uniforme.
-
----
-
-## Swagger
-
-Disponible en:
-
-```
-http://localhost:${APPLICATION_PORT}/api/docs
-```
-
-Incluye esquema de DTOs y ejemplos de request/response.
-
----
-
-## Troubleshooting
-
-- **EntityMetadataNotFoundError**: ajusta el glob de entidades en `typeorm.config.ts` (p.ej. `__dirname + "/../../**/*.entity{.ts,.js}"`) o usa `autoLoadEntities: true` y revisa `TypeOrmModule.forFeature(...)`.
-- **404 en /passenger/login**: verifica que el `phone` exista en `entity_passenger` y que `deleted_at IS NULL`. Respeta formato E.164 **sin** `+` ni símbolos.
-- **i18n no traduce**: confirma las claves (`passenger.notExists`, `validation.*`) y `Accept-Language` del request.
+| Síntoma | Causa / solución |
+| --- | --- |
+| `ERR_REQUIRE_CYCLE_MODULE` en `pnpm build` | Node demasiado antiguo: usa Node 24 LTS |
+| `Must use import to load ES Module` en Jest | Jest sin `--experimental-vm-modules`: usa `pnpm test` |
+| `Cannot find module 'src/…'` en Jest | Falta `moduleNameMapper` (`^src/(.*)$`) en `package.json` |
+| `Redis Client Error … ECONNREFUSED` | Redis no está arriba o `REDIS_HOST`/`REDIS_PORT` no coinciden |
+| **500** «Ocurrió un error inesperado…» | MySQL o Redis caídos, o un bug: el stack está en el log |
+| **422** `deliveryFailed` | El proveedor rechazó el envío (log `Brevo respondió …` / `LabsMobile respondió …`) o producción sin credenciales |
+| No arranca: `SMS_PROVIDER inválido` | Solo acepta `brevo` o `labsmobile` |
+| No llega el SMS en local | Sin credenciales no se envía: busca `[DEV] OTP para` en el log |
+| **422** `activeCodeExists` / **429** `tooManyAttempts` | Lock de 60 s activo / 5 intentos fallidos: pide un código nuevo |
+| i18n muestra la clave (`otp.validation.pattern`) | Falta el archivo o la clave en `core/i18n/<lang>/` |
+| La app muestra «Not Found» | `API_BASE_URL` apunta a otro servicio o le falta la `/` final |
 
 ---
 
