@@ -8,6 +8,8 @@ export class CacheService implements OnModuleInit, OnModuleDestroy {
     async onModuleInit() {
         this.client = createClient({
             url: `redis://${process.env.REDIS_HOST || "localhost"}:${process.env.REDIS_PORT || 6379}`,
+            disableOfflineQueue: true,
+            socket: { connectTimeout: 5_000 },
         });
 
         this.client.on("error", (err) =>

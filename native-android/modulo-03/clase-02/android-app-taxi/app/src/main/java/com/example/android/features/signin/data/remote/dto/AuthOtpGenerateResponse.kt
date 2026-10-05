@@ -1,14 +1,14 @@
 package com.example.android.features.signin.data.remote.dto
 
-import com.example.android.features.signin.domain.repository.OtpGenerateResult
+import com.example.android.features.signin.domain.model.OtpGenerateResult
 
 data class AuthOtpGenerateResponse(
     val success: Boolean,
     val expiresAt: String,
     val ttlSec: Int,
-    val messageId: String
+    val messageId: String?
 )
 
 fun AuthOtpGenerateResponse.toDomain(): OtpGenerateResult = OtpGenerateResult(
-    expiresAt = this.expiresAt
+    expiresAt = expiresAt
 )

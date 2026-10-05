@@ -1,235 +1,171 @@
 package com.example.android.features.signup.presentation
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.*
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
-import androidx.compose.runtime.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.imePadding
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.systemBarsPadding
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
-import com.example.android.commons.presentation.BaseToast
-import com.example.android.commons.presentation.GenericInputField
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.android.commons.presentation.NavigationBarStyle
 import com.example.android.commons.presentation.PrimaryButton
+import com.example.android.commons.presentation.TextInputField
+import com.example.android.commons.presentation.ToastHost
+import com.example.android.commons.presentation.ToastMessage
 import com.example.android.commons.presentation.ToastType
-import com.example.android.features.signup.domain.model.SignUpModelStep1
-import com.example.android.features.signup.domain.model.SignUpModelStep2
-import com.example.android.features.signup.domain.usecase.GetSignUpStep1UseCaseState
-import com.example.android.features.signup.domain.usecase.GetSignUpStep2UseCaseState
-import com.example.android.features.signup.domain.usecase.SignUpUseCaseState
+import com.example.android.features.signup.domain.model.SignUpDraft
+import com.example.android.features.signup.domain.usecase.EMAIL_MAX_LENGTH
+import com.example.android.features.signup.domain.usecase.SignUpState
+import com.example.android.features.signup.domain.usecase.hasValidEmail
+import kotlinx.coroutines.delay
+
+private const val TOAST_DURATION_MS = 3_000L
 
 @Composable
 fun SignUpStep2Route(
     onFinish: () -> Unit,
     modifier: Modifier = Modifier,
-    viewModel: SignUpViewModel = hiltViewModel()
+    vm: SignUpViewModel = hiltViewModel()
 ) {
-    val step1State by viewModel.getStep1.collectAsState()
-    val step2State by viewModel.getStep2.collectAsState()
-    val signUpState by viewModel.signUp.collectAsState()
+    val state by vm.signUpUi.collectAsStateWithLifecycle()
 
-    LaunchedEffect(Unit) {
-        viewModel.callGetStep1()
-        viewModel.callGetStep2()
-    }
-
-    LaunchedEffect(signUpState) {
-        when (signUpState) {
-            is SignUpUseCaseState.Success -> {
+    LaunchedEffect(state) {
+        when (state) {
+            is SignUpState.Success -> {
+                vm.clearSignUpState()
                 onFinish()
+            }
+            is SignUpState.Error -> {
+                delay(TOAST_DURATION_MS)
+                vm.clearSignUpState()
             }
             else -> Unit
         }
     }
 
     SignUpStep2Screen(
-        step2State = step2State,
-        signUpState = signUpState,
-        onEmailChange = {  },
-        onPhoneNumberChange = {  },
-        onFinish = { email, phoneNumber ->
-            val step1Data = when (step1State) {
-                is GetSignUpStep1UseCaseState.Success -> (step1State as GetSignUpStep1UseCaseState.Success).data
-                else -> SignUpModelStep1("", "", "")
-            }
-
-            viewModel.callSignUp(
-                step1Data,
-                SignUpModelStep2(email = email, phoneNumber = phoneNumber)
-            )
-        },
+        draft = vm.draft,
+        state = state,
+        onEmailChange = vm::onEmailChange,
+        onSubmit = vm::callSignUp,
         modifier = modifier
     )
 }
 
 @Composable
 fun SignUpStep2Screen(
-    step2State: GetSignUpStep2UseCaseState,
-    signUpState: SignUpUseCaseState,
+    draft: SignUpDraft?,
+    state: SignUpState,
     onEmailChange: (String) -> Unit,
-    onPhoneNumberChange: (String) -> Unit,
-    onFinish: (email: String, phoneNumber: String) -> Unit,
+    onSubmit: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val bg = Color(0xFFF8F9FA)
-    NavigationBarStyle(color = Color.White, darkIcons = true)
+    val loaded = draft != null
+    val current = draft ?: SignUpDraft()
+    val loading = state is SignUpState.Loading
+    val toast = (state as? SignUpState.Error)?.let { ToastMessage(ToastType.Error, it.message) }
 
-    var email by remember { mutableStateOf("") }
-    var phoneNumber by remember { mutableStateOf("") }
+    NavigationBarStyle(darkIcons = true)
 
-    LaunchedEffect(step2State) {
-        when (step2State) {
-            is GetSignUpStep2UseCaseState.Success -> {
-                val data = step2State.data
-                email = data.email ?: ""
-                phoneNumber = data.phoneNumber ?: ""
-            }
-            else -> Unit
-        }
-    }
-
-    val isLoadingStep2 = step2State is GetSignUpStep2UseCaseState.Loading
-    val isLoadingSignUp = signUpState is SignUpUseCaseState.Loading
-    val isLoading = isLoadingStep2 || isLoadingSignUp
-    val isValid = email.isNotBlank() && phoneNumber.isNotBlank() && !isLoading
-
-    val toastMessage = remember(signUpState) {
-        when (val state = signUpState) {
-            is SignUpUseCaseState.Error -> state.message
-            else -> null
-        }
-    }
-
-    Surface(
+    Box(
         modifier = modifier
             .fillMaxSize()
-            .background(bg),
-        color = bg
+            .background(Color(0xFFF0F0F0))
     ) {
-        Box(modifier = Modifier.fillMaxSize()) {
-
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .systemBarsPadding()
+                .imePadding()
+                .padding(horizontal = 24.dp),
+            verticalArrangement = Arrangement.SpaceBetween
+        ) {
             Column(
                 modifier = Modifier
-                    .fillMaxSize()
-                    .systemBarsPadding()
-                    .imePadding(),
-                verticalArrangement = Arrangement.SpaceBetween
+                    .fillMaxWidth()
+                    .padding(top = 24.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(24.dp)
-                ) {
-                    Text(
-                        text = "Información de contacto",
-                        style = MaterialTheme.typography.headlineSmall.copy(
-                            fontWeight = FontWeight.Bold
-                        ),
-                        color = Color(0xFF1A1A1A)
-                    )
-
-                    Text(
-                        text = "Completa tus datos de contacto",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = Color(0xFF666666)
-                    )
-                }
-
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .weight(1f)
-                        .padding(24.dp),
-                    verticalArrangement = Arrangement.Top
-                ) {
-                    Column(
-                        modifier = Modifier.fillMaxWidth(),
-                        verticalArrangement = Arrangement.spacedBy(20.dp)
-                    ) {
-                        GenericInputField(
-                            value = email,
-                            onValueChange = {
-                                email = it
-                                onEmailChange(it)
-                            },
-                            placeholder = "Ingresa tu correo electrónico",
-                            keyboardType = androidx.compose.ui.text.input.KeyboardType.Email,
-                            maxLength = 100,
-                            imeAction = androidx.compose.ui.text.input.ImeAction.Next,
-                            enabled = !isLoading
-                        )
-
-                        GenericInputField(
-                            value = phoneNumber,
-                            onValueChange = {
-                                phoneNumber = it
-                                onPhoneNumberChange(it)
-                            },
-                            placeholder = "Ingresa tu número de teléfono",
-                            keyboardType = androidx.compose.ui.text.input.KeyboardType.Phone,
-                            maxLength = 15,
-                            imeAction = androidx.compose.ui.text.input.ImeAction.Done,
-                            enabled = !isLoading
-                        )
-                    }
-                }
-
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(24.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    PrimaryButton(
-                        text = "Finalizar registro",
-                        onClick = { onFinish(email, phoneNumber) },
-                        enabled = isValid,
-                        loading = isLoadingSignUp,
-                        modifier = Modifier.fillMaxWidth()
-                    )
-                }
+                SignUpStepHeader(
+                    step = 2,
+                    title = "Información de contacto",
+                    subtitle = if (current.givenName.isBlank()) "¿A qué correo te escribimos?"
+                    else "${current.givenName.trim()}, ¿a qué correo te escribimos?",
+                    modifier = Modifier.padding(bottom = 8.dp)
+                )
+                TextInputField(
+                    value = current.email,
+                    onValueChange = onEmailChange,
+                    placeholder = "Ingresa tu correo electrónico",
+                    enabled = loaded && !loading,
+                    maxLength = EMAIL_MAX_LENGTH,
+                    keyboardType = KeyboardType.Email,
+                    imeAction = ImeAction.Done
+                )
             }
 
-            toastMessage?.let {
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(bottom = 16.dp),
-                    contentAlignment = Alignment.BottomCenter
-                ) {
-                    BaseToast(message = it, type = ToastType.Error)
-                }
-            }
+            PrimaryButton(
+                text = "Finalizar registro",
+                onClick = onSubmit,
+                enabled = loaded && current.hasValidEmail(),
+                loading = loading,
+                modifier = Modifier.padding(bottom = 24.dp)
+            )
         }
+
+        ToastHost(
+            toast = toast,
+            modifier = Modifier.align(Alignment.TopCenter)
+        )
     }
 }
 
-@Preview(showBackground = true, backgroundColor = 0xFFFFFFFF)
+private val previewDraft = SignUpDraft(givenName = "Jorge", familyName = "Sandoval", email = "jorge@example.com")
+
+@Preview(showBackground = true, backgroundColor = 0xFFF0F0F0)
 @Composable
-private fun SignUpStep2ScreenPreview_Empty() {
+private fun SignUpStep2ScreenPreviewEmpty() {
     SignUpStep2Screen(
-        step2State = GetSignUpStep2UseCaseState.Success(SignUpModelStep2("", "")),
-        signUpState = SignUpUseCaseState.Idle,
+        draft = previewDraft.copy(email = ""),
+        state = SignUpState.Idle,
         onEmailChange = {},
-        onPhoneNumberChange = {},
-        onFinish = { _, _ -> }
+        onSubmit = {}
     )
 }
 
-@Preview(showBackground = true, backgroundColor = 0xFFFFFFFF)
+@Preview(showBackground = true, backgroundColor = 0xFFF0F0F0)
 @Composable
-private fun SignUpStep2ScreenPreview_Error() {
+private fun SignUpStep2ScreenPreviewFilled() {
+    SignUpStep2Screen(draft = previewDraft, state = SignUpState.Idle, onEmailChange = {}, onSubmit = {})
+}
+
+@Preview(showBackground = true, backgroundColor = 0xFFF0F0F0)
+@Composable
+private fun SignUpStep2ScreenPreviewLoading() {
+    SignUpStep2Screen(draft = previewDraft, state = SignUpState.Loading, onEmailChange = {}, onSubmit = {})
+}
+
+@Preview(showBackground = true, backgroundColor = 0xFFF0F0F0)
+@Composable
+private fun SignUpStep2ScreenPreviewError() {
     SignUpStep2Screen(
-        step2State = GetSignUpStep2UseCaseState.Success(SignUpModelStep2("juan@example.com", "987654321")),
-        signUpState = SignUpUseCaseState.Error("Error en el registro"),
+        draft = previewDraft,
+        state = SignUpState.Error("El correo ya está registrado por otro pasajero."),
         onEmailChange = {},
-        onPhoneNumberChange = {},
-        onFinish = { _, _ -> }
+        onSubmit = {}
     )
 }

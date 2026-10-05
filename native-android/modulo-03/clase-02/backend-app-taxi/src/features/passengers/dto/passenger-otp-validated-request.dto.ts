@@ -22,7 +22,7 @@ export class PassengerOtpValidatedRequestDto {
         maxLength: 11,
         required: true,
     })
-    @Transform(({ value }) =>
+    @Transform(({ value }: { value: unknown }) =>
         typeof value === "string" ? value.trim() : value,
     )
     @IsString({
@@ -46,7 +46,7 @@ export class PassengerOtpValidatedRequestDto {
         maxLength: 6,
         required: true,
     })
-    @Transform(({ value }) =>
+    @Transform(({ value }: { value: unknown }) =>
         typeof value === "string" ? value.trim() : value,
     )
     @IsString({

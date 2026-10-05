@@ -4,17 +4,17 @@ import { JwtModule } from "@nestjs/jwt";
 import { ConfigModule } from "@nestjs/config";
 
 import { CacheService } from "src/core/cache/cache.service";
+import { AccessTokenGuard } from "src/core/http/guard/access-token.guard";
 import { MenuEntity } from "./entities/menu.entity";
 import { MenuController } from "./controllers/menu.controller";
 import { MenuService } from "./services/menu.service";
 import { MenuDao } from "./dao/menu.dao";
 
 /* -------------------------------------------------------
-   PassengerModule
+   MenuModule
    - Importa TypeORM (entidad), Jwt y Config
-   - Expone controller + service + dao
-   - JwtModule: la firma usa secretos/TTLs desde ConfigService
-     (el service pasa secret/expiresIn explícitamente)
+   - JwtModule: AccessTokenGuard verifica el access token
+     con el secreto que lee de ConfigService
 -------------------------------------------------------- */
 @Module({
     imports: [
@@ -23,7 +23,7 @@ import { MenuDao } from "./dao/menu.dao";
         JwtModule.register({}),
     ],
     controllers: [MenuController],
-    providers: [MenuService, MenuDao, CacheService],
+    providers: [MenuService, MenuDao, CacheService, AccessTokenGuard],
     exports: [MenuService, MenuDao],
 })
 export class MenuModule {}

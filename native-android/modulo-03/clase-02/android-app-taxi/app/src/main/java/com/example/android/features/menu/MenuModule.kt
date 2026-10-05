@@ -1,16 +1,16 @@
 package com.example.android.features.menu
 
-import com.example.android.core.IoAppDispatcher
-import com.example.android.features.menu.data.local.dao.MenuDao
+import com.example.android.core.data.AppDatabase
+import com.example.android.features.menu.data.local.MenuDao
 import com.example.android.features.menu.data.remote.MenuApi
 import com.example.android.features.menu.data.repository.MenuRepositoryImpl
 import com.example.android.features.menu.domain.repository.MenuRepository
-import com.example.android.features.menu.domain.usecase.GetMenuCacheUseCase
+import com.example.android.features.menu.domain.usecase.ObserveMenuUseCase
+import com.example.android.features.menu.domain.usecase.RefreshMenuUseCase
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
-import kotlinx.coroutines.CoroutineDispatcher
 import retrofit2.Retrofit
 import javax.inject.Singleton
 
@@ -24,15 +24,20 @@ object MenuModule {
         retrofit.create(MenuApi::class.java)
 
     @Provides
-    @Singleton
-    fun provideMenuRepository(dao: MenuDao, api: MenuApi, @IoAppDispatcher io: CoroutineDispatcher): MenuRepository =
-        MenuRepositoryImpl(dao = dao, api = api, io = io)
+    fun provideMenuDao(db: AppDatabase): MenuDao = db.menuDao()
 
     @Provides
     @Singleton
-    fun provideOtpGenerateUseCase(
-        repo: MenuRepository,
-        @IoAppDispatcher io: CoroutineDispatcher
-    ): GetMenuCacheUseCase = GetMenuCacheUseCase(repo = repo, io = io)
+    fun provideMenuRepository(api: MenuApi, dao: MenuDao): MenuRepository =
+        MenuRepositoryImpl(api, dao)
 
+    @Provides
+    @Singleton
+    fun provideObserveMenuUseCase(repo: MenuRepository): ObserveMenuUseCase =
+        ObserveMenuUseCase(repo)
+
+    @Provides
+    @Singleton
+    fun provideRefreshMenuUseCase(repo: MenuRepository): RefreshMenuUseCase =
+        RefreshMenuUseCase(repo)
 }

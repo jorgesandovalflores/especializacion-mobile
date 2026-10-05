@@ -1,21 +1,20 @@
 package com.example.android.features.menu.data.remote.dto
 
-import com.example.android.features.menu.domain.model.Menu
+import com.example.android.features.menu.data.local.MenuEntity
 
-data class MenuDto (
+data class MenuDto(
     val key: String,
     val text: String,
-    val iconUrl: String,
+    val icon: String,
     val deeplink: String,
     val order: Int
 )
 
-fun MenuDto.toDomain(): Menu = Menu(
-    key = this.key,
-    text = this.text,
-    iconUrl = this.iconUrl,
-    deeplink = this.deeplink,
-    order = this.order
+fun MenuDto.toEntity(updatedAt: Long): MenuEntity = MenuEntity(
+    id = key,
+    text = text,
+    icon = icon,
+    deeplink = deeplink,
+    position = order,
+    updatedAt = updatedAt
 )
-
-fun List<MenuDto>.toDomainList(): List<Menu> = map { it.toDomain() }

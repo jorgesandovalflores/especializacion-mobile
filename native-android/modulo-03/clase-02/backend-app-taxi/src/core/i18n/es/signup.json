@@ -1,0 +1,8 @@
+{
+    "validation": {
+        "givenName": "Tus nombres deben tener entre 2 y 60 caracteres.",
+        "familyName": "Tus apellidos deben tener entre 2 y 60 caracteres.",
+        "email": "El correo electrónico no es válido."
+    },
+    "emailAlreadyUsed": "El correo ya está registrado por otro pasajero."
+}

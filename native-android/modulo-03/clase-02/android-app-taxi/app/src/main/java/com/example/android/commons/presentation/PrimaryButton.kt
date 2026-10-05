@@ -35,7 +35,9 @@ fun PrimaryButton(
         enabled = enabled && !loading,
         colors = ButtonDefaults.buttonColors(
             containerColor = ColorPrimary,
-            contentColor = Color.White
+            contentColor = Color.White,
+            disabledContainerColor = ColorPrimary.copy(alpha = 0.4f),
+            disabledContentColor = Color.White
         ),
         elevation = ButtonDefaults.buttonElevation( // <- elevación custom
             defaultElevation = 6.dp,
