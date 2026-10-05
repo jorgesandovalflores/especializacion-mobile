@@ -29,10 +29,10 @@ export class PassengerDao {
 
         try {
             return await this.repo.save(entity);
-        } catch (err: any) {
+        } catch (err: unknown) {
             // Condición de carrera: si alguien lo creó en paralelo por unique(phone)
             // MySQL duplicate key
-            if (err?.code === "ER_DUP_ENTRY") {
+            if ((err as { code?: string })?.code === "ER_DUP_ENTRY") {
                 const existing = await this.findByPhoneNumber(normalized);
                 if (existing) return existing;
             }

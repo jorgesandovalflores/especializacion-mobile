@@ -30,7 +30,7 @@ fun SignUpStep1Screen(
     modifier: Modifier = Modifier
 ) {
     val bg = Color.White
-    NavigationBarStyle(color = bg, darkIcons = true)
+    NavigationBarStyle(darkIcons = true)
 
     Column(
         modifier = modifier

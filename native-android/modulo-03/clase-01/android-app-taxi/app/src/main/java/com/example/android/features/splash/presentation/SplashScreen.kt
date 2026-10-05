@@ -11,53 +11,46 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
-import com.example.android.commons.domain.usecase.GetPassengerLocalState
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.android.commons.presentation.NavigationBarStyle
 import com.example.android.core.presentation.theme.ColorPrimary
 import com.example.android.core.presentation.theme.ColorSecondary
-import kotlinx.coroutines.delay
-
 
 @Composable
-fun SplashScreen(
+fun SplashRoute(
     onGoSignIn: () -> Unit,
     onGoHome: () -> Unit,
     modifier: Modifier = Modifier,
-    passengerLocalState: GetPassengerLocalState,
+    vm: SplashViewModel = hiltViewModel()
 ) {
-    val bg = ColorPrimary
+    val destination by vm.destination.collectAsStateWithLifecycle()
 
-    NavigationBarStyle(color = bg, darkIcons = true)
-
-    // Timer para navegación
-    LaunchedEffect(passengerLocalState) {
-        when (val value = passengerLocalState) {
-            is GetPassengerLocalState.Idle -> { }
-            is GetPassengerLocalState.Success -> {
-                if (value.value.id.isNullOrEmpty()) {
-                    onGoSignIn()
-                } else {
-                    onGoHome()
-                }
-            }
-            else -> {
-                onGoSignIn()
-            }
+    LaunchedEffect(destination) {
+        when (destination) {
+            SplashDestination.Home -> onGoHome()
+            SplashDestination.SignIn -> onGoSignIn()
+            null -> Unit
         }
     }
 
-    // Fondo + logo + loader
+    SplashScreen(modifier = modifier)
+}
+
+@Composable
+fun SplashScreen(modifier: Modifier = Modifier) {
+    NavigationBarStyle(darkIcons = false)
+
     Box(
         modifier = modifier
             .fillMaxSize()
-            .background(bg),
+            .background(ColorPrimary),
         contentAlignment = Alignment.Center
     ) {
         Column(
@@ -77,28 +70,8 @@ fun SplashScreen(
     }
 }
 
-@Composable
-fun SplashScreenRoute(
-    onGoSignIn: () -> Unit,
-    onGoHome: () -> Unit,
-    modifier: Modifier = Modifier,
-    vm: SplashViewModel = hiltViewModel()
-) {
-    val user = vm.user.collectAsState()
-    LaunchedEffect(Unit) {
-        delay(1500)
-        vm.callGetUser()
-    }
-    SplashScreen(
-        onGoSignIn = onGoSignIn,
-        onGoHome = onGoHome,
-        modifier = modifier,
-        passengerLocalState = user.value
-    )
-}
-
 @Preview(showBackground = true)
 @Composable
-fun SplashScreenPreview() {
-    SplashScreen(passengerLocalState = GetPassengerLocalState.Idle, onGoSignIn = {}, onGoHome = {})
+private fun SplashScreenPreview() {
+    SplashScreen()
 }

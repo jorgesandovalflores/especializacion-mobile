@@ -4,9 +4,6 @@ import android.app.Activity
 import android.content.Context
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
-import androidx.compose.runtime.SideEffect
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalView
 import androidx.core.view.WindowInsetsControllerCompat
 
@@ -18,7 +15,7 @@ private tailrec fun Context.findActivity(): Activity =
     }
 
 @Composable
-fun NavigationBarStyle(color: Color, darkIcons: Boolean) {
+fun NavigationBarStyle(darkIcons: Boolean) {
     val view = LocalView.current
     if (view.isInEditMode) return
 
@@ -26,9 +23,14 @@ fun NavigationBarStyle(color: Color, darkIcons: Boolean) {
     val window = activity.window
     val controller = WindowInsetsControllerCompat(window, window.decorView)
 
-    SideEffect {
-        window.navigationBarColor = color.toArgb()
+    DisposableEffect(darkIcons) {
+        val prevLight = controller.isAppearanceLightNavigationBars
+
         controller.isAppearanceLightNavigationBars = darkIcons
         window.isNavigationBarContrastEnforced = false
+
+        onDispose {
+            controller.isAppearanceLightNavigationBars = prevLight
+        }
     }
 }

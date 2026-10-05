@@ -1,0 +1,9 @@
+{
+    "validation": {
+        "isString": "The code must be a string.",
+        "required": "The code is required.",
+        "minLength": "The code must have at least 4 digits.",
+        "maxLength": "The code must have at most 6 digits.",
+        "pattern": "The code can only contain numbers."
+    }
+}

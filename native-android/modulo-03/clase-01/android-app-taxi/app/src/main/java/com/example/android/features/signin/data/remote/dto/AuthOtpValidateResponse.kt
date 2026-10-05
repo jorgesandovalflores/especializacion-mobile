@@ -3,7 +3,7 @@ package com.example.android.features.signin.data.remote.dto
 import com.example.android.commons.data.remote.dto.PassengerDto
 import com.example.android.commons.data.remote.dto.toDomain
 import com.example.android.features.signin.domain.model.SessionTokens
-import com.example.android.features.signin.domain.repository.OtpValidateResult
+import com.example.android.features.signin.domain.model.OtpValidateResult
 
 data class AuthOtpValidateResponse(
     val accessToken: String,

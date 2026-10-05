@@ -2,34 +2,33 @@ package com.example.android.features.splash.presentation
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.android.commons.domain.usecase.GetPassengerLocalState
-import com.example.android.commons.domain.usecase.GetPassengerLocalUseCase
-import com.example.android.core.domain.ErrorMapper
-import com.example.android.core.presentation.toReadableMessage
+import com.example.android.features.splash.domain.usecase.HasSessionUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
+enum class SplashDestination { SignIn, Home }
+
 @HiltViewModel
 class SplashViewModel @Inject constructor(
-    private val getPassengerLocalUseCase: GetPassengerLocalUseCase
+    private val hasSession: HasSessionUseCase
 ) : ViewModel() {
 
-    private val _user = MutableStateFlow<GetPassengerLocalState>(GetPassengerLocalState.Idle)
-    val user: StateFlow<GetPassengerLocalState> = _user
-    fun callGetUser() {
+    private val _destination = MutableStateFlow<SplashDestination?>(null)
+    val destination: StateFlow<SplashDestination?> = _destination.asStateFlow()
+
+    init {
         viewModelScope.launch {
-            try {
-                getPassengerLocalUseCase().collect {
-                    _user.value = it
-                }
-            } catch (t: Throwable) {
-                val mapped = ErrorMapper.map(t)
-                _user.value = GetPassengerLocalState.Error(message = mapped.toReadableMessage())
-            }
+            delay(SPLASH_DURATION_MS)
+            _destination.value = if (hasSession()) SplashDestination.Home else SplashDestination.SignIn
         }
     }
 
+    private companion object {
+        const val SPLASH_DURATION_MS = 1_500L
+    }
 }
