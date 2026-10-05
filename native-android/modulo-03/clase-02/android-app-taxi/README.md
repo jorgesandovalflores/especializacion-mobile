@@ -24,6 +24,7 @@ App Android (Kotlin + Jetpack Compose) que implementa el **inicio de sesión por
 | Asincronía | Kotlin Coroutines + Flow (`-test` en pruebas) | 1.11.0 | Casos de uso como `Flow<State>` |
 | Persistencia | Room 3 (`room3-runtime`, `room3-compiler`, plugin `androidx.room3`) | 3.0.3 | Caché local del menú (SQLite) |
 | Persistencia | `SharedPreferences` | plataforma | Borrador del registro y sesión |
+| Persistencia | Preferences DataStore (`datastore-preferences`) | 1.2.1 | Implementación alternativa de la sesión (`SessionStoreDataStore`) |
 | Seguridad | `javax.crypto` + Android Keystore | plataforma | Tokens cifrados con AES-256-GCM |
 | SDK | compileSdk / targetSdk / minSdk | 37 / 37 / 29 | — |
 | JDK | Java | 17 | — |
@@ -136,6 +137,7 @@ Cómo traduce `ErrorMapper` (el contrato completo, caso por caso, está en [«Co
 | --- | --- |
 | `SecurityModule.kt` | Provee `SessionStore` (→ `SessionStoreEncryptedPrefs`) y `AuthInterceptor` como `@Singleton` |
 | `SessionStoreEncryptedPrefs.kt` | Implementa `SessionStore`: cifra cada token antes de guardarlo en `SharedPreferences` y expone lecturas como `Flow` |
+| `SessionStoreDataStore.kt` | La misma sesión con Preferences DataStore y el mismo cifrado. No está conectada en `SecurityModule`: se activa cambiando una línea y migra el XML existente. Comparación en el [README de la clase](../README.md#datastore-en-el-proyecto-sessionstoredatastore) |
 
 | Elemento | Valor |
 | --- | --- |
@@ -447,7 +449,7 @@ El backend envía un nombre lógico de ícono (`home`, `profile`, `history`, `su
 | --- | --- |
 | `./gradlew assembleDebug` | Compila la app |
 | `./gradlew testDebugUnitTest` | 36 pruebas JVM |
-| `./gradlew connectedDebugAndroidTest` | Pruebas instrumentadas (Keystore, Room y SharedPreferences reales) |
+| `./gradlew connectedDebugAndroidTest` | Pruebas instrumentadas (Keystore, Room, SharedPreferences y DataStore reales) |
 | `./gradlew lintDebug` | Lint (`app/build/reports/lint-results-debug.html`) |
 
 | Prueba | Tipo | Qué verifica |
@@ -456,6 +458,7 @@ El backend envía un nombre lógico de ícono (`home`, `profile`, `history`, `su
 | `OtpValidateUseCaseTest` | JVM | Guarda tokens, `showRegister` según `status`, no guarda sesión si falla |
 | `AuthRepositoryImplTest` | JVM | DTO → dominio; 400, 422, 429, 404 y 500 → `DomainException`; `IOException`; la cancelación se relanza |
 | `SessionStoreEncryptedPrefsTest` | Instrumentada | Cifrado real, sobrescritura, datos corruptos, bandera `registration_pending` |
+| `SessionStoreDataStoreTest`, `SessionStoreDataStoreMigrationTest` | Instrumentada | Lo mismo sobre DataStore, y que una sesión guardada con SharedPreferences se lee tras migrar |
 | `MenuRepositoryImplTest` | JVM | Lee de Room en orden, no llama a la red al observar, `refreshMenu` reemplaza la tabla, conserva la caché si falla, 401 y cancelación |
 | `RefreshMenuUseCaseTest` | JVM | `Loading → Success`, errores de dominio y genéricos |
 | `SignOutUseCaseTest` | JVM | Borra tokens y caché local |

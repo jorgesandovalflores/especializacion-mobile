@@ -413,7 +413,7 @@ fun saveEmail_doesNotOverwriteTheNames() = runBlocking {
 
 ```bash
 ./gradlew testDebugUnitTest            # 36 pruebas JVM
-./gradlew connectedDebugAndroidTest    # 16 instrumentadas (necesita emulador)
+./gradlew connectedDebugAndroidTest    # 22 instrumentadas (necesita emulador)
 ```
 
 ---
@@ -473,7 +473,129 @@ class SignUpDraftStoreDataStore(private val context: Context) : SignUpDraftStore
 }
 ```
 
-> Este fragmento es la referencia para la práctica 1; **no** está en `android-app-taxi`. La carpeta [`DataStore`](./DataStore) tiene un proyecto pequeño e independiente (pantalla de ajustes) para verlo funcionando.
+> Este fragmento es la referencia para la práctica 1; el borrador del registro sigue en SharedPreferences. La carpeta [`DataStore`](./DataStore) tiene además un proyecto pequeño e independiente (pantalla de ajustes).
+
+### DataStore en el proyecto: `SessionStoreDataStore`
+
+El proyecto incluye una segunda implementación del contrato `SessionStore`, esta vez con DataStore. Tiene **los mismos métodos** que `SessionStoreEncryptedPrefs` y cifra los tokens igual; solo cambia dónde y cómo se guardan. Por defecto **no está conectada**: sirve para comparar ambas tecnologías y hacer el cambio en clase.
+
+```kotlin
+// core/data/SessionStoreDataStore.kt (extracto)
+private val Context.sessionDataStore: DataStore<Preferences> by preferencesDataStore(
+    name = SessionStoreDataStore.DEFAULT_STORE_NAME,
+    produceMigrations = { context ->
+        listOf(SharedPreferencesMigration(context, SessionStoreEncryptedPrefs.DEFAULT_PREFS_NAME))
+    }
+)
+
+class SessionStoreDataStore(
+    private val dataStore: DataStore<Preferences>
+) : SessionStore {
+
+    constructor(context: Context) : this(context.sessionDataStore)
+
+    private val preferences: Flow<Preferences> = dataStore.data
+        .catch { if (it is IOException) emit(emptyPreferences()) else throw it }
+
+    override suspend fun saveTokens(access: String, refresh: String) {
+        dataStore.edit { prefs ->
+            prefs[KEY_ACCESS] = encrypt(KEY_ACCESS.name, access)
+            prefs[KEY_REFRESH] = encrypt(KEY_REFRESH.name, refresh)
+        }
+    }
+
+    override fun accessToken(): Flow<String?> = tokenFlow(KEY_ACCESS)
+
+    override suspend fun setRegistrationPending(pending: Boolean) {
+        dataStore.edit { it[KEY_REGISTRATION_PENDING] = pending }
+    }
+
+    override fun registrationPending(): Flow<Boolean> = preferences
+        .map { it[KEY_REGISTRATION_PENDING] ?: false }
+        .distinctUntilChanged()
+
+    override suspend fun clear() {
+        dataStore.edit { it.clear() }
+    }
+
+    private fun tokenFlow(key: Preferences.Key<String>): Flow<String?> = preferences
+        .map { decrypt(key.name, it[key]) }
+        .distinctUntilChanged()
+}
+```
+
+#### Cómo funciona cada uno
+
+```mermaid
+flowchart TB
+    subgraph SP["SessionStoreEncryptedPrefs · SharedPreferences"]
+        direction TB
+        SPW["saveTokens()<br/>prefs.edit { putString }"] --> SPA["apply()"]
+        SPA -->|al instante| SPM["Copia en memoria"]
+        SPA -.->|después, en segundo plano<br/>si falla, nadie se entera| SPX[("session_store.xml")]
+        SPM --> SPR["Lectura directa<br/>getString() · síncrona"]
+        SPM --> SPL["OnSharedPreferenceChangeListener<br/>+ callbackFlow (escrito a mano)"]
+        SPL --> SPF["Flow&lt;String?&gt;"]
+    end
+
+    subgraph DS["SessionStoreDataStore · DataStore"]
+        direction TB
+        DSW["saveTokens()<br/>dataStore.edit { prefs[KEY] = … }"] --> DST["Transacción suspend<br/>fuera del hilo principal"]
+        DST -->|escribe y confirma<br/>si falla, lanza excepción| DSX[("session_store.preferences_pb")]
+        DSX -->|cada escritura confirmada<br/>emite el estado completo| DSD["dataStore.data<br/>Flow&lt;Preferences&gt;"]
+        DSD --> DSF["map { … }<br/>Flow&lt;String?&gt;"]
+    end
+```
+
+| Diferencia                    | SharedPreferences                                         | DataStore                                                   |
+| ----------------------------- | --------------------------------------------------------- | ----------------------------------------------------------- |
+| **Orden de la escritura**     | Primero la memoria; el disco se actualiza después         | Primero el disco; recién entonces se emite el valor nuevo   |
+| **¿La escritura terminó?**    | `apply()` regresa antes de escribir en disco              | `edit { }` es `suspend`: regresa cuando ya se guardó        |
+| **Si el disco falla**         | No hay aviso                                              | `edit { }` lanza una excepción                              |
+| **Lectura**                   | Síncrona; la primera puede bloquear el hilo principal     | Solo por `Flow`; nunca bloquea                              |
+| **Observar cambios**          | Hay que construirlo: listener + `callbackFlow`            | Viene incluido: `data` ya es un `Flow`                      |
+
+#### Las dos implementaciones, lado a lado
+
+| Aspecto                         | `SessionStoreEncryptedPrefs`                               | `SessionStoreDataStore`                                         |
+| ------------------------------- | ---------------------------------------------------------- | --------------------------------------------------------------- |
+| Contrato                        | `SessionStore`                                             | `SessionStore` (el mismo)                                       |
+| Dependencia                     | Ninguna (plataforma)                                       | `androidx.datastore:datastore-preferences` 1.2.1                |
+| Archivo                         | `shared_prefs/session_store.xml` (XML legible)             | `files/datastore/session_store.preferences_pb` (binario)        |
+| Claves                          | `String` sueltos: `"access_token"`                         | Tipadas: `stringPreferencesKey("access_token")`, `booleanPreferencesKey(…)` |
+| Guardar tokens                  | `prefs.edit { putString(…) }` dentro de `withContext(IO)`  | `dataStore.edit { prefs[KEY] = … }` (ya es `suspend`)           |
+| Leer como `Flow`                | `callbackFlow` + registrar y quitar el listener            | `dataStore.data.map { … }`                                      |
+| Emisiones repetidas             | Emite cada vez que cambia la clave observada               | Emite el estado completo en cada escritura: se filtra con `distinctUntilChanged()` |
+| Error de lectura                | No aplica (lee de memoria)                                 | `IOException` en el `Flow`: se convierte en «sin sesión» con `catch` |
+| Borrar                          | `prefs.edit { clear() }`                                   | `dataStore.edit { it.clear() }`                                 |
+| Cifrado de los tokens           | AES-256-GCM con Android Keystore                           | El mismo cifrado y la misma clave                               |
+| `registration_pending`          | `putBoolean` sin cifrar                                    | `booleanPreferencesKey` sin cifrar                              |
+| Instancia                       | Varias instancias pueden abrir el mismo archivo            | **Una sola** por archivo (`preferencesDataStore` lo garantiza)  |
+| Datos anteriores                | —                                                          | `SharedPreferencesMigration` copia `session_store.xml` la primera vez |
+
+DataStore **no cifra**: en ambas clases el cifrado lo hace el mismo código con `javax.crypto` y el Keystore.
+
+#### Hacer el cambio
+
+Como el resto de la app depende de la interfaz, basta **una línea** en el módulo de Hilt:
+
+```kotlin
+// core/data/SecurityModule.kt
+@Provides @Singleton
+fun provideSessionStore(@ApplicationContext ctx: Context): SessionStore =
+    SessionStoreDataStore(ctx)      // antes: SessionStoreEncryptedPrefs(ctx)
+```
+
+| Al cambiar…                                  | Qué ocurre                                                                 |
+| -------------------------------------------- | -------------------------------------------------------------------------- |
+| Con una sesión abierta                       | La migración copia los tokens y la bandera: el pasajero **sigue dentro**    |
+| El archivo `session_store.xml`               | Se elimina después de migrar                                               |
+| Si luego vuelves a `SessionStoreEncryptedPrefs` | No encuentra el XML: la app pide iniciar sesión otra vez                |
+| Casos de uso, ViewModels, `AuthInterceptor`, Splash | No cambian                                                          |
+
+Para ver el archivo nuevo: *Device Explorer* → `/data/data/com.example.android/files/datastore/`.
+
+### ¿Cuál elegir?
 
 | Quédate con SharedPreferences si…                    | Pasa a DataStore si…                                  |
 | ---------------------------------------------------- | ----------------------------------------------------- |
@@ -498,6 +620,8 @@ Punto de partida: los tres proyectos de la clase 01, sin cambios.
 | `features/signup/presentation/**`                                 | Modificado | Formularios de los dos pasos, `SignUpViewModel`, `SignUpStepHeader` |
 | `commons/presentation/TextInputField.kt`                          | **Nuevo**  | Campo de texto reutilizable                                 |
 | `core/domain/SessionStore.kt`, `core/data/SessionStoreEncryptedPrefs.kt` | Modificado | Bandera `registration_pending`                       |
+| `core/data/SessionStoreDataStore.kt`                              | **Nuevo**  | La misma sesión con DataStore (sin conectar en Hilt, sección 4) |
+| `gradle/libs.versions.toml`, `app/build.gradle.kts`               | Modificado | Dependencia `datastore-preferences`                         |
 | `features/signin/domain/usecase/OtpValidateUseCase.kt`            | Modificado | Marca el registro como pendiente                            |
 | `features/splash/**`                                              | Modificado | `GetStartDestinationUseCase` con tres destinos              |
 | `core/presentation/activity/MainActivity.kt`                      | Modificado | Splash puede ir al grafo de registro                        |
@@ -602,7 +726,7 @@ adb shell run-as com.example.android cat shared_prefs/signup_draft.xml
 
 ### Práctica propuesta
 
-1. **Migrar a DataStore**: agrega `datastore-preferences`, crea `SignUpDraftStoreDataStore` (sección 4) y cámbialo en `SignUpModule`. Comprueba que `SignUpUseCaseTest` pasa sin modificarse.
+1. **Migrar el borrador a DataStore**: crea `SignUpDraftStoreDataStore` (sección 4) tomando como guía `SessionStoreDataStore` y cámbialo en `SignUpModule`. Comprueba que `SignUpUseCaseTest` pasa sin modificarse.
 2. **Borrador por teléfono**: hoy el borrador no sabe de quién es. Guarda también el teléfono y descarta el borrador si inicia sesión otro número.
 3. **Mostrar el nombre en Home**: guarda `givenName` al terminar el registro y úsalo en el toast de bienvenida («¡Bienvenido, Jorge!»).
 4. **Prueba del ViewModel**: escribe `SignUpViewModelTest` y verifica que `onEmailChange` no pierde los nombres ya guardados.
