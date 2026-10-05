@@ -609,6 +609,14 @@ adb shell run-as com.example.android cat shared_prefs/signup_draft.xml
 
 ---
 
+## Quiz
+
+Pon a prueba lo aprendido en las clases de Room y SharedPreferences: 10 preguntas de nivel básico e intermedio.
+
+-   [Responder el quiz](https://forms.gle/qqwoUzZtaHbGdfvG6)
+
+---
+
 ## Recursos recomendados
 
 -   [Guardar datos simples con SharedPreferences](https://developer.android.com/training/data-storage/shared-preferences) (Android Developers).
