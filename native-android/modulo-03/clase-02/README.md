@@ -85,7 +85,6 @@ Un pasajero nuevo valida su OTP y llega al **registro**: paso 1 (nombres y apell
 | [`backend-app-taxi`](./backend-app-taxi)      | API NestJS 12: OTP, menú y **`PUT /passenger/signup`**        | [README](./backend-app-taxi/README.md) |
 | [`android-app-taxi`](./android-app-taxi)      | App Android (Compose + Hilt + Retrofit + Room + **SharedPreferences**) | [README](./android-app-taxi/README.md) |
 | [`design-m03-c02.pen`](./design-m03-c02.pen)  | Diseño: se agrega la sección «5 · Registro (SharedPreferences)» | —                                    |
-| [`DataStore`](./DataStore)                    | Proyecto independiente de ejemplo con DataStore (sección 4)   | —                                      |
 
 Los tres proyectos parten **tal cual** de la clase 01 (OTP + menú con Room). Esta clase solo agrega el registro.
 
@@ -473,7 +472,7 @@ class SignUpDraftStoreDataStore(private val context: Context) : SignUpDraftStore
 }
 ```
 
-> Este fragmento es la referencia para la práctica 1; el borrador del registro sigue en SharedPreferences. La carpeta [`DataStore`](./DataStore) tiene además un proyecto pequeño e independiente (pantalla de ajustes).
+> Este fragmento es la referencia para la práctica 1; el borrador del registro sigue en SharedPreferences.
 
 ### DataStore en el proyecto: `SessionStoreDataStore`
 
