@@ -1,25 +1,28 @@
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+
 plugins {
     alias(libs.plugins.android.application)
-    alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.hilt.android)
     alias(libs.plugins.ksp)
-    alias(libs.plugins.serialization)
+    alias(libs.plugins.room)
 }
 
 android {
     namespace = "com.example.android"
-    compileSdk = 36
+    compileSdk {
+        version = release(37)
+    }
 
     defaultConfig {
         applicationId = "com.example.android"
         minSdk = 29
-        targetSdk = 36
+        targetSdk = 37
         versionCode = 1
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
-        buildConfigField("String", "API_BASE_URL", "\"https://6jh2c2wj-3001.brs.devtunnels.ms/\"")
+        buildConfigField("String", "API_BASE_URL", "\"https://qgbc49cx-3001.brs.devtunnels.ms/\"")
     }
 
     buildTypes {
@@ -37,35 +40,31 @@ android {
         targetCompatibility = JavaVersion.VERSION_17
     }
 
-    kotlinOptions {
-        jvmTarget = "17"
-    }
-
     buildFeatures {
         compose = true
         buildConfig = true
     }
 
-    sourceSets["main"].res.srcDirs(
+    sourceSets["main"].res.directories += listOf(
         "src/main/res",
-        "src/main/java/com/example/android/commons/presentation/res",
         "src/main/java/com/example/android/features/splash/presentation/res",
-        "src/main/java/com/example/android/features/signin/presentation/res",
-        "src/main/java/com/example/android/features/signup/presentation/res",
-        "src/main/java/com/example/android/features/home/presentation/res",
-        "src/main/java/com/example/android/features/menu/presentation/res"
+        "src/main/java/com/example/android/features/signin/presentation/res"
     )
 
 }
 
+room3 {
+    schemaDirectory("$projectDir/schemas")
+}
+
 kotlin {
     jvmToolchain(17)
+    compilerOptions {
+        jvmTarget.set(JvmTarget.JVM_17)
+    }
 }
 
 dependencies {
-    constraints {
-        implementation(libs.javapoet)
-    }
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)
@@ -74,6 +73,7 @@ dependencies {
     implementation(libs.androidx.ui.graphics)
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
+    implementation(libs.androidx.material.icons.core)
 
     // Navigation Compose
     implementation(libs.androidx.navigation.compose)
@@ -89,22 +89,18 @@ dependencies {
     implementation(libs.retrofit.gson)
     implementation(libs.okhttp.core)
     implementation(libs.okhttp.logging)
-    // room
+    // Room
     implementation(libs.room.runtime)
-    implementation(libs.room.ktx)
-    ksp(libs.room.ksp)
+    ksp(libs.room.compiler)
+    // DataStore
+    implementation(libs.datastore.preferences)
     // Coroutines
     implementation(libs.kotlinx.coroutines.core)
     implementation(libs.kotlinx.coroutines.android)
-    // Security
-    implementation(libs.security.crypto)
-    // serialization
-    implementation(libs.serialization)
-    // serialization
-    implementation(libs.coil.compose)
-    implementation(libs.coil.svg)
 
     testImplementation(libs.junit)
+    testImplementation(libs.kotlinx.coroutines.test)
+    testImplementation(libs.okhttp.mockwebserver)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
     androidTestImplementation(platform(libs.androidx.compose.bom))

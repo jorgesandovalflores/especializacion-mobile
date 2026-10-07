@@ -1,0 +1,8 @@
+{
+    "validation": {
+        "givenName": "Your given name must be between 2 and 60 characters.",
+        "familyName": "Your family name must be between 2 and 60 characters.",
+        "email": "The email address is not valid."
+    },
+    "emailAlreadyUsed": "This email is already registered by another passenger."
+}

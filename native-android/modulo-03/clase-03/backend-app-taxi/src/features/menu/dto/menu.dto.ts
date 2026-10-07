@@ -1,60 +1,32 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { MenuApplication } from "../enum/menu-application.enum";
-import { MenuStatus } from "../enum/menu-status.enum";
 
 /* -------------------------------------------------------
-   DTO de lectura para Menu (1:1 con la entidad)
-   - Usado típicamente como respuesta en controladores
+   DTO de lectura de una opción de menú
+   - Solo expone lo que la app necesita dibujar y guardar
 -------------------------------------------------------- */
 export class MenuDto {
-    @ApiProperty({ description: "Menu ID (UUID v4)", format: "uuid" })
-    id!: string;
-
     @ApiProperty({
-        description: "Unique key identifier for this menu item",
+        description: "Stable key of the menu item",
+        example: "passenger_profile",
         maxLength: 24,
     })
     key!: string;
 
-    @ApiProperty({
-        description: "Display text for the menu item",
-        maxLength: 164,
-    })
+    @ApiProperty({ description: "Display text", example: "Mi perfil" })
     text!: string;
 
     @ApiProperty({
-        description: "Full URL of the icon used in the menu item",
-        maxLength: 255,
+        description: "Logical icon name resolved by the app",
+        example: "profile",
     })
-    iconUrl!: string;
+    icon!: string;
 
     @ApiProperty({
-        description: "Deep link (internal or external) for this menu item",
-        maxLength: 255,
+        description: "Deep link opened by the menu item",
+        example: "app-taxi://passenger/profile",
     })
     deeplink!: string;
 
-    @ApiProperty({
-        description:
-            "Order position (ascending order defines display priority)",
-        example: 1,
-    })
+    @ApiProperty({ description: "Ascending display order", example: 2 })
     order!: number;
-
-    @ApiProperty({
-        description:
-            "Application that owns this menu (e.g., PASSENGER, DRIVER)",
-        enum: MenuApplication,
-        enumName: "MenuApplication",
-        default: MenuApplication.PASSENGER,
-    })
-    application!: MenuApplication;
-
-    @ApiProperty({
-        description: "Business status of the menu item",
-        enum: MenuStatus,
-        enumName: "MenuStatus",
-        default: MenuStatus.ACTIVE,
-    })
-    status!: MenuStatus;
 }

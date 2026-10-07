@@ -1,7 +1,7 @@
 package com.example.android.features.signup.domain.repository
 
-import com.example.android.commons.domain.usecase.AuthResult
+import com.example.android.commons.domain.model.Passenger
 
 interface SignUpRepository {
-    suspend fun signUpRemote(givenName: String, familyName: String, photoUrl: String, email: String): AuthResult
+    suspend fun signUp(givenName: String, familyName: String, email: String): Passenger
 }

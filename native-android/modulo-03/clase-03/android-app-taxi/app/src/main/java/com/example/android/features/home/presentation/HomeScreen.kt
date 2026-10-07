@@ -1,146 +1,143 @@
 package com.example.android.features.home.presentation
 
-import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.example.android.commons.presentation.NavigationBarStyle
 import com.example.android.commons.presentation.PrimaryButton
+import com.example.android.commons.presentation.ToastHost
+import com.example.android.commons.presentation.ToastMessage
+import com.example.android.commons.presentation.ToastType
 import com.example.android.core.presentation.theme.ColorPrimary
+import kotlinx.coroutines.delay
+
+private const val WELCOME_TOAST_MS = 3_000L
+
+@Composable
+fun HomeRoute(
+    onOpenMenu: () -> Unit,
+    onLoggedOut: () -> Unit,
+    modifier: Modifier = Modifier,
+    vm: HomeViewModel = hiltViewModel()
+) {
+    var showWelcome by rememberSaveable { mutableStateOf(true) }
+
+    LaunchedEffect(showWelcome) {
+        if (showWelcome) {
+            delay(WELCOME_TOAST_MS)
+            showWelcome = false
+        }
+    }
+
+    HomeScreen(
+        showWelcome = showWelcome,
+        onOpenMenu = onOpenMenu,
+        onLogout = { vm.logout(onLoggedOut) },
+        modifier = modifier
+    )
+}
 
 @Composable
 fun HomeScreen(
-    modifier: Modifier = Modifier,
-    onLogout: () -> Unit = {},
-    onBackPressed: () -> Unit = {},
-    onMenuClick: () -> Unit = {}
+    showWelcome: Boolean,
+    onOpenMenu: () -> Unit,
+    onLogout: () -> Unit,
+    modifier: Modifier = Modifier
 ) {
-    val bg = Color(0xFFF4F5F6)
-    NavigationBarStyle(color = bg, darkIcons = true)
-
-    // Interceptar el botón back
-    BackHandler { onBackPressed() }
+    NavigationBarStyle(darkIcons = true)
 
     Box(
         modifier = modifier
             .fillMaxSize()
-            .background(bg)
-            .systemBarsPadding()
-            .imePadding()
+            .background(Color.White)
     ) {
-        // Botón circular superior izquierdo
-        Box(
-            modifier = Modifier
-                .padding(top = 16.dp, start = 16.dp)
-                .align(Alignment.TopStart)
-        ) {
-            MenuIconButton(
-                iconRes = com.example.android.R.drawable.feature_home_ic_menu,
-                onClick = onMenuClick
-            )
-        }
-
-        // Centro: texto "home"
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .align(Alignment.Center),
-            contentAlignment = Alignment.Center
-        ) {
-            Text(
-                text = "home",
-                style = MaterialTheme.typography.headlineMedium,
-                color = Color(0xFF0F0F0F)
-            )
-        }
-
-        // Botón inferior: "Cerrar sesión"
         Column(
             modifier = Modifier
-                .fillMaxWidth()
-                .align(Alignment.BottomCenter)
-                .padding(horizontal = 24.dp, vertical = 24.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
+                .fillMaxSize()
+                .systemBarsPadding()
+                .padding(horizontal = 24.dp),
+            verticalArrangement = Arrangement.SpaceBetween
         ) {
+            Surface(
+                onClick = onOpenMenu,
+                shape = CircleShape,
+                color = ColorPrimary,
+                contentColor = Color.White,
+                shadowElevation = 6.dp,
+                modifier = Modifier
+                    .padding(top = 16.dp)
+                    .size(48.dp)
+            ) {
+                Box(contentAlignment = Alignment.Center) {
+                    Icon(
+                        imageVector = Icons.Filled.Menu,
+                        contentDescription = "Abrir menú"
+                    )
+                }
+            }
+
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .weight(1f),
+                verticalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterVertically),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Text(
+                    text = "Home",
+                    style = MaterialTheme.typography.headlineMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = Color(0xFF0F0F0F)
+                )
+                Text(
+                    text = "Tu sesión está activa",
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = Color(0xFF6B6B6B)
+                )
+            }
+
             PrimaryButton(
                 text = "Cerrar sesión",
                 onClick = onLogout,
-                enabled = true,
-                loading = false,
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.padding(bottom = 24.dp)
             )
         }
-    }
-}
 
-@Composable
-fun HomeScreenRoute(
-    onNavigateToMenu: () -> Unit,
-    onLogout: () -> Unit,
-    onBackPressed: () -> Unit,
-    modifier: Modifier = Modifier,
-) {
-    HomeScreen(
-        modifier = modifier,
-        onMenuClick = onNavigateToMenu,
-        onLogout = onLogout,
-        onBackPressed = onBackPressed
-    )
-}
-
-/**
- * Botón circular con efecto de "pressed"
- */
-@Composable
-fun MenuIconButton(
-    iconRes: Int,
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier
-) {
-    Button (
-        onClick = onClick,
-        shape = CircleShape,
-        colors = ButtonDefaults.buttonColors(
-            containerColor = ColorPrimary,
-            contentColor = Color.White
-        ),
-        elevation = ButtonDefaults.buttonElevation( // elevación igual a PrimaryButton
-            defaultElevation = 6.dp,
-            pressedElevation = 8.dp,
-            focusedElevation = 6.dp,
-            hoveredElevation = 6.dp,
-            disabledElevation = 0.dp
-        ),
-        contentPadding = PaddingValues(0.dp),
-        modifier = modifier.size(54.dp)
-    ) {
-        Icon(
-            painter = painterResource(id = iconRes),
-            contentDescription = "menu",
-            tint = Color.White,
-            modifier = Modifier.size(22.dp)
+        ToastHost(
+            toast = if (showWelcome) ToastMessage(ToastType.Success, "Sesión iniciada correctamente") else null,
+            modifier = Modifier.align(Alignment.TopCenter)
         )
     }
 }
 
-@Preview
+@Preview(showBackground = true, backgroundColor = 0xFFFFFFFF)
 @Composable
-fun PreviewHomeScreen() {
-    HomeScreen(
-        onLogout = {},
-        onBackPressed = {},
-        onMenuClick = {}
-    )
+private fun HomeScreenPreview() {
+    HomeScreen(showWelcome = true, onOpenMenu = {}, onLogout = {})
 }

@@ -1,62 +1,33 @@
 package com.example.android.core.data
 
-import com.example.android.core.domain.SessionStore
-import kotlinx.coroutines.flow.firstOrNull
+import com.example.android.core.domain.SessionExpiration
 import kotlinx.coroutines.runBlocking
 import okhttp3.Authenticator
 import okhttp3.Request
 import okhttp3.Response
 import okhttp3.Route
-import javax.inject.Inject
-import javax.inject.Singleton
 
-@Singleton
-class TokenAuthenticator @Inject constructor(
+class TokenAuthenticator(
     private val refresher: TokenRefresher,
-    private val session: SessionStore,
+    private val expiration: SessionExpiration
 ) : Authenticator {
 
     override fun authenticate(route: Route?, response: Response): Request? {
-        // 1) Evita loops: si ya intentamos demasiadas veces
-        if (response.priorResponseCount() >= 1) {
-            // Limpia sesión y que la UI navegue a Splash/Login
-            runBlocking { session.clear() }
-            return null
+        val request = response.request
+        if (request.isPublicAuthEndpoint()) return null
+        if (response.priorResponse != null) return null
+
+        val staleAccessToken = request.header(HEADER_AUTHORIZATION)?.removePrefix(BEARER_PREFIX)
+
+        return when (val result = runBlocking { refresher.refresh(staleAccessToken) }) {
+            is RefreshResult.Refreshed -> request.newBuilder()
+                .header(HEADER_AUTHORIZATION, "$BEARER_PREFIX${result.accessToken}")
+                .build()
+
+            RefreshResult.Rejected -> {
+                runBlocking { expiration.expire() }
+                null
+            }
         }
-
-        // 2) No refrescar si la URL es el endpoint de refresh
-        val path = response.request.url.encodedPath
-        if (path.contains("/auth/refresh")) return null
-
-        // 3) Ejecuta refresh (mutex + dedup)
-        val ok = refresher.refreshTokensBlocking()
-        if (!ok) {
-            runBlocking { session.clear() }
-            return null
-        }
-
-        // 4) Reintenta request original con el nuevo access
-        val newAccess = runBlocking { session.accessToken().firstOrNull() }
-        if (newAccess.isNullOrBlank()) {
-            runBlocking { session.clear() }
-            return null
-        }
-
-        return response.request
-            .newBuilder()
-            .header("Authorization", "Bearer $newAccess")
-            .header("X-Retry", "1") // marca de diagnóstico
-            .build()
     }
-}
-
-// Extensión auxiliar para contar reintentos
-private fun Response.priorResponseCount(): Int {
-    var count = 0
-    var r: Response? = priorResponse
-    while (r != null) {
-        count++
-        r = r.priorResponse
-    }
-    return count
 }
