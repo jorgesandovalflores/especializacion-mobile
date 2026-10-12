@@ -1,236 +1,203 @@
 package com.example.android.features.menu.presentation
 
-import com.example.android.R
-import androidx.annotation.DrawableRes
-import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
+import androidx.compose.material.icons.filled.DateRange
+import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.Icon
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.semantics.contentDescription
-import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
-import coil.ImageLoader
-import coil.compose.AsyncImage
-import coil.decode.SvgDecoder
-import coil.request.ImageRequest
-import com.example.android.commons.domain.model.Passenger
-import com.example.android.commons.domain.enum.PassengerStatusEnum
-import com.example.android.commons.domain.usecase.GetPassengerLocalState
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.android.commons.presentation.NavigationBarStyle
+import com.example.android.commons.presentation.PrimaryButton
+import com.example.android.commons.presentation.ToastHost
+import com.example.android.commons.presentation.ToastMessage
+import com.example.android.commons.presentation.ToastType
+import com.example.android.core.presentation.theme.ColorPrimary
 import com.example.android.features.menu.domain.model.Menu
-import com.example.android.features.menu.domain.usecase.GetMenuCacheState
+import com.example.android.features.menu.domain.usecase.RefreshMenuState
+import kotlinx.coroutines.delay
 
-@OptIn(ExperimentalMaterial3Api::class)
+private const val TOAST_DURATION_MS = 3_000L
+private const val SKELETON_ITEMS = 4
+
 @Composable
-private fun MenuTopBar(
-    @DrawableRes navIconRes: Int,
-    onNavClick: () -> Unit
+fun MenuRoute(
+    onBack: () -> Unit,
+    onMenuClick: (Menu) -> Unit,
+    modifier: Modifier = Modifier,
+    vm: MenuViewModel = hiltViewModel()
 ) {
-    TopAppBar(
-        modifier = Modifier.padding(horizontal = 16.dp),
-        title = { Text(text = "", style = MaterialTheme.typography.titleLarge) },
-        navigationIcon = {
-            Surface(
-                shape = CircleShape,
-                color = Color.Transparent,
-                tonalElevation = 0.dp,
-                modifier = Modifier
-                    .size(40.dp)
-                    .semantics { contentDescription = "menu_nav_left" },
-                onClick = onNavClick
-            ) {
-                Icon(
-                    painter = painterResource(navIconRes),
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.onSurface,
-                    modifier = Modifier
-                        .padding(8.dp)
-                        .size(24.dp)
+    val items by vm.menu.collectAsStateWithLifecycle()
+    val refresh by vm.refreshUi.collectAsStateWithLifecycle()
+    var showError by remember { mutableStateOf(false) }
 
-                )
-            }
-        },
-        colors = TopAppBarDefaults.topAppBarColors(
-            containerColor = Color.Transparent,
-            navigationIconContentColor = MaterialTheme.colorScheme.onSurface,
-            titleContentColor = MaterialTheme.colorScheme.onSurface
-        )
+    LaunchedEffect(refresh) {
+        showError = refresh is RefreshMenuState.Error
+        if (showError) {
+            delay(TOAST_DURATION_MS)
+            showError = false
+        }
+    }
+
+    MenuScreen(
+        items = items,
+        refresh = refresh,
+        showError = showError,
+        onBack = onBack,
+        onRetry = vm::refresh,
+        onMenuClick = onMenuClick,
+        modifier = modifier
     )
 }
 
 @Composable
-fun PassengerCard(
-    passenger: Passenger?,
-    loading: Boolean,
+fun MenuScreen(
+    items: List<Menu>,
+    refresh: RefreshMenuState,
+    showError: Boolean,
+    onBack: () -> Unit,
+    onRetry: () -> Unit,
+    onMenuClick: (Menu) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val surfaceColor = MaterialTheme.colorScheme.surface
-    val shimmerBase = Color.LightGray.copy(alpha = 0.3f)
-    val shimmerHighlight = Color.White.copy(alpha = 0.6f)
+    val refreshing = refresh is RefreshMenuState.Loading || refresh is RefreshMenuState.Idle
+    val errorMessage = (refresh as? RefreshMenuState.Error)?.message
+    val toast = errorMessage?.takeIf { showError }?.let { ToastMessage(ToastType.Error, it) }
 
-    // Animación shimmer infinita
-    val transition = rememberInfiniteTransition(label = "shimmer")
-    val translateAnim by transition.animateFloat(
-        initialValue = 0f,
-        targetValue = 1000f,
-        animationSpec = infiniteRepeatable(
-            tween(1200, easing = LinearEasing),
-            RepeatMode.Restart
-        ),
-        label = "shimmerAnim"
-    )
+    NavigationBarStyle(darkIcons = true)
 
-    val brush = Brush.linearGradient(
-        colors = listOf(shimmerBase, shimmerHighlight, shimmerBase),
-        start = androidx.compose.ui.geometry.Offset(translateAnim - 200f, 0f),
-        end = androidx.compose.ui.geometry.Offset(translateAnim, 200f)
-    )
-
-    Card(
-        modifier = modifier,
-        shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(containerColor = surfaceColor),
-        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
+    Box(
+        modifier = modifier
+            .fillMaxSize()
+            .background(Color(0xFFF0F0F0))
     ) {
-        Row(
+        Column(
             modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp),
-            verticalAlignment = Alignment.CenterVertically
+                .fillMaxSize()
+                .systemBarsPadding()
         ) {
-            if (loading) {
-                // Avatar skeleton
-                Box(
-                    modifier = Modifier
-                        .size(56.dp)
-                        .clip(CircleShape)
-                        .background(brush)
-                )
-            } else {
-                // Avatar real
-                Box(
-                    modifier = Modifier
-                        .size(56.dp)
-                        .clip(CircleShape)
-                        .background(MaterialTheme.colorScheme.secondary.copy(alpha = 0.15f)),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text(
-                        text = passenger?.givenName?.firstOrNull()?.uppercase() ?: "U",
-                        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
-                        color = MaterialTheme.colorScheme.secondary
+            MenuTopBar(onBack = onBack)
+
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(4.dp)
+            ) {
+                if (refreshing && items.isNotEmpty()) {
+                    LinearProgressIndicator(
+                        color = ColorPrimary,
+                        trackColor = ColorPrimary.copy(alpha = 0.15f),
+                        modifier = Modifier.fillMaxSize()
                     )
                 }
             }
 
-            Spacer(modifier = Modifier.width(12.dp))
-
-            Column(modifier = Modifier.weight(1f)) {
-                if (loading) {
-                    Spacer(
-                        modifier = Modifier
-                            .height(16.dp)
-                            .fillMaxWidth(0.5f)
-                            .clip(RoundedCornerShape(4.dp))
-                            .background(brush)
-                    )
-                    Spacer(Modifier.height(8.dp))
-                    Spacer(
-                        modifier = Modifier
-                            .height(12.dp)
-                            .fillMaxWidth(0.4f)
-                            .clip(RoundedCornerShape(4.dp))
-                            .background(brush)
-                    )
-                    Spacer(Modifier.height(6.dp))
-                    Spacer(
-                        modifier = Modifier
-                            .height(10.dp)
-                            .fillMaxWidth(0.3f)
-                            .clip(RoundedCornerShape(4.dp))
-                            .background(brush)
-                    )
-                } else {
-                    val fullName = listOfNotNull(passenger?.givenName, passenger?.familyName)
-                        .joinToString(" ")
-                        .ifBlank { "Passenger" }
-
-                    Text(
-                        text = fullName,
-                        style = MaterialTheme.typography.titleMedium,
-                        color = MaterialTheme.colorScheme.onSurface
-                    )
-                    Spacer(Modifier.height(2.dp))
-                    Text(
-                        text = passenger?.phoneNumber ?: "",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                    passenger?.email?.let {
-                        Spacer(Modifier.height(2.dp))
-                        Text(
-                            text = it,
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
-                }
-            }
-
-            if (loading) {
-                Spacer(
-                    modifier = Modifier
-                        .width(40.dp)
-                        .height(12.dp)
-                        .clip(RoundedCornerShape(4.dp))
-                        .background(brush)
-                )
-            } else {
-                Text(
-                    text = passenger?.status ?: "",
-                    style = MaterialTheme.typography.labelMedium,
-                    color = when (passenger?.status?.lowercase()) {
-                        PassengerStatusEnum.ACTIVE.value -> MaterialTheme.colorScheme.primary
-                        PassengerStatusEnum.SUSPENDED.value,
-                        PassengerStatusEnum.INACTIVE_REGISTER.value -> MaterialTheme.colorScheme.error
-                        else -> MaterialTheme.colorScheme.onSurfaceVariant
-                    },
-                    modifier = Modifier.padding(start = 8.dp)
+            when {
+                items.isNotEmpty() -> MenuList(items = items, onMenuClick = onMenuClick)
+                refreshing -> MenuSkeleton()
+                else -> MenuEmpty(
+                    message = errorMessage ?: "No hay opciones disponibles",
+                    onRetry = onRetry
                 )
             }
+        }
+
+        ToastHost(
+            toast = toast,
+            modifier = Modifier.align(Alignment.TopCenter)
+        )
+    }
+}
+
+@Composable
+private fun MenuTopBar(onBack: () -> Unit) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 12.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
+        Surface(
+            onClick = onBack,
+            shape = CircleShape,
+            color = Color.White,
+            shadowElevation = 2.dp,
+            modifier = Modifier.size(48.dp)
+        ) {
+            Box(contentAlignment = Alignment.Center) {
+                Icon(
+                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                    contentDescription = "Volver",
+                    tint = Color(0xFF0F0F0F)
+                )
+            }
+        }
+        Text(
+            text = "Menú",
+            style = MaterialTheme.typography.headlineSmall,
+            fontWeight = FontWeight.Bold,
+            color = Color(0xFF0F0F0F)
+        )
+    }
+}
+
+@Composable
+private fun MenuList(
+    items: List<Menu>,
+    onMenuClick: (Menu) -> Unit
+) {
+    LazyColumn(
+        modifier = Modifier.fillMaxSize(),
+        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 12.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
+        items(items = items, key = { it.key }) { item ->
+            MenuItemCard(item = item, onClick = { onMenuClick(item) })
         }
     }
 }
@@ -238,250 +205,181 @@ fun PassengerCard(
 @Composable
 private fun MenuItemCard(
     item: Menu,
-    @DrawableRes rightArrowRes: Int,
-    onClick: (Menu) -> Unit
+    onClick: () -> Unit
 ) {
-    val context = LocalContext.current
-
-    val imageLoader = remember(context) {
-        ImageLoader.Builder(context)
-            .components { add(SvgDecoder.Factory()) }
-            .build()
-    }
-
-    val shape = RoundedCornerShape(14.dp)
-
-    Card(
-        onClick = { onClick(item) },                 // ← usa el Card clickable de M3
-        shape = shape,
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surface
-        ),
-        elevation = CardDefaults.cardElevation(defaultElevation = 0.5.dp),
-        modifier = Modifier.fillMaxWidth()
+    Surface(
+        onClick = onClick,
+        shape = RoundedCornerShape(16.dp),
+        color = Color.White,
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(64.dp)
     ) {
         Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 14.dp, vertical = 12.dp),
-            verticalAlignment = Alignment.CenterVertically
+            modifier = Modifier.padding(horizontal = 16.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            AsyncImage(
-                model = ImageRequest.Builder(context)
-                    .data(item.iconUrl)
-                    .crossfade(true)
-                    .build(),
-                imageLoader = imageLoader,
-                contentDescription = item.text,
+            Box(
                 modifier = Modifier
-                    .size(24.dp)
-                    .clip(CircleShape)
-                    .background(Color.LightGray.copy(alpha = 0.3f)),
-                error = painterResource(android.R.drawable.ic_menu_report_image),
-                placeholder = painterResource(android.R.drawable.ic_menu_gallery)
-            )
-
-            Spacer(Modifier.width(12.dp))
-
+                    .size(40.dp)
+                    .background(ColorPrimary.copy(alpha = 0.12f), CircleShape),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    imageVector = menuIcon(item.icon),
+                    contentDescription = null,
+                    tint = ColorPrimary,
+                    modifier = Modifier.size(22.dp)
+                )
+            }
             Text(
                 text = item.text,
-                style = MaterialTheme.typography.bodyLarge,
-                color = MaterialTheme.colorScheme.onSurface,
+                style = MaterialTheme.typography.titleMedium,
+                color = Color(0xFF0F0F0F),
                 modifier = Modifier.weight(1f)
             )
-
             Icon(
-                painter = painterResource(rightArrowRes),
-                contentDescription = "Open",
-                modifier = Modifier
-                    .size(20.dp)
-                    .semantics { contentDescription = "menu_right_${item.key}" },
-                tint = MaterialTheme.colorScheme.onSurfaceVariant
+                imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                contentDescription = null,
+                tint = Color(0xFF9AA0A6)
             )
         }
     }
 }
 
 @Composable
-fun MenuScreen(
-    onNavClick: () -> Unit,
-    onMenuClick: (Menu) -> Unit,
-    passengerLocalState: GetPassengerLocalState,
-    menuCacheState: GetMenuCacheState
+private fun MenuSkeleton() {
+    val transition = rememberInfiniteTransition(label = "skeleton")
+    val alpha by transition.animateFloat(
+        initialValue = 0.45f,
+        targetValue = 1f,
+        animationSpec = infiniteRepeatable(tween(durationMillis = 700), RepeatMode.Reverse),
+        label = "skeletonAlpha"
+    )
+
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 12.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
+        repeat(SKELETON_ITEMS) {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(64.dp)
+                    .alpha(alpha)
+                    .background(Color(0xFFE2E2E2), RoundedCornerShape(16.dp))
+            )
+        }
+    }
+}
+
+@Composable
+private fun MenuEmpty(
+    message: String,
+    onRetry: () -> Unit
 ) {
-    val bg = Color(0xFFF4F5F6)
-    NavigationBarStyle(color = bg, darkIcons = true)
-
-    // Estados derivados
-    val loadingPassenger = passengerLocalState is GetPassengerLocalState.Loading
-    val loadingMenu = menuCacheState is GetMenuCacheState.Loading
-
-    val passenger = (passengerLocalState as? GetPassengerLocalState.Success)?.value
-    val menus = (menuCacheState as? GetMenuCacheState.Success)?.items ?: emptyList()
-    val errorMenu = (menuCacheState as? GetMenuCacheState.Error)?.message
-
-    Surface(
+    Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(bg),
-        color = bg
+            .padding(horizontal = 24.dp),
+        verticalArrangement = Arrangement.spacedBy(20.dp, Alignment.CenterVertically),
+        horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Column(modifier = Modifier.fillMaxSize()) {
-            MenuTopBar(
-                navIconRes = R.drawable.feature_menu_ic_left,
-                onNavClick = onNavClick
-            )
-
-            LazyColumn(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(horizontal = 16.dp),
-                contentPadding = PaddingValues(bottom = 24.dp)
-            ) {
-                // --- Passenger ---
-                item {
-                    PassengerCard(
-                        passenger = passenger,
-                        loading = loadingPassenger,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(top = 8.dp, bottom = 16.dp)
-                    )
-                }
-
-                // --- Menús ---
-                when {
-                    loadingMenu -> {
-                        // Mostrar skeletons
-                        items(4) {
-                            Box(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .height(54.dp)
-                                    .clip(RoundedCornerShape(14.dp))
-                                    .background(Color.LightGray.copy(alpha = 0.3f))
-                            )
-                            Spacer(modifier = Modifier.height(10.dp))
-                        }
-                    }
-                    menus.isNotEmpty() -> {
-                        items(
-                            items = menus.sortedBy { it.order },
-                            key = { it.key }
-                        ) { menu ->
-                            MenuItemCard(
-                                item = menu,
-                                rightArrowRes = R.drawable.feature_menu_ic_right,
-                                onClick = onMenuClick
-                            )
-                            Spacer(modifier = Modifier.height(10.dp))
-                        }
-                    }
-                    errorMenu != null -> {
-                        item {
-                            Text(
-                                text = errorMenu,
-                                color = MaterialTheme.colorScheme.error,
-                                style = MaterialTheme.typography.bodyMedium,
-                                modifier = Modifier.padding(top = 12.dp)
-                            )
-                        }
-                    }
-                    else -> {
-                        item {
-                            Text(
-                                text = "No hay opciones disponibles",
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                modifier = Modifier.padding(top = 12.dp)
-                            )
-                        }
-                    }
-                }
-            }
-        }
+        Text(
+            text = "No pudimos mostrar el menú",
+            style = MaterialTheme.typography.titleMedium,
+            fontWeight = FontWeight.Bold,
+            color = Color(0xFF0F0F0F)
+        )
+        Text(
+            text = message,
+            style = MaterialTheme.typography.bodyMedium,
+            color = Color(0xFF6B6B6B),
+            textAlign = TextAlign.Center
+        )
+        PrimaryButton(text = "Reintentar", onClick = onRetry)
     }
 }
 
+private fun menuIcon(icon: String): ImageVector = when (icon) {
+    "home" -> Icons.Filled.Home
+    "profile" -> Icons.Filled.Person
+    "history" -> Icons.Filled.DateRange
+    "support" -> Icons.Filled.Info
+    else -> Icons.Filled.Star
+}
+
+private val previewItems = listOf(
+    Menu("passenger_home", "Pedir taxi", "home", "app-taxi://passenger/home", 1),
+    Menu("passenger_profile", "Mi perfil", "profile", "app-taxi://passenger/profile", 2),
+    Menu("passenger_historic", "Mis viajes", "history", "app-taxi://passenger/historic", 3),
+    Menu("passenger_support", "Ayuda", "support", "app-taxi://passenger/support", 4)
+)
+
+@Preview(showBackground = true, backgroundColor = 0xFFF0F0F0)
 @Composable
-fun MenuScreenRoute(
-    onNavClick: () -> Unit,
-    onMenuClick: (Menu) -> Unit,
-    vm: MenuViewModel = hiltViewModel()
-) {
-    // Estados del ViewModel
-    val passengerState by vm.userUi.collectAsState()
-    val menuState by vm.menuUi.collectAsState()
-
-    LaunchedEffect (Unit) {
-        vm.callGetUser()
-        vm.callGetMenu()
-    }
-
-    // Render de UI pura
+private fun MenuScreenPreviewLoading() {
     MenuScreen(
-        onNavClick = onNavClick,
-        onMenuClick = onMenuClick,
-        passengerLocalState = passengerState,
-        menuCacheState = menuState
+        items = emptyList(),
+        refresh = RefreshMenuState.Loading,
+        showError = false,
+        onBack = {},
+        onRetry = {},
+        onMenuClick = {}
     )
 }
 
-
-/* -------------------------------------------------------
-   Preview: Pantallas y estados
--------------------------------------------------------- */
-@Preview(name = "MenuScreen - Success", showBackground = true, showSystemUi = true)
+@Preview(showBackground = true, backgroundColor = 0xFFF0F0F0)
 @Composable
-private fun PreviewMenuScreenSuccess() {
-    MaterialTheme {
-        MenuScreen(
-            onNavClick = {},
-            onMenuClick = {},
-            passengerLocalState = GetPassengerLocalState.Success(
-                Passenger(
-                    id = "1",
-                    phoneNumber = "51987654321",
-                    givenName = "Jorge",
-                    familyName = "Sandoval",
-                    email = "jorge@example.com",
-                    photoUrl = null,
-                    status = "active"
-                )
-            ),
-            menuCacheState = GetMenuCacheState.Success(
-                listOf(
-                    Menu("history", "Mis viajes", "ic_menu_history", "app://history", 1),
-                    Menu("payments", "Pagos", "ic_menu_payments", "app://payments", 2),
-                    Menu("support", "Ayuda", "ic_menu_support", "app://support", 3)
-                )
-            )
-        )
-    }
+private fun MenuScreenPreviewCached() {
+    MenuScreen(
+        items = previewItems,
+        refresh = RefreshMenuState.Loading,
+        showError = false,
+        onBack = {},
+        onRetry = {},
+        onMenuClick = {}
+    )
 }
 
-@Preview(name = "MenuScreen - Loading", showBackground = true, showSystemUi = true)
+@Preview(showBackground = true, backgroundColor = 0xFFF0F0F0)
 @Composable
-private fun PreviewMenuScreenLoading() {
-    MaterialTheme {
-        MenuScreen(
-            onNavClick = {},
-            onMenuClick = {},
-            passengerLocalState = GetPassengerLocalState.Loading,
-            menuCacheState = GetMenuCacheState.Loading
-        )
-    }
+private fun MenuScreenPreviewSuccess() {
+    MenuScreen(
+        items = previewItems,
+        refresh = RefreshMenuState.Success,
+        showError = false,
+        onBack = {},
+        onRetry = {},
+        onMenuClick = {}
+    )
 }
 
-@Preview(name = "MenuScreen - Error", showBackground = true, showSystemUi = true)
+@Preview(showBackground = true, backgroundColor = 0xFFF0F0F0)
 @Composable
-private fun PreviewMenuScreenError() {
-    MaterialTheme {
-        MenuScreen(
-            onNavClick = {},
-            onMenuClick = {},
-            passengerLocalState = GetPassengerLocalState.Error("No se pudo cargar pasajero"),
-            menuCacheState = GetMenuCacheState.Error("No se pudo obtener el menú")
-        )
-    }
+private fun MenuScreenPreviewOffline() {
+    MenuScreen(
+        items = previewItems,
+        refresh = RefreshMenuState.Error("No se pudo conectar con el servidor. Revisa tu conexión"),
+        showError = true,
+        onBack = {},
+        onRetry = {},
+        onMenuClick = {}
+    )
+}
+
+@Preview(showBackground = true, backgroundColor = 0xFFF0F0F0)
+@Composable
+private fun MenuScreenPreviewError() {
+    MenuScreen(
+        items = emptyList(),
+        refresh = RefreshMenuState.Error("No se pudo conectar con el servidor. Revisa tu conexión"),
+        showError = true,
+        onBack = {},
+        onRetry = {},
+        onMenuClick = {}
+    )
 }

@@ -1,57 +1,45 @@
 package com.example.android.core.data
 
+import com.example.android.core.data.dto.RefreshRequest
 import com.example.android.core.domain.SessionStore
-import com.example.android.core.data.dto.RefreshDto
-import com.google.gson.Gson
-import kotlinx.coroutines.*
-import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
-import javax.inject.Inject
-import javax.inject.Singleton
+import retrofit2.HttpException
+import java.io.IOException
 
-@Singleton
-class TokenRefresher @Inject constructor(
+sealed interface RefreshResult {
+    data class Refreshed(val accessToken: String) : RefreshResult
+    data object Rejected : RefreshResult
+}
+
+class TokenRefresher(
     private val session: SessionStore,
-    private val refreshApi: RefreshApi
+    private val api: RefreshApi
 ) {
-    // Mutex global para serializar el refresh
-    private val refreshMutex = Mutex()
-    // Job compartido para de-duplicar múltiples llamadas simultáneas
-    @Volatile private var ongoingRefresh: Deferred<Boolean>? = null
+    private val mutex = Mutex()
 
-    /**
-     * Intenta refrescar tokens. Deduplica y serializa.
-     * Retorna true si el refresh fue exitoso.
-     */
-    fun refreshTokensBlocking(): Boolean = runBlocking {
-        refreshMutex.withLock {
-            // Si ya hay un refresh en curso, espera su resultado
-            ongoingRefresh?.let { return@runBlocking it.await() }
-
-            val job = CoroutineScope(Dispatchers.IO).async {
-                val refresh = session.refreshToken().firstOrNull()
-                if (refresh.isNullOrBlank()) return@async false
-
-                return@async try {
-                    val resp = refreshApi.refresh(RefreshDto(refresh))
-                    session.saveTokensAndUser(
-                        access = resp.accessToken,
-                        refresh = resp.refreshToken,
-                        user = Gson().toJson(resp.user)
-                    )
-                    true
-                } catch (t: Throwable) {
-                    false
-                }
-            }
-
-            ongoingRefresh = job
-            try {
-                job.await()
-            } finally {
-                ongoingRefresh = null
-            }
+    suspend fun refresh(staleAccessToken: String?): RefreshResult = mutex.withLock {
+        val current = session.accessToken().first()
+        if (!current.isNullOrBlank() && current != staleAccessToken) {
+            return@withLock RefreshResult.Refreshed(current)
         }
+
+        val refreshToken = session.refreshToken().first()
+        if (refreshToken.isNullOrBlank()) return@withLock RefreshResult.Rejected
+
+        val tokens = try {
+            api.refresh(RefreshRequest(refreshToken))
+        } catch (e: HttpException) {
+            if (e.code() in CLIENT_ERRORS) return@withLock RefreshResult.Rejected
+            throw IOException("Refresh failed with HTTP ${e.code()}", e)
+        }
+
+        session.saveTokens(access = tokens.accessToken, refresh = tokens.refreshToken)
+        RefreshResult.Refreshed(tokens.accessToken)
+    }
+
+    private companion object {
+        val CLIENT_ERRORS = 400..499
     }
 }

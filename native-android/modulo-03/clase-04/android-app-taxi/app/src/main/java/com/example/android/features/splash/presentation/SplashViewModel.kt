@@ -2,34 +2,32 @@ package com.example.android.features.splash.presentation
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.android.commons.domain.usecase.GetPassengerLocalState
-import com.example.android.commons.domain.usecase.GetPassengerLocalUseCase
-import com.example.android.core.domain.ErrorMapper
-import com.example.android.core.presentation.toReadableMessage
+import com.example.android.features.splash.domain.usecase.GetStartDestinationUseCase
+import com.example.android.features.splash.domain.usecase.StartDestination
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
 class SplashViewModel @Inject constructor(
-    private val getPassengerLocalUseCase: GetPassengerLocalUseCase
+    private val getStartDestination: GetStartDestinationUseCase
 ) : ViewModel() {
 
-    private val _user = MutableStateFlow<GetPassengerLocalState>(GetPassengerLocalState.Idle)
-    val user: StateFlow<GetPassengerLocalState> = _user
-    fun callGetUser() {
+    private val _destination = MutableStateFlow<StartDestination?>(null)
+    val destination: StateFlow<StartDestination?> = _destination.asStateFlow()
+
+    init {
         viewModelScope.launch {
-            try {
-                getPassengerLocalUseCase().collect {
-                    _user.value = it
-                }
-            } catch (t: Throwable) {
-                val mapped = ErrorMapper.map(t)
-                _user.value = GetPassengerLocalState.Error(message = mapped.toReadableMessage())
-            }
+            delay(SPLASH_DURATION_MS)
+            _destination.value = getStartDestination()
         }
     }
 
+    private companion object {
+        const val SPLASH_DURATION_MS = 1_500L
+    }
 }

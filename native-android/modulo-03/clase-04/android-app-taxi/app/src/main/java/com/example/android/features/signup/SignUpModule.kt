@@ -2,16 +2,14 @@ package com.example.android.features.signup
 
 import android.content.Context
 import android.content.SharedPreferences
-import com.example.android.core.data.EncryptedPrefsProvider
 import com.example.android.core.domain.SessionStore
-import com.example.android.features.signup.data.local.SignUpStoreImpl
-import com.example.android.features.signup.data.remote.SignupApi
+import com.example.android.features.signup.data.local.SignUpDraftStorePrefs
+import com.example.android.features.signup.data.remote.SignUpApi
 import com.example.android.features.signup.data.repository.SignUpRepositoryImpl
 import com.example.android.features.signup.domain.repository.SignUpRepository
-import com.example.android.features.signup.domain.store.SignUpStore
-import com.example.android.features.signup.domain.usecase.GetSignUpStep2UseCase
-import com.example.android.features.signup.domain.usecase.GetSignUpStep1UseCase
-import com.example.android.features.signup.domain.usecase.SaveSignUpStep1UseCase
+import com.example.android.features.signup.domain.store.SignUpDraftStore
+import com.example.android.features.signup.domain.usecase.GetSignUpDraftUseCase
+import com.example.android.features.signup.domain.usecase.SaveSignUpDraftUseCase
 import com.example.android.features.signup.domain.usecase.SignUpUseCase
 import dagger.Module
 import dagger.Provides
@@ -24,58 +22,48 @@ import javax.inject.Singleton
 
 @Qualifier
 @Retention(AnnotationRetention.BINARY)
-annotation class SignUpPrefs
+annotation class SignUpDraftPrefs
 
 @Module
 @InstallIn(SingletonComponent::class)
 object SignUpModule {
 
     @Provides
-    @SignUpPrefs
     @Singleton
-    fun provideSignUpPrefs(@ApplicationContext ctx: Context): SharedPreferences =
-        EncryptedPrefsProvider.provide(ctx, "pf_signup")
+    @SignUpDraftPrefs
+    fun provideSignUpDraftPrefs(@ApplicationContext ctx: Context): SharedPreferences =
+        ctx.getSharedPreferences(SignUpDraftStorePrefs.PREFS_NAME, Context.MODE_PRIVATE)
 
     @Provides
     @Singleton
-    fun provideSignUpStore(@SignUpPrefs prefs: SharedPreferences): SignUpStore =
-        SignUpStoreImpl(prefs)
+    fun provideSignUpDraftStore(@SignUpDraftPrefs prefs: SharedPreferences): SignUpDraftStore =
+        SignUpDraftStorePrefs(prefs)
 
     @Provides
     @Singleton
-    fun provideSignupApi(retrofit: Retrofit): SignupApi =
-        retrofit.create(SignupApi::class.java)
+    fun provideSignUpApi(retrofit: Retrofit): SignUpApi =
+        retrofit.create(SignUpApi::class.java)
 
     @Provides
     @Singleton
-    fun provideSignUpRepository(api: SignupApi): SignUpRepository =
+    fun provideSignUpRepository(api: SignUpApi): SignUpRepository =
         SignUpRepositoryImpl(api)
+
+    @Provides
+    @Singleton
+    fun provideGetSignUpDraftUseCase(draftStore: SignUpDraftStore): GetSignUpDraftUseCase =
+        GetSignUpDraftUseCase(draftStore)
+
+    @Provides
+    @Singleton
+    fun provideSaveSignUpDraftUseCase(draftStore: SignUpDraftStore): SaveSignUpDraftUseCase =
+        SaveSignUpDraftUseCase(draftStore)
 
     @Provides
     @Singleton
     fun provideSignUpUseCase(
         repo: SignUpRepository,
-        storeSignIn: SignUpStore,
-        storeSession: SessionStore
-    ): SignUpUseCase = SignUpUseCase(repo = repo, storeSignIn = storeSignIn, storeSession = storeSession)
-
-    @Provides
-    @Singleton
-    fun provideGetSignUpStep1UseCase(
-        storeSignIn: SignUpStore
-    ): GetSignUpStep1UseCase = GetSignUpStep1UseCase(storeSignIn = storeSignIn)
-
-    @Provides
-    @Singleton
-    fun provideGetSignUpStep2UseCase(
-        storeSignIn: SignUpStore,
-        storeSession: SessionStore
-    ): GetSignUpStep2UseCase = GetSignUpStep2UseCase(storeSignIn = storeSignIn, storeSession = storeSession)
-
-    @Provides
-    @Singleton
-    fun provideSaveSignUpStep1UseCase(
-        storeSignIn: SignUpStore
-    ): SaveSignUpStep1UseCase = SaveSignUpStep1UseCase(storeSignIn = storeSignIn)
-
+        draftStore: SignUpDraftStore,
+        sessionStore: SessionStore
+    ): SignUpUseCase = SignUpUseCase(repo, draftStore, sessionStore)
 }

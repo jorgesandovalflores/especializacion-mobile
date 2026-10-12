@@ -1,36 +1,31 @@
 package com.example.android.core.data
 
 import com.example.android.core.domain.SessionStore
-import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
 import okhttp3.Interceptor
+import okhttp3.Request
 import okhttp3.Response
-import javax.inject.Inject
-import javax.inject.Singleton
 
-@Singleton
-class AuthInterceptor @Inject constructor(
+internal const val HEADER_AUTHORIZATION = "Authorization"
+internal const val BEARER_PREFIX = "Bearer "
+private const val PUBLIC_AUTH_PATH = "/auth/"
+
+internal fun Request.isPublicAuthEndpoint(): Boolean = url.encodedPath.startsWith(PUBLIC_AUTH_PATH)
+
+class AuthInterceptor(
     private val session: SessionStore
 ) : Interceptor {
-
     override fun intercept(chain: Interceptor.Chain): Response {
-        val req = chain.request()
-        val path = req.url.encodedPath
+        val original = chain.request()
+        if (original.isPublicAuthEndpoint()) return chain.proceed(original)
 
-        // Endpoints públicos o de auth que NO llevan Authorization
-        val isAuthEndpoint = path.contains("/auth/refresh") ||
-                path.contains("/auth/otp-generate") ||
-                path.contains("/auth/otp-validate")
-
-        if (isAuthEndpoint) return chain.proceed(req)
-
-        val access = runBlocking { session.accessToken().firstOrNull() }
-        val newReq = if (!access.isNullOrBlank()) {
-            req.newBuilder()
-                .header("Authorization", "Bearer $access")
+        val token = runBlocking { session.accessToken().first() }
+        val request = if (!token.isNullOrBlank()) {
+            original.newBuilder()
+                .header(HEADER_AUTHORIZATION, "$BEARER_PREFIX$token")
                 .build()
-        } else req
-
-        return chain.proceed(newReq)
+        } else original
+        return chain.proceed(request)
     }
 }

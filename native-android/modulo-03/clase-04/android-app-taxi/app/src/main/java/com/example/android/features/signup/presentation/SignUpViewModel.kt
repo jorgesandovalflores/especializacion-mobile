@@ -1,80 +1,57 @@
 package com.example.android.features.signup.presentation
 
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.android.core.domain.ErrorMapper
-import com.example.android.core.presentation.toReadableMessage
-import com.example.android.features.signup.domain.model.SignUpModelStep1
-import com.example.android.features.signup.domain.model.SignUpModelStep2
-import com.example.android.features.signup.domain.usecase.GetSignUpStep1UseCase
-import com.example.android.features.signup.domain.usecase.GetSignUpStep1UseCaseState
-import com.example.android.features.signup.domain.usecase.GetSignUpStep2UseCase
-import com.example.android.features.signup.domain.usecase.GetSignUpStep2UseCaseState
-import com.example.android.features.signup.domain.usecase.SaveSignUpStep1UseCase
+import com.example.android.features.signup.domain.model.SignUpDraft
+import com.example.android.features.signup.domain.usecase.GetSignUpDraftUseCase
+import com.example.android.features.signup.domain.usecase.SaveSignUpDraftUseCase
+import com.example.android.features.signup.domain.usecase.SignUpState
 import com.example.android.features.signup.domain.usecase.SignUpUseCase
-import com.example.android.features.signup.domain.usecase.SignUpUseCaseState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
 class SignUpViewModel @Inject constructor(
-    private val getSignUpStep1UseCase: GetSignUpStep1UseCase,
-    private val saveSignUpStep1UseCase: SaveSignUpStep1UseCase,
-    private val getSignupStep2UseCase: GetSignUpStep2UseCase,
+    private val getSignUpDraftUseCase: GetSignUpDraftUseCase,
+    private val saveSignUpDraftUseCase: SaveSignUpDraftUseCase,
     private val signUpUseCase: SignUpUseCase
-): ViewModel() {
+) : ViewModel() {
 
-    private val _getStep1 = MutableStateFlow<GetSignUpStep1UseCaseState>(GetSignUpStep1UseCaseState.Idle)
-    val getStep1: StateFlow<GetSignUpStep1UseCaseState> = _getStep1
-    fun callGetStep1() {
-        viewModelScope.launch {
-            _getStep1.value = GetSignUpStep1UseCaseState.Loading
-            try {
-                getSignUpStep1UseCase().collect {
-                    _getStep1.value = it
-                }
-            } catch (_: Throwable) { }
-        }
+    var draft by mutableStateOf<SignUpDraft?>(null)
+        private set
+
+    private val _signUpUi = MutableStateFlow<SignUpState>(SignUpState.Idle)
+    val signUpUi: StateFlow<SignUpState> = _signUpUi.asStateFlow()
+
+    init {
+        viewModelScope.launch { draft = getSignUpDraftUseCase() }
     }
 
-    fun callSaveStep1(value: SignUpModelStep1) {
-        viewModelScope.launch {
-            try {
-                saveSignUpStep1UseCase(value).collect {}
-            } catch (_: Throwable) { }
-        }
+    fun onNamesChange(givenName: String, familyName: String) {
+        draft = draft?.copy(givenName = givenName, familyName = familyName)
+        viewModelScope.launch { saveSignUpDraftUseCase.personal(givenName, familyName) }
     }
 
-    private val _getStep2 = MutableStateFlow<GetSignUpStep2UseCaseState>(GetSignUpStep2UseCaseState.Idle)
-    val getStep2: StateFlow<GetSignUpStep2UseCaseState> = _getStep2
-    fun callGetStep2() {
-        viewModelScope.launch {
-            _getStep2.value = GetSignUpStep2UseCaseState.Loading
-            try {
-                getSignupStep2UseCase().collect {
-                    _getStep2.value = it
-                }
-            } catch (_: Throwable) { }
-        }
+    fun onEmailChange(email: String) {
+        draft = draft?.copy(email = email)
+        viewModelScope.launch { saveSignUpDraftUseCase.email(email) }
     }
 
-    private val _signUp = MutableStateFlow<SignUpUseCaseState>(SignUpUseCaseState.Idle)
-    val signUp: StateFlow<SignUpUseCaseState> = _signUp
-    fun callSignUp(step1: SignUpModelStep1, step2: SignUpModelStep2) {
-        viewModelScope.launch {
-            _signUp.value = SignUpUseCaseState.Loading
-            try {
-                signUpUseCase(signUpStep1 = step1, signUpStep2 = step2).collect {
-                    _signUp.value = it
-                }
-            } catch (t: Throwable) {
-                val mapped = ErrorMapper.map(t)
-                _signUp.value = SignUpUseCaseState.Error(message = mapped.toReadableMessage())
-            }
-        }
+    fun callSignUp() {
+        if (_signUpUi.value is SignUpState.Loading) return
+        signUpUseCase()
+            .onEach { _signUpUi.value = it }
+            .launchIn(viewModelScope)
     }
 
+    fun clearSignUpState() { _signUpUi.value = SignUpState.Idle }
 }

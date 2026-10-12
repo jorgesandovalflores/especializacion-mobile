@@ -1,9 +1,9 @@
 package com.example.android.core.data
 
-import androidx.room.Database
-import androidx.room.RoomDatabase
-import com.example.android.features.menu.data.local.dao.MenuDao
-import com.example.android.features.menu.data.local.table.MenuEntity
+import androidx.room3.Database
+import androidx.room3.RoomDatabase
+import com.example.android.features.menu.data.local.MenuDao
+import com.example.android.features.menu.data.local.MenuEntity
 
 @Database(
     entities = [MenuEntity::class],
@@ -12,4 +12,8 @@ import com.example.android.features.menu.data.local.table.MenuEntity
 )
 abstract class AppDatabase : RoomDatabase() {
     abstract fun menuDao(): MenuDao
+
+    companion object {
+        const val NAME = "app_taxi.db"
+    }
 }

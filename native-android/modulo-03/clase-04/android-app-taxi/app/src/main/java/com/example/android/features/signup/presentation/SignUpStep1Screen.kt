@@ -1,198 +1,116 @@
 package com.example.android.features.signup.presentation
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.*
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
-import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.imePadding
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.systemBarsPadding
+import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
-import com.example.android.commons.presentation.GenericInputField
 import com.example.android.commons.presentation.NavigationBarStyle
 import com.example.android.commons.presentation.PrimaryButton
-import com.example.android.features.signup.domain.model.SignUpModelStep1
-import com.example.android.features.signup.domain.usecase.GetSignUpStep1UseCaseState
+import com.example.android.commons.presentation.TextInputField
+import com.example.android.features.signup.domain.model.SignUpDraft
+import com.example.android.features.signup.domain.usecase.NAME_MAX_LENGTH
+import com.example.android.features.signup.domain.usecase.hasValidNames
 
 @Composable
 fun SignUpStep1Route(
     onNext: () -> Unit,
     modifier: Modifier = Modifier,
-    viewModel: SignUpViewModel = hiltViewModel()
+    vm: SignUpViewModel = hiltViewModel()
 ) {
-    val step1State by viewModel.getStep1.collectAsState()
-
-    LaunchedEffect(Unit) {
-        viewModel.callGetStep1()
-    }
-
-    LaunchedEffect(step1State) {
-        when (step1State) {
-            is GetSignUpStep1UseCaseState.Success -> {
-            }
-            else -> Unit
-        }
-    }
 
     SignUpStep1Screen(
-        step1State = step1State,
-        onGivenNameChange = { givenName ->
-        },
-        onFamilyNameChange = { familyName ->
-        },
-        onNext = { givenName, familyName ->
-            viewModel.callSaveStep1(
-                SignUpModelStep1(
-                    givenName = givenName,
-                    familyName = familyName,
-                    photoUrl = ""
-                )
-            )
-            onNext()
-        },
+        draft = vm.draft,
+        onNamesChange = vm::onNamesChange,
+        onNext = onNext,
         modifier = modifier
     )
 }
 
 @Composable
 fun SignUpStep1Screen(
-    step1State: GetSignUpStep1UseCaseState,
-    onGivenNameChange: (String) -> Unit,
-    onFamilyNameChange: (String) -> Unit,
-    onNext: (givenName: String, familyName: String) -> Unit,
+    draft: SignUpDraft?,
+    onNamesChange: (givenName: String, familyName: String) -> Unit,
+    onNext: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val bg = Color(0xFFF8F9FA)
-    NavigationBarStyle(color = Color.White, darkIcons = true)
+    val loaded = draft != null
+    val current = draft ?: SignUpDraft()
 
-    var givenName by remember { mutableStateOf("") }
-    var familyName by remember { mutableStateOf("") }
-
-    LaunchedEffect(step1State) {
-        when (step1State) {
-            is GetSignUpStep1UseCaseState.Success -> {
-                val data = step1State.data
-                givenName = data.givenName ?: ""
-                familyName = data.familyName ?: ""
-            }
-            else -> Unit
-        }
-    }
-
-    val isLoading = step1State is GetSignUpStep1UseCaseState.Loading
-    val isValid = givenName.isNotBlank() && familyName.isNotBlank() && !isLoading
+    NavigationBarStyle(darkIcons = true)
 
     Column(
         modifier = modifier
             .fillMaxSize()
-            .background(bg)
+            .background(Color(0xFFF0F0F0))
             .systemBarsPadding()
-            .imePadding(),
+            .imePadding()
+            .padding(horizontal = 24.dp),
         verticalArrangement = Arrangement.SpaceBetween
     ) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(24.dp)
+                .padding(top = 24.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            Text(
-                text = "Información personal",
-                style = MaterialTheme.typography.headlineSmall.copy(
-                    fontWeight = FontWeight.Bold
-                ),
-                color = Color(0xFF1A1A1A)
+            SignUpStepHeader(
+                step = 1,
+                title = "Información personal",
+                subtitle = "Completa tus datos para continuar",
+                modifier = Modifier.padding(bottom = 8.dp)
             )
-
-            Text(
-                text = "Completa tus datos para continuar",
-                style = MaterialTheme.typography.bodyMedium,
-                color = Color(0xFF666666)
+            TextInputField(
+                value = current.givenName,
+                onValueChange = { onNamesChange(it, current.familyName) },
+                placeholder = "Ingresa tus nombres",
+                enabled = loaded,
+                maxLength = NAME_MAX_LENGTH,
+                capitalization = KeyboardCapitalization.Words
             )
-        }
-
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .weight(1f)
-                .padding(24.dp),
-            verticalArrangement = Arrangement.Top
-        ) {
-            Column(
-                modifier = Modifier.fillMaxWidth(),
-                verticalArrangement = Arrangement.spacedBy(20.dp)
-            ) {
-                GenericInputField(
-                    value = givenName,
-                    onValueChange = {
-                        givenName = it
-                        onGivenNameChange(it)
-                    },
-                    placeholder = "Ingresa tus nombres",
-                    keyboardType = androidx.compose.ui.text.input.KeyboardType.Text,
-                    maxLength = 50,
-                    imeAction = androidx.compose.ui.text.input.ImeAction.Next,
-                    enabled = !isLoading
-                )
-
-                GenericInputField(
-                    value = familyName,
-                    onValueChange = {
-                        familyName = it
-                        onFamilyNameChange(it)
-                    },
-                    placeholder = "Ingresa tus apellidos",
-                    keyboardType = androidx.compose.ui.text.input.KeyboardType.Text,
-                    maxLength = 50,
-                    imeAction = androidx.compose.ui.text.input.ImeAction.Done,
-                    enabled = !isLoading
-                )
-            }
-        }
-
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(24.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            PrimaryButton(
-                text = "Continuar",
-                onClick = { onNext(givenName, familyName) },
-                enabled = isValid,
-                loading = isLoading,
-                modifier = Modifier.fillMaxWidth()
+            TextInputField(
+                value = current.familyName,
+                onValueChange = { onNamesChange(current.givenName, it) },
+                placeholder = "Ingresa tus apellidos",
+                enabled = loaded,
+                maxLength = NAME_MAX_LENGTH,
+                capitalization = KeyboardCapitalization.Words,
+                imeAction = ImeAction.Done
             )
         }
+
+        PrimaryButton(
+            text = "Continuar",
+            onClick = onNext,
+            enabled = loaded && current.hasValidNames(),
+            modifier = Modifier.padding(bottom = 24.dp)
+        )
     }
 }
 
-/* ===== Previews ===== */
-@Preview(showBackground = true, backgroundColor = 0xFFFFFFFF)
+@Preview(showBackground = true, backgroundColor = 0xFFF0F0F0)
 @Composable
-private fun SignUpStep1ScreenPreview_Empty() {
-    SignUpStep1Screen(
-        step1State = GetSignUpStep1UseCaseState.Success(
-            SignUpModelStep1("", "", "")
-        ),
-        onGivenNameChange = {},
-        onFamilyNameChange = {},
-        onNext = { _, _ -> }
-    )
+private fun SignUpStep1ScreenPreviewEmpty() {
+    SignUpStep1Screen(draft = SignUpDraft(), onNamesChange = { _, _ -> }, onNext = {})
 }
 
-@Preview(showBackground = true, backgroundColor = 0xFFFFFFFF)
+@Preview(showBackground = true, backgroundColor = 0xFFF0F0F0)
 @Composable
-private fun SignUpStep1ScreenPreview_Filled() {
+private fun SignUpStep1ScreenPreviewRestored() {
     SignUpStep1Screen(
-        step1State = GetSignUpStep1UseCaseState.Success(
-            SignUpModelStep1("Juan", "Pérez", "")
-        ),
-        onGivenNameChange = {},
-        onFamilyNameChange = {},
-        onNext = { _, _ -> }
+        draft = SignUpDraft(givenName = "Jorge", familyName = "Sandoval"),
+        onNamesChange = { _, _ -> },
+        onNext = {}
     )
 }

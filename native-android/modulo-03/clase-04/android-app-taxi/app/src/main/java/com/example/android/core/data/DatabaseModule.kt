@@ -1,7 +1,8 @@
 package com.example.android.core.data
 
 import android.content.Context
-import androidx.room.Room
+import androidx.room3.Room
+import com.example.android.core.domain.LocalCache
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -14,11 +15,10 @@ import javax.inject.Singleton
 object DatabaseModule {
 
     @Provides @Singleton
-    fun provideDb(@ApplicationContext ctx: Context): AppDatabase =
-        Room.databaseBuilder(ctx, AppDatabase::class.java, "app.db")
-            .fallbackToDestructiveMigration()
-            .build()
+    fun provideAppDatabase(@ApplicationContext ctx: Context): AppDatabase =
+        Room.databaseBuilder<AppDatabase>(ctx, AppDatabase.NAME).build()
 
-    @Provides
-    fun provideMenuDao(db: AppDatabase) = db.menuDao()
+    @Provides @Singleton
+    fun provideLocalCache(db: AppDatabase): LocalCache =
+        LocalCache { db.clearAllTables() }
 }

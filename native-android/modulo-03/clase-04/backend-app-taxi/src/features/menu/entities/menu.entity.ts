@@ -20,20 +20,28 @@ export class MenuEntity {
     @PrimaryGeneratedColumn("uuid", { name: "id_menu" })
     id!: string;
 
+    /* ---------------------------------------
+       Identificador estable de la opción
+       - La app lo usa como clave primaria local (Room)
+       --------------------------------------- */
     @Column("varchar", { name: "key", length: 24 })
-    key: string;
+    key!: string;
 
     @Column("varchar", { name: "text", length: 164 })
-    text: string;
+    text!: string;
 
-    @Column("varchar", { name: "icon_url", length: 255 })
-    iconUrl: string;
+    /* ---------------------------------------
+       Nombre lógico del ícono (home, profile, history, support)
+       - La app lo traduce a un ícono local
+       --------------------------------------- */
+    @Column("varchar", { name: "icon", length: 40 })
+    icon!: string;
 
     @Column("varchar", { name: "deeplink", length: 255 })
-    deeplink: string;
+    deeplink!: string;
 
     @Column("int", { name: "order" })
-    order: number;
+    order!: number;
 
     @Column({
         type: "enum",
@@ -41,7 +49,7 @@ export class MenuEntity {
         name: "application",
         default: MenuApplication.PASSENGER,
     })
-    application: MenuApplication;
+    application!: MenuApplication;
 
     @Column({
         type: "enum",
@@ -49,11 +57,8 @@ export class MenuEntity {
         name: "status",
         default: MenuStatus.ACTIVE,
     })
-    status: MenuStatus;
+    status!: MenuStatus;
 
-    /* ---------------------------------------
-       Auditoría / sesión
-       --------------------------------------- */
     @CreateDateColumn({ name: "created_at", type: "datetime" })
     createdAt!: Date;
 

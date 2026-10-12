@@ -2,16 +2,35 @@ package com.example.android.features.signin.presentation
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.WindowInsetsSides
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.ime
+import androidx.compose.foundation.layout.navigationBars
+import androidx.compose.foundation.layout.only
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.statusBars
+import androidx.compose.foundation.layout.union
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
@@ -19,26 +38,28 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.android.R
 import com.example.android.commons.presentation.NavigationBarStyle
 import com.example.android.commons.presentation.PhoneInputField
 import com.example.android.commons.presentation.PrimaryButton
-import com.example.android.commons.presentation.BaseToast
+import com.example.android.commons.presentation.ToastHost
+import com.example.android.commons.presentation.ToastMessage
 import com.example.android.commons.presentation.ToastType
 import com.example.android.features.signin.domain.usecase.OtpGenerateState
+import kotlinx.coroutines.delay
 
+internal const val TOAST_DURATION_MS = 3_000L
+private const val PHONE_LENGTH = 9
 
 @Composable
 fun SignInGenerateOtpRoute(
-    onGoValidate: (String, String) -> Unit,
+    onGoValidate: (phone: String, expiresAt: String) -> Unit,
     modifier: Modifier = Modifier,
     vm: SignInViewModel = hiltViewModel()
 ) {
-    val state by vm.generateOtpUi.collectAsState()
-    var phone by remember { mutableStateOf("") }
-    val normalized = remember(phone) { phone.filter(Char::isDigit) }
-    val isValid = normalized.length == 9
-    val loading = state is OtpGenerateState.Loading
+    val state by vm.generateOtpUi.collectAsStateWithLifecycle()
+    var phone by rememberSaveable { mutableStateOf("") }
 
     LaunchedEffect(state) {
         when (val s = state) {
@@ -46,46 +67,44 @@ fun SignInGenerateOtpRoute(
                 vm.clearGenerateState()
                 onGoValidate(s.phone, s.expiresAt)
             }
+            is OtpGenerateState.Error -> {
+                delay(TOAST_DURATION_MS)
+                vm.clearGenerateState()
+            }
             else -> Unit
         }
     }
 
     SignInGenerateOtpScreen(
+        state = state,
         phone = phone,
         onPhoneChange = { phone = it },
-        isValid = isValid,
-        loading = loading,
-        state = state,
-        onSubmit = { vm.callGenerateOtp(normalized) },
+        onSubmit = vm::callGenerateOtp,
         modifier = modifier
     )
 }
 
 @Composable
 fun SignInGenerateOtpScreen(
+    state: OtpGenerateState,
     phone: String,
     onPhoneChange: (String) -> Unit,
-    isValid: Boolean,
-    loading: Boolean,
-    state: OtpGenerateState,
-    onSubmit: () -> Unit,
+    onSubmit: (String) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    // Barra y color de fondo
-    val bg = Color.White
-    NavigationBarStyle(color = bg, darkIcons = true)
+    val loading = state is OtpGenerateState.Loading
+    val isValid = phone.length == PHONE_LENGTH
+    val toast = (state as? OtpGenerateState.Error)?.let { ToastMessage(ToastType.Error, it.message) }
 
-    val toastMessage = remember(state) {
-        (state as? OtpGenerateState.Error)?.message
-    }
+    NavigationBarStyle(darkIcons = true)
 
     Box(
         modifier = modifier
             .fillMaxSize()
-            .background(bg)
+            .background(Color.White)
     ) {
         Image(
-            painter = androidx.compose.ui.res.painterResource(id = R.drawable.feature_signin_picture),
+            painter = painterResource(id = R.drawable.feature_signin_picture),
             contentDescription = null,
             contentScale = ContentScale.Fit,
             modifier = Modifier
@@ -95,11 +114,9 @@ fun SignInGenerateOtpScreen(
                 .align(Alignment.TopCenter)
         )
 
-        // Tarjeta inferior
         Surface(
             color = Color(0xFFF0F0F0),
             shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp),
-            shadowElevation = 0.dp,
             modifier = Modifier
                 .fillMaxWidth()
                 .align(Alignment.BottomCenter)
@@ -113,7 +130,6 @@ fun SignInGenerateOtpScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 24.dp, vertical = 28.dp),
-                horizontalAlignment = Alignment.Start,
                 verticalArrangement = Arrangement.spacedBy(20.dp)
             ) {
                 Text(
@@ -130,68 +146,67 @@ fun SignInGenerateOtpScreen(
                     value = phone,
                     onValueChange = onPhoneChange,
                     placeholder = "Ingresa tu número de teléfono",
+                    enabled = !loading,
                     modifier = Modifier.padding(top = 4.dp)
                 )
 
                 PrimaryButton(
                     text = "Ingresar",
-                    onClick = onSubmit,
-                    enabled = isValid && !loading,
+                    onClick = { onSubmit(phone) },
+                    enabled = isValid,
                     loading = loading,
                     modifier = Modifier.padding(top = 8.dp)
                 )
             }
         }
 
-        // Toast de error (si aplica)
-        toastMessage?.let {
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(bottom = 16.dp),
-                contentAlignment = Alignment.BottomCenter
-            ) {
-                BaseToast(message = it, type = ToastType.Error)
-            }
-        }
+        ToastHost(
+            toast = toast,
+            modifier = Modifier.align(Alignment.TopCenter)
+        )
     }
 }
 
 @Preview(showBackground = true, backgroundColor = 0xFFFFFFFF)
 @Composable
-fun SignInGenerateOtpScreenPreview_Idle() {
+private fun SignInGenerateOtpScreenPreviewIdle() {
     SignInGenerateOtpScreen(
+        state = OtpGenerateState.Idle,
         phone = "",
         onPhoneChange = {},
-        isValid = false,
-        loading = false,
+        onSubmit = {}
+    )
+}
+
+@Preview(showBackground = true, backgroundColor = 0xFFFFFFFF)
+@Composable
+private fun SignInGenerateOtpScreenPreviewFilled() {
+    SignInGenerateOtpScreen(
         state = OtpGenerateState.Idle,
+        phone = "987654321",
+        onPhoneChange = {},
         onSubmit = {}
     )
 }
 
 @Preview(showBackground = true, backgroundColor = 0xFFFFFFFF)
 @Composable
-fun SignInGenerateOtpScreenPreview_Error() {
+private fun SignInGenerateOtpScreenPreviewLoading() {
     SignInGenerateOtpScreen(
-        phone = "987654321",
-        onPhoneChange = {},
-        isValid = true,
-        loading = false,
-        state = OtpGenerateState.Error(message = "No pudimos generar el código. Intenta de nuevo."),
-        onSubmit = {}
-    )
-}
-
-@Preview(showBackground = true, backgroundColor = 0xFFFFFFFF)
-@Composable
-fun SignInGenerateOtpScreenPreview_Loading() {
-    SignInGenerateOtpScreen(
-        phone = "987654321",
-        onPhoneChange = {},
-        isValid = true,
-        loading = true,
         state = OtpGenerateState.Loading,
+        phone = "987654321",
+        onPhoneChange = {},
+        onSubmit = {}
+    )
+}
+
+@Preview(showBackground = true, backgroundColor = 0xFFFFFFFF)
+@Composable
+private fun SignInGenerateOtpScreenPreviewError() {
+    SignInGenerateOtpScreen(
+        state = OtpGenerateState.Error("Ya existe un código activo. Espera 1 minuto antes de solicitar uno nuevo."),
+        phone = "987654321",
+        onPhoneChange = {},
         onSubmit = {}
     )
 }
