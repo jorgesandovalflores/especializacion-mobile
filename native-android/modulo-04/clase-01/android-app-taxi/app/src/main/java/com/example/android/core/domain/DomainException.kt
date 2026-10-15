@@ -12,6 +12,12 @@ sealed class DomainException(
         override val causeThrowable: Throwable? = null
     ) : DomainException(message, code, causeThrowable)
 
+    data class UnauthorizedException(
+        override val message: String,
+        override val code: Int? = 401,
+        override val causeThrowable: Throwable? = null
+    ) : DomainException(message, code, causeThrowable)
+
     data class ClientException(
         override val message: String,
         override val code: Int? = null,
@@ -31,8 +37,11 @@ sealed class DomainException(
     ) : DomainException(message, code, causeThrowable)
 
     data class UnknownException(
-        override val message: String = "Unexpected error",
+        override val message: String = "Ocurrió un error inesperado",
         override val code: Int? = null,
         override val causeThrowable: Throwable? = null
     ) : DomainException(message, code, causeThrowable)
 }
+
+fun Throwable.toDomainException(): DomainException =
+    this as? DomainException ?: DomainException.UnknownException(causeThrowable = this)

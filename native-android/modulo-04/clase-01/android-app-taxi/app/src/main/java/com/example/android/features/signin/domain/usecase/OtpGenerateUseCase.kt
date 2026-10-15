@@ -1,7 +1,9 @@
 package com.example.android.features.signin.domain.usecase
 
+import com.example.android.core.domain.toDomainException
 import com.example.android.features.signin.domain.repository.AuthRepository
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.flow
 
 sealed interface OtpGenerateState {
@@ -15,14 +17,8 @@ class OtpGenerateUseCase(
     private val repo: AuthRepository
 ) {
     operator fun invoke(phoneReq: String): Flow<OtpGenerateState> = flow {
-        val phone = "51$phoneReq"
         emit(OtpGenerateState.Loading)
-
-        try {
-            val result = repo.otpGenerate(phone = phone)
-            emit(OtpGenerateState.Success(phone = phoneReq, expiresAt = result.expiresAt))
-        } catch (t: Throwable) {
-            emit(OtpGenerateState.Error(t.message ?: "No se pudo enviar el código"))
-        }
-    }
+        val result = repo.otpGenerate(phone = "$COUNTRY_CODE$phoneReq")
+        emit(OtpGenerateState.Success(phone = phoneReq, expiresAt = result.expiresAt))
+    }.catch { emit(OtpGenerateState.Error(it.toDomainException().message)) }
 }

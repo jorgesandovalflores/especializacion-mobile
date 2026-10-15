@@ -1,13 +1,11 @@
 package com.example.android.features.signup.data.remote
 
+import com.example.android.commons.data.remote.dto.PassengerDto
 import com.example.android.features.signup.data.remote.dto.SignUpRequest
-import com.example.android.features.signup.data.remote.dto.SignUpResponse
 import retrofit2.http.Body
 import retrofit2.http.PUT
 
-interface SignupApi {
+interface SignUpApi {
     @PUT("passenger/signup")
-    suspend fun signUp(
-        @Body body: SignUpRequest
-    ): SignUpResponse
+    suspend fun signUp(@Body body: SignUpRequest): PassengerDto
 }

@@ -1,602 +1,450 @@
-# Módulo 04 · Sesión 01 — GPS, Permisos y Sensores (Android/Kotlin)
+# Módulo 4 · Sesión 1
 
-> Curso: Especialización en Desarrollo Mobile · Módulo 04 (Android avanzado de plataforma)  
-> Sesión 01 — GPS, permisos en tiempo de ejecución y sensores del dispositivo
+## GPS y permisos: tu ubicación en el mapa
 
 ---
 
 ## Objetivos
 
-1. Dominar la **evolución** del sistema de permisos y acceso a **ubicación** y **sensores** en Android (API < 23 → 34+).
-2. Implementar **permisos en tiempo de ejecución** con UX clara: **precisa vs. aproximada**, **foreground vs. background**.
-3. Usar **FusedLocationProviderClient** con prioridades, _settings resolution_, validación de calidad (accuracy/age/mock).
-4. Integrar **lectura de sensores** (acelerómetro y proximidad) de forma **lifecycle-aware** para evitar consumo excesivo.
-5. Diseñar **fallbacks** ante fallas (última conocida, degradación de precisión, reintentos con backoff, detección de mocks).
-6. Construir un **ejemplo práctico** con **Compose + ViewModel + Hilt** y (opcional) **Foreground Service** para tracking.
+1. Entender **cómo obtiene Android la ubicación**: fuentes, *Fused Location Provider* y prioridades.
+2. Pedir **permisos en tiempo de ejecución** con buena UX: racional, precisa o aproximada, y qué hacer cuando el usuario bloquea el diálogo.
+3. Convertir las actualizaciones de `FusedLocationProviderClient` en un **`Flow`** con `callbackFlow`, sin fugas de batería.
+4. Modelar la pantalla con **cuatro estados** (`Idle`, `Permission`, `Success`, `Error`) y dibujarlos sobre un **mapa de Google** en Compose.
+5. Apagar el GPS automáticamente cuando la pantalla no se ve, usando el ciclo de vida.
+6. Probar todo sin dispositivo: **fakes** para el repositorio y pruebas del ViewModel con `kotlinx-coroutines-test`.
 
 ---
 
 ## Contenido
 
-1. Evolución de ubicación y sensores en Android (con impacto práctico).
-2. Permisos en tiempo de ejecución: matriz completa, racionales y patrones UX.
-3. FusedLocationProviderClient: prioridades, una sola muestra vs. stream continuo, _settings_ y validación de calidad.
-4. Sensores: acelerómetro y proximidad — registro/desregistro, frecuencias y filtrado.
-5. Fallbacks y políticas de calidad (accuracy/age/mock) + reintentos con backoff.
-6. Ejemplo práctico end‑to‑end (Compose + ViewModel + Hilt).
-7. (Opcional) Foreground Service para tracking continuo con notificación persistente.
-8. Pruebas, depuración y checklist final.
-9. Laboratorio guiado.
-10. Quiz de verificación.
+1. Cómo obtiene Android la ubicación
+2. Proyectos de la clase
+3. Paso a paso en `android-app-taxi`
+4. Errores comunes y cómo los evita el proyecto
 
 ---
 
-## 1) Evolución: ubicación y sensores con impacto en diseño
+## 1) Cómo obtiene Android la ubicación
 
-### 1.1 Ubicación (de “todo vale” a “privacidad por diseño”)
+La app **no lee el GPS**: le **pide** ubicaciones a Google Play services, y las respuestas llegan solas, una tras otra, mientras el pedido siga registrado.
 
-#### A) Pre‑Marshmallow (API < 23) — **Permisos al instalar**
+![Del satélite al mapa](android-app-taxi/docs/gif/gps-fused-location.gif)
 
-**Cómo era**
+| Pieza                       | Qué hace                                                       |
+| --------------------------- | -------------------------------------------------------------- |
+| Fuentes                     | GPS, Wi-Fi, antenas celulares y sensores                       |
+| Fused Location Provider     | Combina las fuentes y entrega la mejor posición               |
+| `LocationRequest`           | Dice qué precisión quieres y cada cuánto                       |
+| `LocationCallback`          | Recibe cada posición nueva                                     |
+| Permiso                     | Sin él no llega nada                                           |
 
--   Los permisos (p. ej., `ACCESS_FINE_LOCATION`) se aceptaban **en la instalación**. Si el usuario instalaba, la app tenía el permiso siempre.
--   No existía la distinción UX de **precisa vs. aproximada** ni **grants temporales**.
+La **prioridad** decide cuánto hardware se enciende:
 
-**Implicancias**
+| Prioridad                          | Usa                    | Precisión  | Batería |
+| ---------------------------------- | ---------------------- | ---------- | ------- |
+| `PRIORITY_HIGH_ACCURACY`           | GPS + Wi-Fi + antenas  | 5–20 m     | Alta    |
+| `PRIORITY_BALANCED_POWER_ACCURACY` | Wi-Fi + antenas        | ~100 m     | Media   |
+| `PRIORITY_LOW_POWER`               | Antenas                | ~10 km     | Baja    |
 
--   Apps asumían acceso constante a GPS y usaban **alta precisión** sin control de batería ni comunicación de valor.
+Y desde Android 12 el usuario elige **Precisa** o **Aproximada** en el diálogo de permisos. Tres reglas que sigue el proyecto:
 
-**Riesgos**
-
--   UX pobre (prometer features que no se usan).
--   **Batería**: consumo elevado por abuso de hardware.
-
-**Estado actual**
-
--   Modelo obsoleto para apps modernas: hoy todo pasa por **runtime permissions** (API ≥ 23).
-
----
-
-#### B) Marshmallow → Pie (API 23–28) — **Runtime permissions**
-
-**Cambio clave**
-
--   Nacen los **dangerous permissions**: se piden **en ejecución** y el usuario **acepta o deniega** en tiempo real.
-
-**Buenas prácticas**
-
--   Mostrar **racional** si el usuario deniega (explicar valor real).
--   **No** bloquear si deniega: ofrecer **degradación** (mapa sin punto exacto, buscar por dirección).
--   Idempotencia: **no spamear diálogos**.
-
-**Caso real**
-
--   App de taxi (pasajero): si deniega, permitir **introducir origen/destino manualmente** y luego ofrecer activar ubicación.
+1. **Explica antes de pedir**: primero un panel propio, luego el diálogo del sistema.
+2. **Pide FINE y COARSE juntos**: si pides solo FINE, el diálogo no ofrece «Aproximada».
+3. **Funciona con aproximada**: es una elección válida del usuario.
 
 ---
 
-#### C) Android 10–11 (API 29–30) — **Foreground vs. Background**
+## 2) Proyectos de la clase
 
-**Cambio**
+| Proyecto                                      | Qué es                                                                           | Guía                                   |
+| --------------------------------------------- | -------------------------------------------------------------------------------- | -------------------------------------- |
+| [`infra-app-taxi`](./infra-app-taxi)          | MySQL 9.7, Redis 8.10 y la API con Docker Compose                                | [README](./infra-app-taxi/README.md)   |
+| [`backend-app-taxi`](./backend-app-taxi)      | API NestJS 12: OTP, menú, registro y refresh                                     | [README](./backend-app-taxi/README.md) |
+| [`android-app-taxi`](./android-app-taxi)      | App Android: lo de la clase anterior + **Home con mapa, permisos y GPS**         | [README](./android-app-taxi/README.md) |
+| [`design-m04-c01.pen`](./design-m04-c01.pen)  | Diseño del proyecto con la sección **«7 · Mapa y ubicación (GPS)»**              | —                                      |
 
--   Se separa `ACCESS_BACKGROUND_LOCATION`. El sistema **notifica** uso de ubicación en background.
--   Mayor fricción si pides background sin justificar.
+Los tres proyectos parten de los del **módulo 3 · clase 04**. Backend e infra no cambian: todo ocurre en `features/home` de la app.
 
-**Regla de oro**
-
--   Primero **foreground** con caso de uso claro; **luego** background en un **segundo paso** con explicación concreta.
-
-**Ejemplos**
-
--   **Sí background**: conductor en viaje con tracking continuo (notificación persistente + Foreground Service).
--   **No background**: pantalla “cerca de mí” que solo necesita ubicación cuando está visible.
-
-**Errores comunes**
-
--   Pedir background al iniciar la app → **rechazo** y malas reseñas.
+![Diseño: los 4 estados del mapa](_img/map-states.png)
 
 ---
 
-#### D) Android 12–14 (API 31–34) — **Precisa vs. aproximada** y **grants temporales**
+## 3) Paso a paso en `android-app-taxi`
 
-**Cambios**
+Vamos a construir Home de abajo hacia arriba: librerías → dominio → datos → ViewModel → pantalla.
 
--   El usuario puede otorgar **aproximada** aunque pidas **precisa**.
--   **One‑time permission** (“solo esta vez”) y grants temporales.
--   **Foreground Service Types**: para tracking, debes usar **type=location** y **notificación visible**.
+```
+features/home/
+├─ HomeModule.kt                               // Paso 5
+├─ domain/
+│  ├─ model/UserLocation.kt, LocationError.kt  // Paso 3
+│  ├─ repository/LocationRepository.kt         // Paso 3
+│  └─ usecase/ObserveLocationUseCase.kt        // Paso 5
+├─ data/location/LocationRepositoryImpl.kt     // Paso 4
+└─ presentation/
+   ├─ LocationPermission.kt                    // Paso 6
+   ├─ MapUiState.kt, HomeViewModel.kt          // Paso 7
+   └─ HomeScreen.kt                            // Pasos 6, 8 y 9
+```
 
-**Diseño recomendado**
+### Paso 1 · Agregar las librerías
 
--   **Mínima precisión**: solicita _coarse_ si basta; ofrece “Mejorar precisión” si aporta valor claro (ETA exacta, navegación).
--   Degradación visible: si la ubicación es aproximada, muestra **círculo de incertidumbre** y mensajes claros.
+```toml
+# gradle/libs.versions.toml
+[versions]
+playServicesLocation = "21.4.0"
+mapsCompose = "9.0.1"
 
-**Checklist**
-
--   Foreground (precisa/aprox) con racional.
--   Operar con aproximada cuando sea suficiente.
--   Background solo si hay **justificación** y **segunda pantalla** + **FS type=location**.
-
----
-
-### 1.2 Sensores (acelerómetro, proximidad)
-
-**Evolución**
-
--   Acceso clásico vía `SensorManager` + `SensorEventListener`.
--   Con Doze/App Standby y límites en background, **registrar/desregistrar** según ciclo de vida es obligatorio.
-
-**Buenas prácticas**
-
--   Frecuencias moderadas `SENSOR_DELAY_NORMAL/GAME`.
--   Filtrado para ruido (filtro **low‑pass**).
--   Proximidad: puede ser **digital** (2 estados) o **analógico** (cm).
-
-**Casos de uso**
-
--   Acelerómetro: _shake to refresh_, detección de frenadas bruscas, animaciones dependientes de inclinación.
--   Proximidad: evitar toques accidentales (llamadas, _push‑to‑talk_), apagar/atenuar UI al acercar al rostro.
-
----
-
-## 2) Permisos en tiempo de ejecución (matriz + UX)
-
-### 2.1 Matriz de permisos (hoy)
-
--   `ACCESS_COARSE_LOCATION` → **aproximada** (zona/ciudad).
--   `ACCESS_FINE_LOCATION` → **precisa** (GPS).
--   `ACCESS_BACKGROUND_LOCATION` → **seguimiento en segundo plano** (requiere foreground previo y justificación).
-
-### 2.2 Patrón UX recomendado
-
-1. **Pantalla de racional**: “Para mostrar taxis cercanos, necesitamos tu ubicación.”
-2. **Solicitud foreground**: `FINE + COARSE`. Si otorga solo **COARSE**, **funciona** con límites.
-3. **Pantalla específica** para background si el flujo lo necesita (conductor en ruta).
-
-### 2.3 Lanzador de permisos (Compose)
+[libraries]
+play-services-location = { module = "com.google.android.gms:play-services-location", version.ref = "playServicesLocation" }
+kotlinx-coroutines-play-services = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-play-services", version.ref = "coroutines" }
+maps-compose = { module = "com.google.maps.android:maps-compose", version.ref = "mapsCompose" }
+```
 
 ```kotlin
-// Código en inglés; comentarios en español
-@Composable
-fun RememberLocationPermissionLauncher(
-    onGranted: (precise: Boolean) -> Unit,
-    onDenied: () -> Unit
-): ManagedActivityResultLauncher<Array<String>, Map<String, Boolean>> {
-    return rememberLauncherForActivityResult(
-        ActivityResultContracts.RequestMultiplePermissions()
-    ) { result ->
-        val fine = result[Manifest.permission.ACCESS_FINE_LOCATION] == true
-        val coarse = result[Manifest.permission.ACCESS_COARSE_LOCATION] == true
-        when {
-            fine -> onGranted(true)   // Precisa
-            coarse -> onGranted(false) // Aproximada
-            else -> onDenied()        // Denegado
-        }
-    }
+// app/build.gradle.kts
+dependencies {
+    implementation(libs.play.services.location)
+    implementation(libs.kotlinx.coroutines.play.services)
+    implementation(libs.maps.compose)
 }
 ```
 
----
+| Librería                           | Para qué                                                 |
+| ---------------------------------- | -------------------------------------------------------- |
+| `play-services-location`           | `FusedLocationProviderClient`, `LocationRequest`         |
+| `kotlinx-coroutines-play-services` | `.await()`: usar las tareas de Play services con corrutinas |
+| `maps-compose`                     | `GoogleMap`, `Circle` y marcadores en Compose            |
 
-## 3) FusedLocationProviderClient (FLP)
-
-### 3.1 Prioridades
-
--   `PRIORITY_HIGH_ACCURACY` → GPS (consumo mayor).
--   `PRIORITY_BALANCED_POWER_ACCURACY` → redes (buena en ciudad).
--   `PRIORITY_LOW_POWER` → esporádico.
--   `PRIORITY_PASSIVE` → escucha sin activar hardware.
-
-### 3.2 Una muestra vs. flujo continuo
-
--   `getCurrentLocation()` → **single shot** “mejor posible ahora” (ideal “localízame”).
--   `requestLocationUpdates()` → **stream continuo** (requiere _stop_ explícito y cuidado de batería).
-
-### 3.3 Validación + _settings resolution_
-
-```kotlin
-// Comentarios en español
-suspend fun fetchBestLocation(
-    context: Context,
-    priority: Int = Priority.PRIORITY_BALANCED_POWER_ACCURACY,
-    maxAgeMs: Long = 30_000L,
-    maxAccM: Float = 50f
-): Location? {
-    val fused = LocationServices.getFusedLocationProviderClient(context)
-    val settings = LocationServices.getSettingsClient(context)
-
-    val req = LocationRequest.Builder(priority, 5000).build()
-    try {
-        settings.checkLocationSettings(
-            LocationSettingsRequest.Builder().addLocationRequest(req).build()
-        ).await()
-    } catch (_: Exception) {
-        // En UI, normalmente disparas resolución; aquí devolvemos null
-        return null
-    }
-
-    val current = try { fused.getCurrentLocation(priority, CancellationTokenSource().token).await() } catch (_: Exception) { null }
-    val candidate = current ?: try { fused.lastLocation.await() } catch (_: Exception) { null }
-
-    val okAge = candidate?.time?.let { System.currentTimeMillis() - it <= maxAgeMs } == true
-    val okAcc = candidate?.accuracy?.let { it <= maxAccM } == true
-    return if (candidate != null && okAge && okAcc) candidate else current ?: candidate
-}
-```
-
-**Nota**: valida **accuracy** (m), **edad** (ms) e **isFromMockProvider**.
-
----
-
-## 4) Sensores: acelerómetro y proximidad
-
-### 4.1 Lector lifecycle‑aware
-
-```kotlin
-// Comentarios en español
-class SensorReader(
-    private val context: Context
-) : SensorEventListener {
-
-    private val manager = context.getSystemService(Context.SENSOR_SERVICE) as SensorManager
-    private val accel = manager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER)
-    private val prox = manager.getDefaultSensor(Sensor.TYPE_PROXIMITY)
-
-    private val _accel = MutableStateFlow(Triple(0f, 0f, 0f))
-    val accelFlow: StateFlow<Triple<Float, Float, Float>> = _accel
-
-    private val _proximity = MutableStateFlow<Float?>(null)
-    val proximityFlow: StateFlow<Float?> = _proximity
-
-    fun start() {
-        manager.registerListener(this, accel, SensorManager.SENSOR_DELAY_GAME)
-        manager.registerListener(this, prox, SensorManager.SENSOR_DELAY_NORMAL)
-    }
-    fun stop() = manager.unregisterListener(this)
-
-    override fun onSensorChanged(e: SensorEvent) {
-        when (e.sensor.type) {
-            Sensor.TYPE_ACCELEROMETER -> _accel.value = Triple(e.values[0], e.values[1], e.values[2])
-            Sensor.TYPE_PROXIMITY -> _proximity.value = e.values.firstOrNull()
-        }
-    }
-    override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {}
-}
-```
-
-### 4.2 Filtro low‑pass (opcional)
-
-```kotlin
-// Comentarios en español
-fun lowPass(input: FloatArray, output: FloatArray?, alpha: Float = 0.1f): FloatArray {
-    if (output == null) return input
-    for (i in input.indices) output[i] = output[i] + alpha * (input[i] - output[i])
-    return output
-}
-```
-
----
-
-## 5) Fallbacks y políticas de calidad
-
-### 5.1 Política de calidad
-
-```kotlin
-data class QualityPolicy(
-    val maxAgeMs: Long = 30_000L,
-    val maxAccMeters: Float = 50f
-)
-
-fun Location?.passes(policy: QualityPolicy): Boolean {
-    this ?: return false
-    val fresh = System.currentTimeMillis() - time <= policy.maxAgeMs
-    val accurate = accuracy <= policy.maxAccMeters
-    return fresh && accurate
-}
-```
-
-### 5.2 Reintentos con backoff (escalado)
-
-```kotlin
-// Comentarios en español
-suspend fun <T> retryWithBackoff(
-    maxAttempts: Int = 3,
-    baseDelayMs: Long = 400,
-    block: suspend () -> T?
-): T? {
-    var attempt = 0
-    var delayMs = baseDelayMs
-    while (attempt < maxAttempts) {
-        val res = block()
-        if (res != null) return res
-        attempt++
-        kotlinx.coroutines.delay(delayMs)
-        delayMs *= 2
-    }
-    return null
-}
-```
-
----
-
-## 6) Ejemplo práctico end‑to‑end
-
-### 6.1 Manifest (extracto mínimo)
+### Paso 2 · Permisos y API key en el manifest
 
 ```xml
-<uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
-<uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
+<!-- app/src/main/AndroidManifest.xml -->
+<uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+<uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
 
-<!-- Solo si necesitas tracking en segundo plano -->
-<uses-permission android:name="android.permission.ACCESS_BACKGROUND_LOCATION"/>
-
-<!-- Si harás tracking continuo -->
-<uses-permission android:name="android.permission.FOREGROUND_SERVICE"/>
-<uses-permission android:name="android.permission.FOREGROUND_SERVICE_LOCATION"/>
+<application ...>
+    <meta-data
+        android:name="com.google.android.geo.API_KEY"
+        android:value="${MAPS_API_KEY}" />
+</application>
 ```
 
-### 6.2 Repositorios
+La key de **Maps SDK for Android** se lee de `local.properties`, que no se sube a git:
 
-```kotlin
-// Comentarios en español
-class LocationRepository(private val context: Context) {
-    private val fused by lazy { LocationServices.getFusedLocationProviderClient(context) }
-    private val settings by lazy { LocationServices.getSettingsClient(context) }
-
-    suspend fun ensureSettings(priority: Int): Boolean {
-        val req = LocationRequest.Builder(priority, 4000).build()
-        return try {
-            settings.checkLocationSettings(
-                LocationSettingsRequest.Builder().addLocationRequest(req).build()
-            ).await()
-            true
-        } catch (_: Exception) { false }
-    }
-
-    suspend fun current(priority: Int) = try {
-        fused.getCurrentLocation(priority, CancellationTokenSource().token).await()
-    } catch (_: Exception) { null }
-
-    suspend fun lastKnown() = try { fused.lastLocation.await() } catch (_: Exception) { null }
-}
-
-class SensorsRepository(private val reader: SensorReader) {
-    val accel = reader.accelFlow
-    val proximity = reader.proximityFlow
-    fun start() = reader.start()
-    fun stop() = reader.stop()
-}
+```properties
+# local.properties
+MAPS_API_KEY=AIza...
 ```
 
-### 6.3 ViewModel
+```kotlin
+// app/build.gradle.kts → defaultConfig
+manifestPlaceholders["MAPS_API_KEY"] = localProperties.getProperty("MAPS_API_KEY", "")
+```
+
+-   Declarar un permiso **no** lo concede: solo dice que la app podrá pedirlo.
+-   Sin key la app funciona y encuentra la ubicación, pero el mapa se ve gris.
+
+### Paso 3 · El dominio: qué es una ubicación
 
 ```kotlin
-// Comentarios en español
-data class UiLocation(
-    val status: String = "idle",
-    val lat: Double? = null,
-    val lng: Double? = null,
-    val acc: Float? = null,
-    val speed: Float? = null,
-    val mock: Boolean = false,
-    val msg: String? = null
+// domain/model/UserLocation.kt
+data class UserLocation(
+    val latitude: Double,
+    val longitude: Double,
+    val accuracyMeters: Float,
+    val timeMillis: Long,
+    val isMock: Boolean
 )
 
-@HiltViewModel
-class LocationViewModel @Inject constructor(
-    @ApplicationContext private val app: Context,
-    private val locRepo: LocationRepository,
-    private val sensRepo: SensorsRepository
-) : ViewModel() {
+// domain/model/LocationError.kt
+enum class LocationError { SettingsDisabled, PermissionMissing, Unavailable }
 
-    private val policy = QualityPolicy()
-    private val _ui = MutableStateFlow(UiLocation())
-    val ui: StateFlow<UiLocation> = _ui
-
-    val accel = sensRepo.accel
-    val proximity = sensRepo.proximity
-
-    fun startSensors() = sensRepo.start()
-    fun stopSensors() = sensRepo.stop()
-
-    fun loadOnce(precise: Boolean) {
-        viewModelScope.launch {
-            _ui.value = _ui.value.copy(status = "loading", msg = null)
-
-            val priority = if (precise) Priority.PRIORITY_HIGH_ACCURACY
-                           else Priority.PRIORITY_BALANCED_POWER_ACCURACY
-            val settingsOk = locRepo.ensureSettings(priority)
-
-            val first = if (settingsOk) locRepo.current(priority) else null
-            val candidate = when {
-                first.passes(policy) -> first
-                else -> locRepo.lastKnown()
-            }
-
-            val result = candidate ?: first
-            if (result == null) {
-                _ui.value = _ui.value.copy(status = "error", msg = "No se obtuvo ubicación. Revisa permisos/GPS.")
-                return@launch
-            }
-
-            _ui.value = UiLocation(
-                status = "ok",
-                lat = result.latitude,
-                lng = result.longitude,
-                acc = result.accuracy,
-                speed = result.speed,
-                mock = result.isFromMockProvider,
-                msg = if (result.isFromMockProvider) "Ubicación simulada detectada" else null
-            )
-        }
-    }
+// domain/repository/LocationRepository.kt
+interface LocationRepository {
+    fun observeLocation(precise: Boolean): Flow<UserLocation>
 }
 ```
 
-### 6.4 UI Compose
+-   Devuelve un **`Flow`** y no una función `suspend`: la ubicación cambia mientras el usuario se mueve.
+-   `accuracyMeters` es el radio del círculo que veremos en el mapa.
+-   Los tres errores son los únicos que la pantalla necesita distinguir: ubicación apagada, sin permiso o sin señal.
+
+### Paso 4 · Los datos: de callback a `Flow`
+
+Play services avisa cada posición con un *callback*. `callbackFlow` lo convierte en `Flow`:
 
 ```kotlin
-// Comentarios en español
-@Composable
-fun LocationScreen(viewModel: LocationViewModel = hiltViewModel()) {
-    val ui by viewModel.ui.collectAsState()
-    val accel by viewModel.accel.collectAsState()
-    val prox by viewModel.proximity.collectAsState()
+// data/location/LocationRepositoryImpl.kt
+override fun observeLocation(precise: Boolean): Flow<UserLocation> = callbackFlow {
+    if (!LocationManagerCompat.isLocationEnabled(locationManager)) {
+        throw LocationException(LocationError.SettingsDisabled)
+    }
 
-    val launcher = RememberLocationPermissionLauncher(
-        onGranted = { precise -> viewModel.loadOnce(precise) },
-        onDenied = { /* Mostrar degradación o ir a Settings */ }
+    val request = LocationRequest.Builder(priorityFor(precise), 5_000L)
+        .setMinUpdateDistanceMeters(5f)
+        .build()
+
+    val callback = object : LocationCallback() {
+        override fun onLocationResult(result: LocationResult) {
+            result.lastLocation?.let { trySend(it.toDomain()) }
+        }
+    }
+
+    client.requestLocationUpdates(request, callback, Looper.getMainLooper()).await()
+
+    awaitClose { client.removeLocationUpdates(callback) }
+}
+```
+
+1. Si la ubicación del teléfono está apagada, falla al instante con `SettingsDisabled`.
+2. Pide una posición cada 5 s, solo si el usuario se movió 5 m.
+3. Cada posición se emite con `trySend`.
+4. **`awaitClose`**: cuando nadie escucha, quita el callback y el GPS se apaga. Sin esta línea, la batería se gasta.
+
+El archivo real agrega tres detalles: usa `lastLocation` si tiene menos de 2 min (el mapa se centra al instante), cierra con `Unavailable` si en 15 s no llega nada y traduce `SecurityException` a `PermissionMissing`.
+
+![Precisa o aproximada](android-app-taxi/docs/gif/gps-precision.gif)
+
+### Paso 5 · El caso de uso y Hilt
+
+El caso de uso convierte el stream en estados, con el mismo molde que `RefreshMenuUseCase` de la clase anterior:
+
+```kotlin
+// domain/usecase/ObserveLocationUseCase.kt
+sealed interface LocationState {
+    data object Loading : LocationState
+    data class Success(val location: UserLocation) : LocationState
+    data class Error(val error: LocationError) : LocationState
+}
+
+operator fun invoke(precise: Boolean): Flow<LocationState> = flow {
+    emit(LocationState.Loading)
+    emitAll(repo.observeLocation(precise).map { LocationState.Success(it) })
+}.catch { emit(LocationState.Error((it as? LocationException)?.error ?: LocationError.Unavailable)) }
+```
+
+```kotlin
+// HomeModule.kt
+@Provides
+@Singleton
+fun provideLocationRepository(@ApplicationContext context: Context): LocationRepository =
+    LocationRepositoryImpl(
+        client = LocationServices.getFusedLocationProviderClient(context),
+        locationManager = context.getSystemService(LocationManager::class.java)
     )
-
-    DisposableEffect(Unit) {
-        viewModel.startSensors()
-        onDispose { viewModel.stopSensors() }
-    }
-
-    Column(Modifier.padding(16.dp)) {
-        Text("GPS, permisos y sensores", style = MaterialTheme.typography.titleLarge)
-        Spacer(Modifier.height(12.dp))
-
-        Button(onClick = {
-            launcher.launch(
-                arrayOf(
-                    Manifest.permission.ACCESS_FINE_LOCATION,
-                    Manifest.permission.ACCESS_COARSE_LOCATION
-                )
-            )
-        }) { Text("Usar ubicación (precisa/aprox)") }
-
-        Spacer(Modifier.height(16.dp))
-        when (ui.status) {
-            "idle" -> Text("Listo para solicitar ubicación.")
-            "loading" -> Text("Obteniendo ubicación…")
-            "ok" -> {
-                Text("Lat: ${ui.lat}")
-                Text("Lng: ${ui.lng}")
-                Text("Acc: ${ui.acc} m  —  Vel: ${ui.speed} m/s")
-                if (ui.mock) Text("Advertencia: ubicación simulada.")
-            }
-            "error" -> Text(ui.msg ?: "Error desconocido")
-        }
-
-        Spacer(Modifier.height(24.dp))
-        Text("Acelerómetro: x=${"%.2f".format(accel.first)}, y=${"%.2f".format(accel.second)}, z=${"%.2f".format(accel.third)}")
-        Text("Proximidad: ${prox?.let { "${it} cm" } ?: "N/A"}")
-    }
-}
 ```
 
----
+-   La diferencia con el menú: `Success` **se repite**, una vez por cada posición nueva.
+-   Hilt entrega la **interfaz**: el ViewModel nunca ve Play services.
 
-## 7) (Opcional) Foreground Service de tracking
+### Paso 6 · Pedir el permiso
 
-### 7.1 Diagrama de flujo
+![Permisos en tiempo de ejecución](android-app-taxi/docs/gif/gps-permissions.gif)
 
-```mermaid
-flowchart LR
-    A[UI solicita permisos] --> B{Foreground otorgado?}
-    B -- No --> C[Degradar UX]
-    B -- Sí --> D[Iniciar FS type=location]
-    D --> E[Solicitar updates periódicos]
-    E --> F[Emitir a ViewModel/Repo]
-    F --> G[Enviar a backend (si aplica)]
-    G --> H{Fin de viaje?}
-    H -- No --> E
-    H -- Sí --> I[stopForeground(true) + stopSelf()]
-```
-
-### 7.2 Código base del Service
+Pedir un permiso necesita una Activity, así que vive en presentación con su propio tipo:
 
 ```kotlin
-// Comentarios en español
-@AndroidEntryPoint
-class TrackingService : LifecycleService() {
+// presentation/LocationPermission.kt
+sealed interface LocationPermission {
+    data object Unknown : LocationPermission
+    data class Granted(val precise: Boolean) : LocationPermission
+    data class Denied(val blocked: Boolean) : LocationPermission
+}
+```
 
-    @Inject lateinit var locationRepo: LocationRepository
+`HomeRoute` hace dos cosas: revisa el permiso cada vez que la pantalla vuelve, y lanza el diálogo cuando el usuario toca «Permitir ubicación»:
 
-    private val channelId = "tracking_channel"
-    private val notifId = 1001
+```kotlin
+// presentation/HomeScreen.kt (HomeRoute)
+val launcher = rememberLauncherForActivityResult(
+    ActivityResultContracts.RequestMultiplePermissions()
+) { result ->
+    val canAskAgain = activity?.shouldShowRequestPermissionRationale(ACCESS_FINE_LOCATION) == true
+    vm.onPermissionResult(result.toLocationPermission(canAskAgain))
+}
 
-    override fun onCreate() {
-        super.onCreate()
-        createChannel()
-    }
+LifecycleResumeEffect(Unit) {
+    vm.onPermissionChecked(context.currentLocationPermission())
+    onPauseOrDispose { }
+}
 
-    override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        val notif = buildNotification("Iniciando tracking…")
-        startForeground(notifId, notif)
-        startCollecting()
-        return START_STICKY
-    }
+// al tocar «Permitir ubicación»
+launcher.launch(arrayOf(ACCESS_FINE_LOCATION, ACCESS_COARSE_LOCATION))
+```
 
-    private fun createChannel() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val channel = NotificationChannel(channelId, "Tracking", NotificationManager.IMPORTANCE_LOW)
-            (getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager).createNotificationChannel(channel)
-        }
-    }
+| El usuario elige    | Resultado                    |
+| ------------------- | ---------------------------- |
+| Precisa             | `Granted(precise = true)`    |
+| Aproximada          | `Granted(precise = false)`   |
+| No permitir (1.ª)   | `Denied(blocked = false)`    |
+| No permitir (2.ª)   | `Denied(blocked = true)` → solo queda «Abrir ajustes» |
 
-    private fun buildNotification(text: String): Notification {
-        val builder = NotificationCompat.Builder(this, channelId)
-            .setSmallIcon(R.drawable.ic_stat_name)
-            .setContentTitle("Tracking activo")
-            .setContentText(text)
-            .setOngoing(true)
-        return builder.build()
-    }
+### Paso 7 · Un solo estado para la pantalla
 
-    private fun startCollecting() {
-        lifecycleScope.launch {
-            while (true) {
-                val loc = fetchBestLocation(
-                    context = this@TrackingService,
-                    priority = Priority.PRIORITY_BALANCED_POWER_ACCURACY
-                )
-                // TODO: enviar loc al backend si aplica
-                if (loc != null) {
-                    val text = "Lat:${"%.5f".format(loc.latitude)} Lon:${"%.5f".format(loc.longitude)}"
-                    val nm = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-                    nm.notify(notifId, buildNotification(text))
-                }
-                kotlinx.coroutines.delay(30_000)
-            }
-        }
+![MapUiState: cuatro estados](android-app-taxi/docs/gif/gps-map-states.gif)
+
+```kotlin
+// presentation/MapUiState.kt
+sealed interface MapUiState {
+    data object Idle : MapUiState
+    data class Permission(val blocked: Boolean) : MapUiState
+    data class Success(val location: UserLocation, val precise: Boolean) : MapUiState
+    data class Error(val error: LocationError) : MapUiState
+}
+```
+
+El ViewModel junta el permiso y la ubicación en un solo `StateFlow`:
+
+```kotlin
+// presentation/HomeViewModel.kt
+private val permission = MutableStateFlow<LocationPermission>(LocationPermission.Unknown)
+private val attempt = MutableStateFlow(0)
+
+val mapUi: StateFlow<MapUiState> = combine(permission, attempt) { current, _ -> current }
+    .flatMapLatest { it.toMapUi() }
+    .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), MapUiState.Idle)
+
+private fun LocationPermission.toMapUi(): Flow<MapUiState> = when (this) {
+    LocationPermission.Unknown -> flowOf(MapUiState.Idle)
+    is LocationPermission.Denied -> flowOf(MapUiState.Permission(blocked))
+    is LocationPermission.Granted -> observeLocation(precise).map { it.toMapUi(precise) }
+}
+
+fun retry() = attempt.update { it + 1 }
+```
+
+-   **Sin permiso** → `Permission`. **Con permiso** → se observa la ubicación.
+-   `flatMapLatest` cancela el flujo anterior: si el permiso cambia, el GPS viejo se apaga.
+-   `retry()` suma 1 a `attempt` y el flujo vuelve a empezar.
+
+### Paso 8 · El mapa en Compose
+
+```kotlin
+// presentation/HomeScreen.kt (HomeMap)
+GoogleMap(
+    modifier = Modifier.fillMaxSize(),
+    cameraPositionState = camera,
+    uiSettings = MapUiSettings(zoomControlsEnabled = false, myLocationButtonEnabled = false)
+) {
+    if (location != null) {
+        val position = LatLng(location.latitude, location.longitude)
+        Circle(center = position, radius = location.accuracyMeters.toDouble(), …)
+        MarkerComposable(state = rememberUpdatedMarkerState(position)) { UserDot() }
     }
 }
 ```
 
-> Recuerda declarar `FOREGROUND_SERVICE_LOCATION` en el manifest y **detener** el service cuando acabe el viaje.
+La cámara arranca en Lima y se mueve al usuario con el primer `Success`:
+
+```kotlin
+val camera = rememberCameraPositionState {
+    position = CameraPosition.fromLatLngZoom(LIMA, 12f)
+}
+
+LaunchedEffect(success != null) {
+    if (success != null && !centered) {
+        camera.centerOn(success.location)   // animate(newLatLngZoom(punto, 16f), 800)
+        centered = true
+    }
+}
+```
+
+El panel inferior se muestra solo mientras **no** hay ubicación. En `Success` se esconde y queda el mapa libre; lo que irá encima llega en las próximas clases:
+
+```kotlin
+AnimatedVisibility(visible = success == null) {
+    LocationPanel(state = state, …)   // Idle, Permission o Error
+}
+```
+
+![Variantes: diálogo, bloqueado, aproximada y sin señal](_img/map-variants.png)
+
+| Estado                     | Panel                                    | Botón                 |
+| -------------------------- | ---------------------------------------- | --------------------- |
+| `Idle`                     | «Buscando tu ubicación…»                 | —                     |
+| `Permission(false)`        | «Activa tu ubicación»                    | «Permitir ubicación»  |
+| `Permission(true)`         | «Permiso de ubicación bloqueado»         | «Abrir ajustes»       |
+| `Success`                  | Ninguno: mapa, marcador y círculo        | «Mi ubicación» (flotante) |
+| `Error(SettingsDisabled)`  | «La ubicación del teléfono está apagada» | «Activar ubicación»   |
+| `Error(Unavailable)`       | «No pudimos encontrarte»                 | «Reintentar»          |
+
+### Paso 9 · El GPS se apaga solo
+
+![El GPS se enciende con la pantalla y se apaga sin ella](android-app-taxi/docs/gif/gps-lifecycle.gif)
+
+No hay ningún `onPause` escrito a mano. Tres piezas encadenadas lo resuelven:
+
+1. `collectAsStateWithLifecycle()` deja de escuchar cuando la app pasa a segundo plano.
+2. `WhileSubscribed(5_000)` espera 5 s y cancela el flujo (una rotación no alcanza a reiniciarlo).
+3. `awaitClose` quita el callback y Fused apaga el GPS.
+
+```kotlin
+// presentation/HomeScreen.kt (HomeRoute)
+val mapUi by vm.mapUi.collectAsStateWithLifecycle()
+```
+
+### Paso 10 · Probarlo
+
+Un fake del repositorio reemplaza a Play services y cuenta cuántos lo están escuchando:
+
+```kotlin
+// test/.../features/home/FakeLocation.kt
+class FakeLocationRepository : LocationRepository {
+    val updates = MutableSharedFlow<UserLocation>(replay = 1)
+    var activeCollectors = 0
+        private set
+
+    override fun observeLocation(precise: Boolean) = flow {
+        activeCollectors++
+        try { updates.collect { emit(it) } } finally { activeCollectors-- }
+    }
+}
+```
+
+Con él se prueba que el GPS se suelta a los 5 s de perder la pantalla:
+
+```kotlin
+// test/.../features/home/presentation/HomeViewModelTest.kt
+@Test
+fun `sin pantalla visible deja de escuchar el GPS a los 5 segundos`() = runTest(dispatcher) {
+    val screen = collect(vm)
+    vm.onPermissionResult(LocationPermission.Granted(precise = true))
+    assertEquals(1, repo.activeCollectors)
+
+    screen.cancel()
+    advanceTimeBy(5_001)
+    runCurrent()
+    assertEquals(0, repo.activeCollectors)
+}
+```
+
+```bash
+./gradlew testDebugUnitTest    # 57 pruebas JVM (8 nuevas)
+```
+
+Para ver cada estado sin emulador, abre `HomeScreen.kt` en Android Studio: hay un `@Preview` por estado.
 
 ---
 
-## 8) Pruebas, depuración y checklist
+## 4) Errores comunes y cómo los evita el proyecto
 
-### 8.1 Pruebas
-
--   **ADB grants** para emulador:  
-    `adb shell pm grant <package> android.permission.ACCESS_FINE_LOCATION`
--   **Mock locations** desde opciones de desarrollador (probar `isFromMockProvider`).
--   **Sensores**: inyectar `SensorReader` falso con `MutableStateFlow` para valores predecibles.
-
-### 8.2 Depuración
-
--   Loggear **priority**, **accuracy**, **age**, **provider**, **isMock**.
--   Ver consumo con _Battery Historian_ o `adb bugreport` en sesiones largas.
-
-### 8.3 Checklist
-
--   [ ] Pantalla de **racional** clara.
--   [ ] Lanzadores para **precisa/aprox** y (si aplica) **background** en segundo paso.
--   [ ] FLP con validación de **edad/accuracy/mock** y **settings resolution**.
--   [ ] Sensores lifecycle‑aware + frecuencias moderadas.
--   [ ] ViewModel coordinando permisos → settings → captura → fallbacks.
--   [ ] UI Compose con estados y datos en vivo.
--   [ ] (Opcional) Foreground Service con canal y notificación.
--   [ ] Pruebas de mock y registros diagnósticos.
+| Error                                            | Qué pasa                                       | En el proyecto                                  |
+| ------------------------------------------------ | ---------------------------------------------- | ----------------------------------------------- |
+| Pedir el permiso sin explicar                    | El usuario lo niega por reflejo                | Panel «Activa tu ubicación» antes del diálogo   |
+| Pedir solo `ACCESS_FINE_LOCATION`                | El diálogo no ofrece «Aproximada»              | Se piden FINE y COARSE juntos                   |
+| Volver a lanzar el diálogo bloqueado             | No pasa nada al tocar el botón                 | «Abrir ajustes»                                 |
+| Olvidar `removeLocationUpdates`                  | El GPS sigue encendido: se gasta la batería    | `awaitClose` + `WhileSubscribed(5_000)`         |
+| Esperar el GPS para siempre                      | Spinner infinito                               | 15 s sin señal → `Error(Unavailable)`           |
+| Mover la cámara en cada posición                 | El usuario no puede explorar el mapa           | Se centra una vez; luego, botón «mi ubicación»  |
+| Subir la API key de Maps a git                   | Key expuesta                                   | `local.properties`                              |
 
 ---
 
-## Apéndice A — Referencias útiles
+## Recursos recomendados
 
--   Android Developers — Location permissions, Foreground services, Sensors API.
--   Google Play Services Location — FusedLocationProviderClient.
--   Recomendaciones de UX para permisos y privacidad en Android 12–14.
+-   [Solicitar permisos de ubicación](https://developer.android.com/develop/sensors-and-location/location/permissions) (Android Developers).
+-   [Solicitar actualizaciones de ubicación](https://developer.android.com/develop/sensors-and-location/location/request-updates).
+-   [Maps Compose](https://developers.google.com/maps/documentation/android-sdk/maps-compose) y [API key de Maps SDK for Android](https://developers.google.com/maps/documentation/android-sdk/get-api-key).
+-   [`callbackFlow`](https://kotlinlang.org/api/kotlinx.coroutines/kotlinx-coroutines-core/kotlinx.coroutines.flow/callback-flow.html) (Kotlin).
+-   Clase anterior: [UI reactiva con datos remotos](../../modulo-03/clase-04/README.md).

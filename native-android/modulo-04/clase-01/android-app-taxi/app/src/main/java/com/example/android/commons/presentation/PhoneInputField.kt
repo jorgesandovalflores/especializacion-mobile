@@ -11,6 +11,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 
+// Comentarios en español; código en inglés.
 // value = solo dígitos (0..9) SIN prefijo. onValueChange devuelve solo dígitos (máx 9).
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
