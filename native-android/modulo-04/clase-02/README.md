@@ -1,326 +1,313 @@
-# Módulo 04 · Sesión 02 — WorkManager y Servicios en Segundo Plano (Android/Kotlin)
+# Módulo 4 · Sesión 2
 
-## Objetivos de aprendizaje
-
-1. Comprender la **evolución del manejo de procesos en segundo plano** en Android y cómo ha cambiado con las versiones del sistema.
-2. Diferenciar correctamente entre **Service**, **ForegroundService** y **WorkManager**, entendiendo cuándo usar cada uno.
-3. Implementar **CoroutineWorker** con **restricciones**, **backoff**, **tareas periódicas** y **encadenamiento** de trabajos.
-4. Aplicar estos conceptos en **casos de uso reales** de distintas apps: mensajería, fitness, almacenamiento, clima y multimedia.
+## Segundo plano: un servicio de ubicación que vive con Home
 
 ---
 
-## 1) Evolución del manejo en segundo plano en Android
+## Objetivos
 
-### Historia y restricciones por versión
-
-En Android 1.x hasta Android 5.x, los desarrolladores podían ejecutar **servicios en background** de forma indefinida, incluso cuando el usuario cerraba la aplicación.  
-Esto permitía construir funciones como reproductores de música o sincronizaciones continuas, pero también provocaba **consumo excesivo de batería** y **sobrecarga de procesos**.
-
-Para corregirlo, Google fue limitando progresivamente el acceso al background:
-
-| Versión                 | Cambio clave                                                   | Impacto                                                                                 |
-| ----------------------- | -------------------------------------------------------------- | --------------------------------------------------------------------------------------- |
-| **Android 6 (API 23)**  | Introducción de **Doze Mode** y **App Standby**.               | Las tareas se suspenden cuando el dispositivo está inactivo.                            |
-| **Android 8 (API 26)**  | Restricciones a los **background services**.                   | Los servicios solo pueden ejecutarse con notificación visible o mediante `WorkManager`. |
-| **Android 10 (API 29)** | Control de permisos de **ubicación y sensores en background**. | Mayor control del usuario.                                                              |
-| **Android 12 (API 31)** | Límite de 10 segundos para servicios iniciados en background.  | Obliga a usar `WorkManager` para trabajos largos.                                       |
-| **Android 14 (API 34)** | Optimización de trabajos y energía.                            | WorkManager se integra totalmente con JobScheduler.                                     |
-
-### Caso de uso: app de mensajería
-
-Antes de Android 8, una app de chat podía mantener un `Service` corriendo todo el día para recibir mensajes.  
-Hoy, Android detendría ese servicio si la app pasa a segundo plano.  
-Por eso, las apps modernas usan **Firebase Cloud Messaging (push)** o **WorkManager** para tareas diferibles (sincronizar mensajes, subir adjuntos, limpiar caché, etc.).
-
-> **Lección:** Android exige usar mecanismos eficientes y cooperativos con el sistema para mantener autonomía sin afectar batería.
+1. Elegir bien entre **Service**, **Foreground Service** y **WorkManager**.
+2. Crear un **Foreground Service** de tipo `location` que siga recibiendo posiciones con la app en segundo plano.
+3. Mostrar una **notificación persistente** mientras Home esté abierto y quitarla al salir.
+4. Probar el arranque y el apagado sin depender del GPS.
 
 ---
 
-## 2) Servicios vs WorkManager — ¿cuándo usar qué?
+## Contenido
 
-| Tipo de tarea                            | Solución moderna                      | Caso real                                                   |
-| ---------------------------------------- | ------------------------------------- | ----------------------------------------------------------- |
-| Tarea visible y constante                | **ForegroundService**                 | Reproductor de música, grabadora de audio, tracking de GPS. |
-| Tarea corta e inmediata                  | **Service**                           | Descarga rápida o envío instantáneo sin reintentos.         |
-| Tarea confiable, diferible y persistente | **WorkManager (OneTimeWorkRequest)**  | Subir fotos o logs al servidor cuando haya conexión.        |
-| Tarea periódica                          | **WorkManager (PeriodicWorkRequest)** | Sincronizar pasos o calorías en app fitness.                |
-| Ejecución exacta (hora específica)       | **AlarmManager**                      | Recordatorio de medicación o alarma de calendario.          |
-
-### Caso de uso: app de noticias
-
-Una app puede usar:
-
--   **Service:** para descargar una imagen justo después de que el usuario la comparte.
--   **WorkManager:** para sincronizar artículos o borrar caché cuando el dispositivo está cargando y conectado al Wi-Fi.
+1. Segundo plano en Android, en dos tablas
+2. Proyectos de la clase
+3. Paso a paso en `android-app-taxi`
+4. ¿Y WorkManager?
+5. Errores comunes
 
 ---
 
-## 3) Fundamentos de WorkManager
+## 1) Segundo plano en Android, en dos tablas
 
-### Tipos de WorkRequest
+Cada versión recortó lo que una app puede hacer sin que el usuario la vea:
 
-| Tipo                    | Descripción                                       | Ejemplo                               |
-| ----------------------- | ------------------------------------------------- | ------------------------------------- |
-| **OneTimeWorkRequest**  | Se ejecuta una vez con condiciones definidas.     | Subir una imagen pendiente.           |
-| **PeriodicWorkRequest** | Se repite cada cierto tiempo (mínimo 15 minutos). | Actualizar datos del clima cada hora. |
+| Versión     | Cambio                                                        |
+| ----------- | ------------------------------------------------------------- |
+| Android 6   | Doze y App Standby: el sistema pausa trabajos en reposo       |
+| Android 8   | Los servicios en segundo plano se detienen a los pocos minutos |
+| Android 10  | La ubicación en segundo plano pasa a ser un permiso aparte    |
+| Android 12  | No se puede iniciar un Foreground Service desde segundo plano |
+| Android 13  | Las notificaciones piden permiso (`POST_NOTIFICATIONS`)       |
+| Android 14  | El Foreground Service declara su **tipo** y su permiso        |
 
-### Conceptos básicos
+¿Qué uso?
 
--   **Constraints:** definen condiciones (red, batería, carga, etc.).
--   **BackoffPolicy:** define reintentos (exponencial o lineal).
--   **UniqueWork:** evita trabajos duplicados.
--   **Tags:** permiten identificar o cancelar grupos de trabajos.
--   **Data:** comunicación entrada/salida entre Workers.
--   **Foreground dentro del Worker:** usa `setForeground(ForegroundInfo)` para tareas largas que deben ser visibles (notificación persistente).
+| Necesito…                                      | Uso                                   | Ejemplo                       |
+| ---------------------------------------------- | ------------------------------------- | ----------------------------- |
+| Algo continuo que el usuario **sabe** que corre | **Foreground Service** + notificación | Tracking GPS, música, llamada |
+| Algo que debe terminar aunque se cierre la app | **WorkManager** (`OneTimeWorkRequest`) | Subir una foto, sincronizar   |
+| Algo cada cierto tiempo (≥ 15 min)             | **WorkManager** (`PeriodicWorkRequest`) | Refrescar el clima            |
+| Algo a una hora exacta                         | `AlarmManager`                        | Recordatorio de medicación    |
 
-### Dependencias y permisos mínimos
+Para el taxi la respuesta es clara: el pasajero espera que su ubicación se siga enviando mientras mira otra app, y debe **verlo**. Eso es un Foreground Service.
 
-```kotlin
-// build.gradle (Module)
-dependencies {
-    implementation("androidx.work:work-runtime-ktx:2.9.1")
-}
+---
+
+## 2) Proyectos de la clase
+
+| Proyecto                                                   | Qué es                                                                     | Guía                                   |
+| ---------------------------------------------------------- | -------------------------------------------------------------------------- | -------------------------------------- |
+| [`infra-app-taxi`](./infra-app-taxi)                       | MySQL 9.7, Redis 8.10 y la API con Docker Compose                          | [README](./infra-app-taxi/README.md)   |
+| [`backend-app-taxi`](./backend-app-taxi)                   | API NestJS 12: OTP, menú, registro y refresh                               | [README](./backend-app-taxi/README.md) |
+| [`android-app-taxi`](./android-app-taxi)                   | App Android: lo de la clase anterior + **servicio de ubicación en segundo plano** | [README](./android-app-taxi/README.md) |
+| [`design-m04-c02.pen`](./design-m04-c02.pen)               | Diseño con la sección **«8 · Ubicación en segundo plano»**                 | —                                      |
+| [`diagrama-servicio-ubicacion.html`](./diagrama-servicio-ubicacion.html) | **Diagrama interactivo**: ábrelo en el navegador y avanza paso a paso | —                                      |
+
+Los tres proyectos parten de los del **módulo 4 · clase 01**. Backend e infra no cambian.
+
+![Diseño: la notificación mientras estás en Home](_img/service-notification.png)
+
+---
+
+## 3) Paso a paso en `android-app-taxi`
+
+![El servicio vive mientras Home esté en la pila](android-app-taxi/docs/gif/gps-background-service.gif)
+
+> El mismo flujo, interactivo: [`diagrama-servicio-ubicacion.html`](./diagrama-servicio-ubicacion.html). Usa ← → o toca una caja para ver su código.
+
 ```
+features/home/
+├─ domain/repository/LocationTracker.kt         // Paso 2
+├─ data/tracking/
+│  ├─ TrackingNotification.kt                   // Paso 3
+│  ├─ LocationTrackingService.kt                // Paso 4
+│  └─ LocationTrackerImpl.kt                    // Paso 2
+└─ presentation/
+   ├─ HomeViewModel.kt                          // Paso 5
+   ├─ NotificationPermission.kt, HomeScreen.kt  // Paso 6
+```
+
+### Paso 1 · Manifest: permisos y servicio
 
 ```xml
-<!-- AndroidManifest.xml -->
-<uses-permission android:name="android.permission.INTERNET" />
-<uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+<uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+<uses-permission android:name="android.permission.FOREGROUND_SERVICE_LOCATION" />
+<uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+
+<service
+    android:name=".features.home.data.tracking.LocationTrackingService"
+    android:exported="false"
+    android:foregroundServiceType="location"
+    android:stopWithTask="true" />
 ```
 
-### Ejemplo completo con `CoroutineWorker`
+-   `foregroundServiceType="location"` + `FOREGROUND_SERVICE_LOCATION`: obligatorio desde Android 14.
+-   `stopWithTask`: si el usuario desliza la app en Recientes, el servicio muere con ella.
+-   **No** pedimos `ACCESS_BACKGROUND_LOCATION`: el servicio arranca con la app visible y el permiso «mientras la app está en uso» alcanza.
+
+### Paso 2 · El contrato: `LocationTracker`
 
 ```kotlin
-class UploadLogsWorker(
-    appContext: Context,
-    params: WorkerParameters
-) : CoroutineWorker(appContext, params) {
+// domain/repository/LocationTracker.kt
+interface LocationTracker {
+    fun start(precise: Boolean)
+    fun stop()
+}
 
-    override suspend fun doWork(): Result {
-        val filePath = inputData.getString("logPath") ?: return Result.failure()
+// data/tracking/LocationTrackerImpl.kt
+override fun start(precise: Boolean) {
+    ContextCompat.startForegroundService(context, LocationTrackingService.intent(context, precise))
+}
 
-        return try {
-            uploadFile(filePath)
-            Result.success(workDataOf("status" to "done"))
-        } catch (e: IOException) {
-            Result.retry()
-        } catch (e: Exception) {
-            Result.failure(workDataOf("error" to e.message))
-        }
+override fun stop() {
+    context.stopService(Intent(context, LocationTrackingService::class.java))
+}
+```
+
+El ViewModel solo ve la interfaz: ni `Service` ni `Intent`. Hilt la provee en `HomeModule`.
+
+### Paso 3 · La notificación
+
+```kotlin
+// data/tracking/TrackingNotification.kt
+NotificationChannelCompat.Builder(CHANNEL_ID, NotificationManagerCompat.IMPORTANCE_LOW)
+
+NotificationCompat.Builder(context, CHANNEL_ID)
+    .setSmallIcon(R.drawable.ic_tracking_location)
+    .setContentTitle("Compartiendo tu ubicación")
+    .setContentText(location.toTrackingText(ZoneId.systemDefault()))   // «Precisión ±12 m · 9:41»
+    .setOngoing(true)
+    .setSilent(true)
+    .setContentIntent(openApp())
+    .build()
+```
+
+| Opción              | Por qué                                         |
+| ------------------- | ----------------------------------------------- |
+| `IMPORTANCE_LOW`    | No suena: aparece en «Silenciosas»              |
+| `setOngoing(true)`  | El usuario no la descarta mientras el servicio corre |
+| `setContentIntent`  | Tocarla vuelve a la app                         |
+
+### Paso 4 · El servicio
+
+```kotlin
+// data/tracking/LocationTrackingService.kt
+@AndroidEntryPoint
+class LocationTrackingService : Service() {
+
+    @Inject lateinit var repository: LocationRepository
+
+    override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+        ServiceCompat.startForeground(
+            this, TrackingNotification.ID, notification.build(location = null),
+            ServiceInfo.FOREGROUND_SERVICE_TYPE_LOCATION
+        )
+        tracking = repository.observeLocation(precise)
+            .onEach(notification::update)
+            .launchIn(scope)
+        return START_NOT_STICKY
     }
 
-    private suspend fun uploadFile(path: String) {
-        delay(2000) // simulación de red
+    override fun onDestroy() { scope.cancel() }
+}
+```
+
+1. `startForeground` **primero**: hay 10 s desde `startForegroundService` o el sistema cierra la app.
+2. Reutiliza el `LocationRepository` de la clase anterior: misma `callbackFlow`, mismo `awaitClose`.
+3. `scope.cancel()` en `onDestroy` → `awaitClose` → `removeLocationUpdates`: el GPS se apaga.
+4. `START_NOT_STICKY`: si el sistema lo mata, no revive solo; lo vuelve a encender Home.
+
+### Paso 5 · El ViewModel lo enciende y lo apaga
+
+```kotlin
+// presentation/HomeViewModel.kt
+init {
+    permission
+        .map { (it as? LocationPermission.Granted)?.precise }
+        .distinctUntilChanged()
+        .onEach { precise -> if (precise != null) tracker.start(precise) else tracker.stop() }
+        .launchIn(viewModelScope)
+}
+
+override fun onCleared() {
+    tracker.stop()
+}
+```
+
+Atarlo al **ViewModel** (y no a la pantalla) es lo que hace que dure «mientras estés en Home»:
+
+![Cuándo sigue y cuándo se quita](_img/service-lifecycle.png)
+
+| Pasa esto                        | ¿Servicio?    | Por qué                                   |
+| -------------------------------- | ------------- | ----------------------------------------- |
+| Rotas la pantalla                | Sigue         | El ViewModel sobrevive                    |
+| Vas a otra app o bloqueas        | Sigue         | Es justo para lo que existe               |
+| Abres el menú                    | Sigue         | Home queda en la pila                     |
+| Cierras sesión                   | **Se quita**  | Home sale de la pila → `onCleared()`      |
+| Deslizas la app en Recientes     | **Se quita**  | `stopWithTask="true"`                     |
+| Quitas el permiso de ubicación   | **Se quita**  | `Denied` → `tracker.stop()`               |
+
+`distinctUntilChanged()` evita reiniciarlo en cada `ON_RESUME`; si el permiso pasa de preciso a aproximado, sí se reinicia con la nueva prioridad.
+
+### Paso 6 · Pedir permiso de notificaciones
+
+En Android 13+ sin este permiso el servicio corre igual, pero **la notificación no se ve**. Se pide una vez, cuando llega la primera ubicación:
+
+```kotlin
+// presentation/HomeScreen.kt (HomeRoute)
+val tracking = mapUi is MapUiState.Success
+
+LaunchedEffect(tracking) {
+    if (tracking && !askedNotifications && context.needsNotificationPermission()) {
+        askedNotifications = true
+        notificationLauncher.launch(NOTIFICATION_PERMISSION)
     }
 }
 ```
 
-### Encolado del trabajo
+### Paso 7 · Probarlo
+
+Un fake registra cada llamada:
 
 ```kotlin
-val constraints = Constraints.Builder()
-    .setRequiredNetworkType(NetworkType.CONNECTED)
-    .setRequiresCharging(true)
-    .setRequiresBatteryNotLow(true)
-    .build()
+// test/.../features/home/FakeLocation.kt
+class FakeLocationTracker : LocationTracker {
+    val calls = mutableListOf<String>()
+    override fun start(precise: Boolean) { calls += "start(precise=$precise)" }
+    override fun stop() { calls += "stop" }
+}
+```
 
-val uploadRequest = OneTimeWorkRequestBuilder<UploadLogsWorker>()
-    .setConstraints(constraints)
-    .setInputData(workDataOf("logPath" to "/storage/logs/app.log"))
-    .setBackoffCriteria(
-        BackoffPolicy.EXPONENTIAL,
-        30, TimeUnit.SECONDS
-    )
-    .addTag("uploadLogs")
+```kotlin
+// test/.../features/home/presentation/HomeViewModelTest.kt
+@Test
+fun `con permiso arranca el servicio una sola vez aunque la pantalla vuelva`() = runTest(dispatcher) {
+    val vm = viewModel()
+
+    vm.onPermissionResult(LocationPermission.Granted(precise = true))
+    vm.onPermissionChecked(LocationPermission.Granted(precise = true))
+    vm.onPermissionChecked(LocationPermission.Granted(precise = true))
+
+    assertEquals(listOf("stop", "start(precise=true)"), tracker.calls)
+}
+```
+
+```bash
+./gradlew testDebugUnitTest            # 61 pruebas JVM (4 nuevas)
+./gradlew connectedDebugAndroidTest    # LocationTrackerTest: start() publica la notificación y stop() la quita
+adb shell dumpsys activity services com.example.android   # isForeground=true mientras estés en Home
+```
+
+---
+
+## 4) ¿Y WorkManager?
+
+Para trabajo **diferible** que debe terminar aunque la app se cierre. No reemplaza al servicio: no entrega posiciones cada 5 s.
+
+```kotlin
+class SyncTripsWorker(context: Context, params: WorkerParameters) : CoroutineWorker(context, params) {
+    override suspend fun doWork(): Result = try {
+        uploadPendingTrips()
+        Result.success()
+    } catch (e: IOException) {
+        Result.retry()
+    }
+}
+
+val request = PeriodicWorkRequestBuilder<SyncTripsWorker>(1, TimeUnit.HOURS)
+    .setConstraints(Constraints.Builder().setRequiredNetworkType(NetworkType.CONNECTED).build())
+    .setBackoffCriteria(BackoffPolicy.EXPONENTIAL, 30, TimeUnit.SECONDS)
     .build()
 
 WorkManager.getInstance(context)
-    .enqueueUniqueWork("uploadLogsWork", ExistingWorkPolicy.KEEP, uploadRequest)
+    .enqueueUniquePeriodicWork("sync-trips", ExistingPeriodicWorkPolicy.UPDATE, request)
 ```
 
-### Observación en Compose
-
-```kotlin
-@Composable
-fun UploadStatusScreen() {
-    val wm = WorkManager.getInstance(LocalContext.current)
-    val workInfos by wm.getWorkInfosByTagLiveData("uploadLogs").observeAsState(emptyList())
-
-    val text = when (val info = workInfos.firstOrNull()) {
-        null -> "Esperando..."
-        else -> when (info.state) {
-            WorkInfo.State.ENQUEUED -> "En cola"
-            WorkInfo.State.RUNNING -> "Subiendo..."
-            WorkInfo.State.SUCCEEDED -> "Completado"
-            WorkInfo.State.FAILED -> "Falló"
-            WorkInfo.State.CANCELLED -> "Cancelado"
-            else -> "Bloqueado"
-        }
-    }
-
-    Text(text)
-}
-```
+| Concepto                    | Para qué                                          |
+| --------------------------- | ------------------------------------------------- |
+| `Constraints`               | Correr solo con red, cargando o batería suficiente |
+| `Result.retry()` + backoff  | Reintentar con espera creciente                   |
+| `enqueueUnique…Work`        | No duplicar el mismo trabajo                      |
+| `.then(...)`                | Encadenar: leer → calcular → subir               |
+| `setForeground(...)`        | Trabajo largo con notificación (subir un video)   |
 
 ---
 
-## 4) Caso de uso: sincronización de datos offline → online (app de notas)
+## 5) Errores comunes
 
-**Escenario:** el usuario edita notas sin conexión.  
-**Solución:** cada inserción/edición en local dispara un `OneTimeWorkRequest` con restricción de red conectada.  
-**Pasos funcionales:**
-
-1. Guardar cambios en Room.
-2. Encolar Worker con `NetworkType.CONNECTED`.
-3. Si falla la API → `Result.retry()` con backoff exponencial.
-4. Al éxito, marcar nota como sincronizada.
-
----
-
-## 5) Caso de uso: sincronización periódica (app del clima)
-
-```kotlin
-val constraints = Constraints.Builder()
-    .setRequiredNetworkType(NetworkType.CONNECTED)
-    .build()
-
-val weatherSync = PeriodicWorkRequestBuilder<WeatherWorker>(
-    1, TimeUnit.HOURS,
-    15, TimeUnit.MINUTES // flex interval
-)
-    .setConstraints(constraints)
-    .addTag("weatherSync")
-    .build()
-
-WorkManager.getInstance(context)
-    .enqueueUniquePeriodicWork(
-        "weatherUpdates",
-        ExistingPeriodicWorkPolicy.UPDATE,
-        weatherSync
-    )
-```
-
-**Notas:** Android agrupa trabajos para ahorrar batería; intervalo mínimo 15 min.
+| Error                                              | Qué pasa                                         | En el proyecto                                 |
+| -------------------------------------------------- | ------------------------------------------------ | ---------------------------------------------- |
+| No llamar a `startForeground` a tiempo             | `ForegroundServiceDidNotStartInTimeException`    | Es lo primero de `onStartCommand`              |
+| Olvidar `foregroundServiceType` (Android 14+)      | `MissingForegroundServiceTypeException`          | `type="location"` en manifest y en código      |
+| Iniciar el servicio desde segundo plano (12+)      | `ForegroundServiceStartNotAllowedException`      | Solo arranca desde Home visible                |
+| Pedir `ACCESS_BACKGROUND_LOCATION` sin necesitarlo | Revisión extra en Play y usuarios que lo niegan | El servicio en primer plano no lo necesita     |
+| No pedir `POST_NOTIFICATIONS` (13+)                | El servicio corre, pero el usuario no lo ve      | Se pide tras la primera ubicación              |
+| Atar el servicio a la pantalla                     | Se reinicia en cada rotación                     | Atado al ViewModel                             |
+| No detenerlo nunca                                 | Batería y desconfianza del usuario               | `onCleared()`, `Denied` y `stopWithTask`       |
+| Usar WorkManager para tracking continuo            | Mínimo 15 min entre ejecuciones                  | Foreground Service                             |
 
 ---
 
-## 6) Caso de uso: subida de archivos grandes (app de almacenamiento)
+## Recursos recomendados
 
-```kotlin
-class UploadFileWorker(
-    context: Context,
-    params: WorkerParameters
-) : CoroutineWorker(context, params) {
-
-    override suspend fun doWork(): Result {
-        val file = inputData.getString("filePath") ?: return Result.failure()
-
-        setForeground(createForegroundInfo(0))
-
-        try {
-            for (i in 0..100 step 10) {
-                setForeground(createForegroundInfo(i))
-                setProgress(workDataOf("progress" to i))
-                delay(500)
-            }
-            // Lógica real de subida aquí
-            return Result.success()
-        } catch (e: IOException) {
-            return Result.retry()
-        }
-    }
-
-    private fun createForegroundInfo(progress: Int): ForegroundInfo {
-        val channelId = "upload_channel"
-        val notification = NotificationCompat.Builder(applicationContext, channelId)
-            .setContentTitle("Subiendo archivo...")
-            .setContentText("Progreso: $progress%")
-            .setSmallIcon(android.R.drawable.stat_sys_upload)
-            .setOngoing(true)
-            .setOnlyAlertOnce(true)
-            .build()
-
-        return ForegroundInfo(101, notification)
-    }
-}
-```
-
----
-
-## 7) Caso de uso: encadenamiento de tareas (app fitness)
-
-**Meta:** `Leer pasos → Calcular calorías → Subir estadísticas`
-
-```kotlin
-val readSteps = OneTimeWorkRequestBuilder<ReadStepsWorker>().build()
-val calculateCalories = OneTimeWorkRequestBuilder<CalculateWorker>().build()
-val uploadStats = OneTimeWorkRequestBuilder<UploadStatsWorker>().build()
-
-WorkManager.getInstance(context)
-    .beginUniqueWork("dailySync", ExistingWorkPolicy.REPLACE, readSteps)
-    .then(calculateCalories)
-    .then(uploadStats)
-    .enqueue()
-```
-
-**Beneficios:** orden garantizado, aislamiento por pasos, fácil observación y cancelación.
-
----
-
-## 8) Caso de uso: cancelación de tareas (app de galería)
-
-Cancelar por **tag** (ej. “uploadAlbum”) o por **unique work**:
-
-```kotlin
-WorkManager.getInstance(context).cancelAllWorkByTag("uploadAlbum")
-// o
-WorkManager.getInstance(context).cancelUniqueWork("dailySync")
-```
-
-**¿Cuándo cancelar?** cuando el usuario detiene una subida, cambia de cuenta o la tarea ya no aplica.
-
----
-
-## 9) Caso de uso: pruebas automatizadas (app de sincronización empresarial)
-
-```kotlin
-@RunWith(AndroidJUnit4::class)
-class SyncWorkerTest {
-
-    @Test
-    fun syncCompletesSuccessfully() {
-        val context = ApplicationProvider.getApplicationContext<Context>()
-        val worker = TestListenableWorkerBuilder<UploadLogsWorker>(context)
-            .setInputData(workDataOf("logPath" to "/storage/logs/app.log"))
-            .build()
-
-        val result = runBlocking { worker.startWork().get() }
-        assertThat(result, `is`(Result.success()))
-    }
-}
-```
-
-**Ventajas:** reproducibilidad, CI/CD, sin dependencias de red real.
-
----
-
-## 10) Errores comunes y checklist
-
-| Error                                        | Descripción                        | Solución                    |
-| -------------------------------------------- | ---------------------------------- | --------------------------- |
-| Usar `Service` para tareas largas invisibles | Android mata el proceso            | Usa `WorkManager`           |
-| Configurar `PeriodicWorkRequest` < 15 min    | El sistema lo ignora               | Intervalo mínimo: 15 min    |
-| No usar `unique work`                        | Se duplican trabajos               | Usa `enqueueUniqueWork`     |
-| Olvidar `Constraints`                        | Ejecuta en condiciones no deseadas | Define red/carga/batería    |
-| No manejar reintentos                        | Fallos silenciosos                 | `BackoffPolicy.EXPONENTIAL` |
-| No observar progreso                         | Mala UX                            | `LiveData`/`Flow` + Compose |
-| No cancelar correctamente                    | Procesos colgados                  | `cancelAllWorkByTag`        |
-| No probar Workers                            | Errores no detectados              | `WorkManagerTestInitHelper` |
-
-**Checklist final:**
-
--   [x] Seleccionaste correctamente entre Service y WorkManager.
--   [x] Definiste restricciones y backoff.
--   [x] Evitaste duplicados con unique work.
--   [x] Mostraste progreso/estado al usuario.
--   [x] Probaste comportamiento offline y con Doze.
+-   [Foreground services](https://developer.android.com/develop/background-work/services/fgs) y [tipos de foreground service](https://developer.android.com/develop/background-work/services/fgs/service-types) (Android Developers).
+-   [Restricciones para iniciar foreground services desde segundo plano](https://developer.android.com/develop/background-work/services/fgs/restrictions-bg-start).
+-   [Permiso de notificaciones en tiempo de ejecución](https://developer.android.com/develop/ui/views/notifications/notification-permission).
+-   [Guía de WorkManager](https://developer.android.com/develop/background-work/background-tasks/persistent).
+-   Clase anterior: [GPS y permisos](../clase-01/README.md).
