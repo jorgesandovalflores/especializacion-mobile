@@ -1,0 +1,6 @@
+{
+    "validation": {
+        "token": "The device token is required (maximum 255 characters).",
+        "platform": "The platform must be ANDROID or IOS."
+    }
+}

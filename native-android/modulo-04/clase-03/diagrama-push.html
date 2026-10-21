@@ -1,0 +1,322 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Push de punta a punta</title>
+<style>
+  :root {
+    --bg: #F4F2FA;
+    --stage: #FFFFFF;
+    --ink: #0F0F0F;
+    --muted: #6B6B6B;
+    --line: #E2DDF2;
+    --primary: #7843E6;
+    --primary-soft: #7843E61F;
+    --ok: #2E7D32;
+    --ok-soft: #E8F3E8;
+    --ok-line: #B9D9BB;
+    --off: #9AA0A6;
+    --off-soft: #F1F1F1;
+    --stop: #C62828;
+    --stop-soft: #FBE9E9;
+    --code: #1E1B2E;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: Inter, Roboto, system-ui, -apple-system, sans-serif;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 24px 16px;
+  }
+  .stage {
+    width: 100%;
+    max-width: 960px;
+    aspect-ratio: 16 / 9;
+    background: var(--stage);
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    overflow: hidden;
+  }
+  svg { width: 100%; height: 100%; display: block; }
+  .eyebrow { font-size: 12px; letter-spacing: .32em; fill: var(--primary); font-weight: 600; }
+  .title { font-size: 22px; font-weight: 700; fill: var(--ink); }
+  .node rect { fill: #fff; stroke: var(--line); stroke-width: 1.5; transition: all .35s; }
+  .node .name { font-size: 13px; font-weight: 700; fill: var(--ink); font-family: ui-monospace, Menlo, monospace; }
+  .node .sub { font-size: 10.5px; fill: var(--muted); font-family: ui-monospace, Menlo, monospace; }
+  .node { cursor: pointer; }
+  .node:hover rect { stroke: var(--primary); }
+  .node.on rect { stroke: var(--primary); stroke-width: 2.5; filter: drop-shadow(0 4px 10px #7843E633); }
+  .node.stop rect { stroke: var(--stop); stroke-width: 2.5; }
+  .edge path { fill: none; stroke: #D8D2EA; stroke-width: 2; transition: all .35s; }
+  .edge text { font-size: 11px; font-weight: 600; fill: transparent; font-family: ui-monospace, Menlo, monospace; transition: fill .35s; }
+  .edge.on path { stroke: var(--primary); stroke-width: 3; stroke-dasharray: 7 5; animation: flow .8s linear infinite; }
+  .edge.on text { fill: var(--primary); }
+  .edge.stop path { stroke: var(--stop); stroke-width: 3; stroke-dasharray: 7 5; animation: flow .8s linear infinite; }
+  .edge.stop text { fill: var(--stop); }
+  @keyframes flow { to { stroke-dashoffset: -24; } }
+  .pill rect { transition: all .35s; }
+  .pill .k { font-size: 10.5px; fill: var(--muted); font-weight: 600; letter-spacing: .08em; }
+  .pill .v { font-size: 13px; font-weight: 700; }
+  .pill.ok rect { fill: var(--ok-soft); stroke: var(--ok-line); }
+  .pill.ok .v { fill: var(--ok); }
+  .pill.off rect { fill: var(--off-soft); stroke: #DDDDDD; }
+  .pill.off .v { fill: var(--off); }
+  .pill.warn rect { fill: var(--stop-soft); stroke: #F0C4C4; }
+  .pill.warn .v { fill: var(--stop); }
+  .notif { transition: opacity .4s, transform .4s; }
+  .notif.hidden { opacity: 0; transform: translateY(-8px); }
+  .notif .t { font-size: 12px; font-weight: 700; fill: var(--ink); }
+  .notif .b { font-size: 10.5px; fill: var(--muted); }
+  .lane { font-size: 10px; letter-spacing: .18em; font-weight: 700; fill: #B7ACD9; }
+  .caption { font-size: 15px; fill: var(--ink); }
+  .caption tspan.n { font-weight: 700; }
+  .codebox rect { fill: var(--code); }
+  .codebox text { font-size: 12px; fill: #E9E3FF; font-family: ui-monospace, Menlo, monospace; }
+  .controls {
+    width: 100%;
+    max-width: 960px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    align-items: center;
+    margin-top: 14px;
+  }
+  button {
+    font: inherit;
+    font-size: 14px;
+    font-weight: 600;
+    border: 1px solid var(--line);
+    background: #fff;
+    color: var(--primary);
+    border-radius: 999px;
+    padding: 8px 16px;
+    cursor: pointer;
+  }
+  button.primary { background: var(--primary); color: #fff; border-color: var(--primary); }
+  .dots { display: flex; gap: 6px; flex-wrap: wrap; }
+  .dot { width: 28px; height: 28px; padding: 0; border-radius: 50%; font-size: 12px; }
+  .dot.on { background: var(--primary); color: #fff; border-color: var(--primary); }
+  .hint { color: var(--muted); font-size: 13px; margin-left: auto; }
+  body.capture { padding: 0; background: #fff; }
+  body.capture .stage { border: 0; border-radius: 0; max-width: none; width: 960px; }
+  body.capture .controls { display: none; }
+</style>
+</head>
+<body>
+<div class="stage">
+<svg viewBox="0 0 960 540" role="img" aria-label="Flujo de una notificación push del backend al teléfono">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="context-stroke"/>
+    </marker>
+  </defs>
+
+  <text class="eyebrow" x="480" y="30" text-anchor="middle">HOME · NOTIFICACIONES PUSH</text>
+  <text class="title" x="480" y="58" text-anchor="middle">Del backend al teléfono y de vuelta a la pantalla</text>
+
+  <text class="lane" x="30" y="84">1 · REGISTRAR EL TOKEN</text>
+  <text class="lane" x="30" y="184">2 · ENVIAR</text>
+  <text class="lane" x="30" y="284">3 · MOSTRAR Y ABRIR</text>
+
+  <g class="edge" id="e-home-tok"><path d="M234,122 L260,122" marker-end="url(#arrow)"/></g>
+  <g class="edge" id="e-tok-api"><path d="M466,122 L492,122" marker-end="url(#arrow)"/></g>
+  <g class="edge" id="e-api-db"><path d="M698,122 L724,122" marker-end="url(#arrow)"/></g>
+  <g class="edge" id="e-db-svc"><path d="M828,154 C828,176 420,170 364,190" marker-end="url(#arrow)"/><text x="640" y="163" text-anchor="middle">tokens del pasajero</text></g>
+  <g class="edge" id="e-cli-svc"><path d="M234,222 L260,222" marker-end="url(#arrow)"/></g>
+  <g class="edge" id="e-svc-fcm"><path d="M466,222 L492,222" marker-end="url(#arrow)"/></g>
+  <g class="edge" id="e-fcm-msg"><path d="M698,222 L724,222" marker-end="url(#arrow)"/></g>
+  <g class="edge" id="e-msg-ntf"><path d="M828,254 L828,290" marker-end="url(#arrow)"/><text x="868" y="276" text-anchor="middle">show()</text></g>
+  <g class="edge" id="e-ntf-card"><path d="M724,322 L698,322" marker-end="url(#arrow)"/></g>
+  <g class="edge" id="e-card-main"><path d="M492,322 L466,322" marker-end="url(#arrow)"/></g>
+  <g class="edge" id="e-main-menu"><path d="M260,322 L234,322" marker-end="url(#arrow)"/></g>
+
+  <g class="node" id="n-home" data-code="home"><rect x="30" y="92" width="204" height="62" rx="14"/>
+    <text class="name" x="132" y="119" text-anchor="middle">HomeViewModel</text><text class="sub" x="132" y="138" text-anchor="middle">registerPushToken()</text></g>
+  <g class="node" id="n-tok" data-code="home"><rect x="262" y="92" width="204" height="62" rx="14"/>
+    <text class="name" x="364" y="119" text-anchor="middle">FirebaseMessaging</text><text class="sub" x="364" y="138" text-anchor="middle">token.await()</text></g>
+  <g class="node" id="n-api" data-code="api"><rect x="494" y="92" width="204" height="62" rx="14"/>
+    <text class="name" x="596" y="119" text-anchor="middle">PUT /passenger/device</text><text class="sub" x="596" y="138" text-anchor="middle">DeviceController</text></g>
+  <g class="node" id="n-db" data-code="api"><rect x="726" y="92" width="204" height="62" rx="14"/>
+    <text class="name" x="828" y="119" text-anchor="middle">MySQL</text><text class="sub" x="828" y="138" text-anchor="middle">entity_passenger_device</text></g>
+
+  <g class="node" id="n-cli" data-code="send"><rect x="30" y="192" width="204" height="62" rx="14"/>
+    <text class="name" x="132" y="219" text-anchor="middle">send-push.js</text><text class="sub" x="132" y="238" text-anchor="middle">51987654321 [deeplink]</text></g>
+  <g class="node" id="n-svc" data-code="send"><rect x="262" y="192" width="204" height="62" rx="14"/>
+    <text class="name" x="364" y="219" text-anchor="middle">NotificationService</text><text class="sub" x="364" y="238" text-anchor="middle">FcmPushService</text></g>
+  <g class="node" id="n-fcm" data-code="send"><rect x="494" y="192" width="204" height="62" rx="14"/>
+    <text class="name" x="596" y="219" text-anchor="middle">FCM</text><text class="sub" x="596" y="238" text-anchor="middle">Google entrega el mensaje</text></g>
+  <g class="node" id="n-msg" data-code="msg"><rect x="726" y="192" width="204" height="62" rx="14"/>
+    <text class="name" x="828" y="219" text-anchor="middle">TaxiMessagingService</text><text class="sub" x="828" y="238" text-anchor="middle">onMessageReceived</text></g>
+
+  <g class="node" id="n-ntf" data-code="ntf"><rect x="726" y="292" width="204" height="62" rx="14"/>
+    <text class="name" x="828" y="319" text-anchor="middle">PushNotifier</text><text class="sub" x="828" y="338" text-anchor="middle">canal «Viajes y avisos»</text></g>
+  <g class="notif hidden" id="notif">
+    <rect x="494" y="292" width="204" height="62" rx="16" fill="#F3EFFA" stroke="#E2DDF2"/>
+    <circle cx="516" cy="323" r="12" fill="#7843E6"/>
+    <rect x="509" y="318" width="14" height="8" rx="2" fill="#fff"/>
+    <text class="t" x="536" y="317">Tu taxi está llegando</text>
+    <text class="b" x="536" y="335">Carlos llega en 3 min</text>
+  </g>
+  <g class="node" id="n-main" data-code="main"><rect x="262" y="292" width="204" height="62" rx="14"/>
+    <text class="name" x="364" y="319" text-anchor="middle">MainActivity</text><text class="sub" x="364" y="338" text-anchor="middle">onNewIntent(deeplink)</text></g>
+  <g class="node" id="n-menu" data-code="main"><rect x="30" y="292" width="204" height="62" rx="14"/>
+    <text class="name" x="132" y="319" text-anchor="middle">Route.Menu</text><text class="sub" x="132" y="338" text-anchor="middle">app-taxi://passenger/menu</text></g>
+
+  <g class="codebox">
+    <rect x="30" y="372" width="900" height="96" rx="12"/>
+    <text id="code" x="50" y="400" style="white-space: pre"></text>
+  </g>
+
+  <text class="caption" x="480" y="504" text-anchor="middle" id="caption"></text>
+</svg>
+</div>
+
+<div class="controls">
+  <button id="prev" aria-label="Paso anterior">‹ Anterior</button>
+  <button id="play" class="primary">▶ Reproducir</button>
+  <button id="next" aria-label="Paso siguiente">Siguiente ›</button>
+  <div class="dots" id="dots"></div>
+  <span class="hint">Toca una caja para ver su código · ← →</span>
+</div>
+
+<script>
+  const CODE = {
+    home: [
+      '// domain/usecase/RegisterPushTokenUseCase.kt',
+      'if (session.accessToken().first() == null) return false',
+      'val current = token ?: repo.currentToken() ?: return false   // FirebaseMessaging.getInstance().token.await()',
+      'repo.register(current)                                       // HomeViewModel: init { registerPushToken() }'
+    ],
+    api: [
+      '// backend · features/notifications',
+      '@Put("device") @UseGuards(AccessTokenGuard)',
+      'registerDevice(@Req() request, @Body() dto) { this.service.registerDevice(request.user.sub, dto) }',
+      'devices.upsert(passengerId, dto.token, dto.platform ?? DevicePlatform.ANDROID)   // token único'
+    ],
+    send: [
+      '// backend · remote/fcm-push.service.ts',
+      'getMessaging(app).sendEachForMulticast({',
+      '    tokens, data: { title, body, deeplink }, android: { priority: "high" }',
+      '})   // sin FIREBASE_* → [DEV] Push a 1 dispositivo(s): … (solo log)'
+    ],
+    msg: [
+      '// data/push/TaxiMessagingService.kt',
+      'override fun onMessageReceived(message: RemoteMessage) {',
+      '    message.data.toPushMessage()?.let(notifier::show)',
+      '}   override fun onNewToken(token: String) { scope.launch { registerPushToken(token) } }'
+    ],
+    ntf: [
+      '// data/push/PushNotifier.kt',
+      'NotificationChannelCompat.Builder("trips", IMPORTANCE_HIGH).setName("Viajes y avisos")',
+      'NotificationCompat.Builder(context, "trips").setContentTitle(title).setAutoCancel(true)',
+      '    .setContentIntent(PendingIntent → MainActivity + EXTRA_DEEPLINK)'
+    ],
+    main: [
+      '// core/presentation/activity/MainActivity.kt',
+      'override fun onNewIntent(intent: Intent) { pendingDeeplink.value = intent.getStringExtra(EXTRA_DEEPLINK) }',
+      'LaunchedEffect(deeplink, currentRoute) {',
+      '    if (currentRoute == Home || currentRoute == Menu) { DEEPLINK_MENU -> nav.navigate(Route.Menu.path) } }'
+    ],
+    clean: [
+      '// Al cerrar sesión (app) y al enviar (backend)',
+      'SignOutUseCase: push.delete()            // FirebaseMessaging.deleteToken(): este token deja de servir',
+      'FCM responde "registration-token-not-registered"',
+      'NotificationService: devices.deleteByTokens(delivery.invalidTokens)'
+    ]
+  };
+
+  const STEPS = [
+    { on: ['n-home', 'e-home-tok', 'n-tok'], code: 'home', caption: ['1', ' · Al entrar a Home, la app pide su token a Firebase'] },
+    { on: ['n-tok', 'e-tok-api', 'n-api'], code: 'api', caption: ['2', ' · Lo manda al backend con el access token: PUT /passenger/device'] },
+    { on: ['n-api', 'e-api-db', 'n-db'], code: 'api', caption: ['3', ' · El backend lo guarda: un token por teléfono, un pasajero puede tener varios'] },
+    { on: ['n-cli', 'e-cli-svc', 'n-svc', 'e-db-svc', 'n-db'], code: 'send', caption: ['4', ' · Algo pasa en el negocio (aquí, el CLI): se buscan los tokens del pasajero'] },
+    { on: ['n-svc', 'e-svc-fcm', 'n-fcm'], code: 'send', caption: ['5', ' · firebase-admin envía un mensaje de solo datos con prioridad alta'] },
+    { on: ['n-fcm', 'e-fcm-msg', 'n-msg'], code: 'msg', caption: ['6', ' · FCM despierta a la app, abierta o cerrada: onMessageReceived'] },
+    { on: ['n-msg', 'e-msg-ntf', 'n-ntf', 'e-ntf-card'], notif: true, code: 'ntf', caption: ['7', ' · PushNotifier publica en el canal de importancia alta: heads-up'] },
+    { on: ['e-card-main', 'n-main', 'e-main-menu', 'n-menu'], notif: true, code: 'main', caption: ['8', ' · Al tocarla, MainActivity lee el deeplink y abre el Menú'] },
+    { stop: ['n-home', 'n-tok', 'n-svc', 'n-db', 'e-db-svc'], labels: { 'e-db-svc': 'deleteByTokens' }, code: 'clean', caption: ['9', ' · Logout borra el token; el backend limpia los que FCM rechaza'] }
+  ];
+
+  const $ = id => document.getElementById(id);
+  const dots = $('dots');
+  let step = 0;
+  let timer = null;
+
+  STEPS.forEach((_, i) => {
+    const b = document.createElement('button');
+    b.className = 'dot';
+    b.textContent = i + 1;
+    b.setAttribute('aria-label', 'Paso ' + (i + 1));
+    b.onclick = () => { stopPlay(); go(i); };
+    dots.appendChild(b);
+  });
+
+  function showCode(key) {
+    const el = $('code');
+    el.textContent = '';
+    CODE[key].forEach((line, i) => {
+      const t = document.createElementNS('http://www.w3.org/2000/svg', 'tspan');
+      t.setAttribute('x', 50);
+      t.setAttribute('dy', i === 0 ? 0 : 20);
+      t.textContent = line || ' ';
+      if (i === 0) t.setAttribute('fill', '#A99BD6');
+      el.appendChild(t);
+    });
+  }
+
+  function go(i) {
+    step = (i + STEPS.length) % STEPS.length;
+    const s = STEPS[step];
+    document.querySelectorAll('.node, .edge').forEach(el => el.classList.remove('on', 'stop'));
+    document.querySelectorAll('.edge text').forEach(t => {
+      t.dataset.label ??= t.textContent;
+      t.textContent = (s.labels || {})[t.parentNode.id] || t.dataset.label;
+    });
+    (s.on || []).forEach(id => $(id).classList.add('on'));
+    (s.stop || []).forEach(id => $(id).classList.add('stop'));
+    $('notif').classList.toggle('hidden', !s.notif);
+    showCode(s.code);
+    const c = $('caption');
+    c.innerHTML = '';
+    const n = document.createElementNS('http://www.w3.org/2000/svg', 'tspan');
+    n.setAttribute('class', 'n');
+    n.textContent = s.caption[0];
+    c.appendChild(n);
+    c.appendChild(document.createTextNode(s.caption[1]));
+    [...dots.children].forEach((d, k) => d.classList.toggle('on', k === step));
+    history.replaceState(null, '', '#s=' + (step + 1) + (document.body.classList.contains('capture') ? '&capture' : ''));
+  }
+
+  function stopPlay() {
+    clearInterval(timer);
+    timer = null;
+    $('play').textContent = '▶ Reproducir';
+  }
+
+  $('play').onclick = () => {
+    if (timer) return stopPlay();
+    $('play').textContent = '❚❚ Pausa';
+    timer = setInterval(() => go(step + 1), 2600);
+  };
+  $('prev').onclick = () => { stopPlay(); go(step - 1); };
+  $('next').onclick = () => { stopPlay(); go(step + 1); };
+  document.addEventListener('keydown', e => {
+    if (e.key === 'ArrowRight') { stopPlay(); go(step + 1); }
+    if (e.key === 'ArrowLeft') { stopPlay(); go(step - 1); }
+  });
+  document.querySelectorAll('.node').forEach(n => n.addEventListener('click', () => {
+    stopPlay();
+    showCode(n.dataset.code);
+  }));
+
+  const params = new URLSearchParams(location.hash.slice(1));
+  if (params.has('capture')) document.body.classList.add('capture');
+  go((parseInt(params.get('s'), 10) || 1) - 1);
+</script>
+</body>
+</html>
