@@ -1,0 +1,288 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Subir la foto de perfil</title>
+<style>
+  :root {
+    --bg: #F4F2FA;
+    --stage: #FFFFFF;
+    --ink: #0F0F0F;
+    --muted: #6B6B6B;
+    --line: #E2DDF2;
+    --primary: #7843E6;
+    --primary-soft: #F1EBFD;
+    --done: #B9B3CC;
+    --ok: #2E7D32;
+    --ok-soft: #E8F3E8;
+    --code: #1E1B2E;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: Inter, Roboto, system-ui, -apple-system, sans-serif;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 24px 16px;
+  }
+  .stage {
+    width: 100%;
+    max-width: 960px;
+    aspect-ratio: 16 / 9;
+    background: var(--stage);
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    overflow: hidden;
+  }
+  svg { width: 100%; height: 100%; display: block; }
+  .eyebrow { font-size: 12px; letter-spacing: .32em; fill: var(--primary); font-weight: 600; }
+  .title { font-size: 22px; font-weight: 700; fill: var(--ink); }
+
+  .actor rect { fill: var(--primary-soft); stroke: var(--primary); stroke-width: 1.5; }
+  .actor text { font-size: 15px; font-weight: 700; fill: var(--ink); }
+  .actor .sub { font-size: 11px; font-weight: 500; fill: var(--muted); }
+  .lifeline { stroke: #D8D2EA; stroke-width: 2; stroke-dasharray: 4 6; }
+
+  .store rect { fill: #fff; stroke: var(--line); stroke-width: 1.5; transition: all .35s; }
+  .store text { font-size: 11.5px; font-weight: 600; fill: var(--muted); font-family: ui-monospace, Menlo, monospace; transition: fill .35s; }
+  .store.on rect { fill: var(--ok-soft); stroke: var(--ok); stroke-width: 2.5; }
+  .store.on text { fill: var(--ok); }
+
+  .msg { opacity: 0; transition: opacity .35s; }
+  .msg.done, .msg.on { opacity: 1; }
+  .msg path, .msg line { fill: none; stroke: var(--done); stroke-width: 2; }
+  .msg.return path, .msg.return line { stroke-dasharray: 6 5; }
+  .msg text { font-size: 12.5px; font-weight: 600; fill: var(--done); font-family: ui-monospace, Menlo, monospace; }
+  .msg .num { fill: #fff; stroke: var(--done); stroke-width: 2; }
+  .msg .numtxt { font-family: Inter, Roboto, system-ui, sans-serif; font-size: 12px; font-weight: 700; fill: var(--done); }
+  .msg .pill { fill: #F7F6FA; stroke: var(--done); stroke-width: 1.5; }
+  .msg.on path, .msg.on line { stroke: var(--primary); stroke-width: 3; }
+  .msg.on:not(.return) path, .msg.on:not(.return) line { stroke-dasharray: 8 6; animation: flow .7s linear infinite; }
+  .msg.on text { fill: var(--primary); }
+  .msg.on .num { fill: var(--primary); stroke: var(--primary); }
+  .msg.on .numtxt { fill: #fff; }
+  .msg.on .pill { fill: var(--primary-soft); stroke: var(--primary); }
+  @keyframes flow { to { stroke-dashoffset: -28; } }
+
+  .bar-track { fill: #EEE9F8; }
+  #bar { fill: var(--primary); transition: width 2.2s ease-out; }
+  .badge { opacity: 0; transition: opacity .35s; }
+  .badge.on { opacity: 1; }
+  .badge rect { fill: var(--ok-soft); stroke: var(--ok); }
+  .badge text { font-size: 11px; font-weight: 700; fill: var(--ok); }
+
+  .panel rect { fill: var(--code); }
+  .panel .step { font-size: 15px; font-weight: 700; fill: #fff; }
+  .panel .desc { font-size: 13px; fill: #CFC6EE; }
+  .panel .code { font-size: 12px; fill: #9BE3A0; font-family: ui-monospace, Menlo, monospace; }
+
+  .controls {
+    width: 100%;
+    max-width: 960px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    align-items: center;
+    margin-top: 14px;
+  }
+  button {
+    font: inherit;
+    font-size: 14px;
+    font-weight: 600;
+    border: 1px solid var(--line);
+    background: #fff;
+    color: var(--primary);
+    border-radius: 999px;
+    padding: 8px 16px;
+    cursor: pointer;
+  }
+  button.primary { background: var(--primary); color: #fff; border-color: var(--primary); }
+  .dots { display: flex; gap: 6px; flex-wrap: wrap; }
+  .dot { width: 28px; height: 28px; padding: 0; border-radius: 50%; font-size: 12px; }
+  .dot.on { background: var(--primary); color: #fff; border-color: var(--primary); }
+  .hint { color: var(--muted); font-size: 13px; margin-left: auto; }
+  body.capture { padding: 0; background: #fff; }
+  body.capture .stage { border: 0; border-radius: 0; max-width: none; width: 960px; }
+  body.capture .controls { display: none; }
+</style>
+</head>
+<body>
+<div class="stage">
+<svg viewBox="0 0 960 540" role="img" aria-label="Diagrama de secuencia para subir la foto de perfil">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="context-stroke"/>
+    </marker>
+  </defs>
+
+  <text class="eyebrow" x="480" y="30" text-anchor="middle">MI PERFIL · FOTO CON FIREBASE STORAGE</text>
+  <text class="title" x="480" y="58" text-anchor="middle">El archivo va a Storage; el backend guarda solo la URL</text>
+
+  <g class="actor"><rect x="70" y="76" width="200" height="44" rx="12"/>
+    <text x="170" y="97" text-anchor="middle">App</text><text class="sub" x="170" y="112" text-anchor="middle">Android · Mi perfil</text></g>
+  <g class="actor"><rect x="380" y="76" width="200" height="44" rx="12"/>
+    <text x="480" y="97" text-anchor="middle">Backend</text><text class="sub" x="480" y="112" text-anchor="middle">NestJS · nuestro JWT</text></g>
+  <g class="actor"><rect x="690" y="76" width="200" height="44" rx="12"/>
+    <text x="790" y="97" text-anchor="middle">Firebase Storage</text><text class="sub" x="790" y="112" text-anchor="middle">bucket del proyecto</text></g>
+
+  <line class="lifeline" x1="170" y1="120" x2="170" y2="372"/>
+  <line class="lifeline" x1="480" y1="120" x2="480" y2="372"/>
+  <line class="lifeline" x1="790" y1="120" x2="790" y2="372"/>
+
+  <g class="msg" id="m1">
+    <circle class="num" cx="34" cy="146" r="11"/><text class="numtxt" x="34" y="150" text-anchor="middle">1</text>
+    <rect class="pill" x="62" y="134" width="216" height="24" rx="12"/>
+    <text x="170" y="150" text-anchor="middle">elige foto → 1080 px, JPEG</text>
+  </g>
+  <g class="msg" id="m2">
+    <circle class="num" cx="34" cy="176" r="11"/><text class="numtxt" x="34" y="180" text-anchor="middle">2</text>
+    <line x1="172" y1="180" x2="476" y2="180" marker-end="url(#arrow)"/>
+    <text x="324" y="173" text-anchor="middle">POST /passenger/storage-token</text>
+  </g>
+  <g class="msg return" id="m3">
+    <circle class="num" cx="34" cy="206" r="11"/><text class="numtxt" x="34" y="210" text-anchor="middle">3</text>
+    <line x1="478" y1="210" x2="174" y2="210" marker-end="url(#arrow)"/>
+    <text x="324" y="203" text-anchor="middle">{ token, bucket, photoPath }</text>
+  </g>
+  <g class="msg" id="m4">
+    <circle class="num" cx="34" cy="236" r="11"/><text class="numtxt" x="34" y="240" text-anchor="middle">4</text>
+    <line x1="172" y1="240" x2="786" y2="240" marker-end="url(#arrow)"/>
+    <text x="630" y="233" text-anchor="middle">signInWithCustomToken(token)</text>
+  </g>
+  <g class="msg" id="m5">
+    <circle class="num" cx="34" cy="266" r="11"/><text class="numtxt" x="34" y="270" text-anchor="middle">5</text>
+    <line x1="172" y1="270" x2="786" y2="270" marker-end="url(#arrow)"/>
+    <text x="630" y="263" text-anchor="middle">putBytes(foto)</text>
+    <rect class="bar-track" x="196" y="276" width="250" height="5" rx="2.5"/><rect id="bar" x="196" y="276" width="0" height="5" rx="2.5"/>
+  </g>
+  <g class="badge" id="rules">
+    <rect x="802" y="257" width="120" height="24" rx="8"/>
+    <text x="862" y="273" text-anchor="middle">✓ reglas OK</text>
+  </g>
+  <g class="msg return" id="m6">
+    <circle class="num" cx="34" cy="296" r="11"/><text class="numtxt" x="34" y="300" text-anchor="middle">6</text>
+    <line x1="788" y1="300" x2="174" y2="300" marker-end="url(#arrow)"/>
+    <text x="630" y="293" text-anchor="middle">downloadUrl (https://…)</text>
+  </g>
+  <g class="msg" id="m7">
+    <circle class="num" cx="34" cy="326" r="11"/><text class="numtxt" x="34" y="330" text-anchor="middle">7</text>
+    <line x1="172" y1="330" x2="476" y2="330" marker-end="url(#arrow)"/>
+    <text x="324" y="323" text-anchor="middle">PUT /passenger/photo {photoUrl}</text>
+  </g>
+  <g class="msg return" id="m8">
+    <circle class="num" cx="34" cy="356" r="11"/><text class="numtxt" x="34" y="360" text-anchor="middle">8</text>
+    <line x1="478" y1="360" x2="174" y2="360" marker-end="url(#arrow)"/>
+    <text x="324" y="353" text-anchor="middle">200 · perfil con photoUrl</text>
+  </g>
+
+  <g class="store" id="s-db"><rect x="380" y="376" width="200" height="26" rx="8"/>
+    <text x="480" y="393" text-anchor="middle">MySQL · photo_url (solo URL)</text></g>
+  <g class="store" id="s-file"><rect x="690" y="376" width="200" height="26" rx="8"/>
+    <text x="790" y="393" text-anchor="middle">passengers/{id}/avatar.jpg</text></g>
+
+  <g class="panel">
+    <rect x="30" y="414" width="900" height="100" rx="12"/>
+    <text class="step" id="p-step" x="52" y="444"></text>
+    <text class="desc" id="p-desc" x="52" y="468"></text>
+    <text class="code" id="p-code" x="52" y="494" style="white-space: pre"></text>
+  </g>
+</svg>
+</div>
+
+<div class="controls">
+  <button id="prev" aria-label="Paso anterior">‹ Anterior</button>
+  <button id="play" class="primary">▶ Reproducir</button>
+  <button id="next" aria-label="Paso siguiente">Siguiente ›</button>
+  <div class="dots" id="dots"></div>
+  <span class="hint">← → para avanzar</span>
+</div>
+
+<script>
+  const STEPS = [
+    { title: 'Elegir y comprimir la foto',
+      desc: 'El Photo Picker devuelve la foto sin pedir permisos; la app la reduce a 1080 px en JPEG (~200 KB).',
+      code: 'PickVisualMedia(ImageOnly)  →  BitmapImageCompressor.compress(uri)' },
+    { title: 'Pedir permiso al backend',
+      desc: 'Con el access token de siempre: el backend sabe quién es el pasajero.',
+      code: 'ProfileApi.storageToken()   // POST /passenger/storage-token' },
+    { title: 'El backend entrega un custom token',
+      desc: 'Lo firma firebase-admin con uid = id del pasajero, y dice dónde subir el archivo.',
+      code: 'createCustomToken(passengerId)  ·  photoPath = "passengers/{id}/avatar.jpg"' },
+    { title: 'Entrar a Firebase en silencio',
+      desc: 'Sin pantallas de login: Firebase Auth solo se usa para que Storage sepa quién sube.',
+      code: 'FirebaseAuth.getInstance().signInWithCustomToken(token).await()' },
+    { title: 'Subir el archivo a Storage',
+      desc: 'Storage revisa las reglas y guarda el JPEG; la app muestra el progreso 0 → 100 %.',
+      code: 'ref.putBytes(image).addOnProgressListener { Progress(bytesTransferred * 100 / total) }' },
+    { title: 'Storage devuelve la URL',
+      desc: 'Es el enlace de descarga del archivo que acaba de subir.',
+      code: 'ref.downloadUrl.await()   // https://firebasestorage.googleapis.com/…/avatar.jpg?alt=media&token=…' },
+    { title: 'Guardar SOLO la URL en el backend',
+      desc: 'El backend valida que sea la ruta de este pasajero y la guarda en MySQL. No recibe la imagen.',
+      code: 'PUT /passenger/photo { "photoUrl": "https://…" }   →   entity_passenger.photo_url' },
+    { title: 'Mostrar la foto',
+      desc: 'El backend responde el perfil actualizado; Coil descarga y dibuja la imagen desde la URL.',
+      code: 'PhotoState.Success(passenger)  →  AsyncImage(model = passenger.photoUrl)' }
+  ];
+
+  const $ = id => document.getElementById(id);
+  const dots = $('dots');
+  let step = 0;
+  let timer = null;
+
+  STEPS.forEach((_, i) => {
+    const b = document.createElement('button');
+    b.className = 'dot';
+    b.textContent = i + 1;
+    b.setAttribute('aria-label', 'Paso ' + (i + 1));
+    b.onclick = () => { stopPlay(); go(i); };
+    dots.appendChild(b);
+  });
+
+  function go(i) {
+    step = (i + STEPS.length) % STEPS.length;
+    const s = STEPS[step];
+    STEPS.forEach((_, k) => {
+      const m = $('m' + (k + 1));
+      m.classList.toggle('done', k < step);
+      m.classList.toggle('on', k === step);
+    });
+    $('bar').setAttribute('width', step >= 4 ? 250 : 0);
+    $('rules').classList.toggle('on', step >= 4);
+    $('s-file').classList.toggle('on', step >= 4);
+    $('s-db').classList.toggle('on', step >= 6);
+    $('p-step').textContent = (step + 1) + ' de ' + STEPS.length + ' · ' + s.title;
+    $('p-desc').textContent = s.desc;
+    $('p-code').textContent = s.code;
+    [...dots.children].forEach((d, k) => d.classList.toggle('on', k === step));
+    history.replaceState(null, '', '#s=' + (step + 1) + (document.body.classList.contains('capture') ? '&capture' : ''));
+  }
+
+  function stopPlay() {
+    clearInterval(timer);
+    timer = null;
+    $('play').textContent = '▶ Reproducir';
+  }
+
+  $('play').onclick = () => {
+    if (timer) return stopPlay();
+    $('play').textContent = '❚❚ Pausa';
+    timer = setInterval(() => go(step + 1), 2800);
+  };
+  $('prev').onclick = () => { stopPlay(); go(step - 1); };
+  $('next').onclick = () => { stopPlay(); go(step + 1); };
+  document.addEventListener('keydown', e => {
+    if (e.key === 'ArrowRight') { stopPlay(); go(step + 1); }
+    if (e.key === 'ArrowLeft') { stopPlay(); go(step - 1); }
+  });
+
+  const params = new URLSearchParams(location.hash.slice(1));
+  if (params.has('capture')) document.body.classList.add('capture');
+  go((parseInt(params.get('s'), 10) || 1) - 1);
+</script>
+</body>
+</html>

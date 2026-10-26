@@ -1,255 +1,296 @@
-# Módulo 04 · Sesión 04 — Firebase Auth, Firestore y Storage
+# Módulo 4 · Sesión 4
+
+## Firebase: autenticación (teoría) y archivos con Storage (práctica)
+
+---
 
 ## Objetivos
 
-1. Comprender el concepto de **SSO (Single Sign-On)** y sus principales proveedores en el mercado.
-2. Implementar **autenticación con Firebase Auth** (correo y Google).
-3. Dominar la **lectura/escritura de datos** en Firestore y conocer sus ventajas frente a otros servicios.
-4. Comprender el uso de **Firebase Storage**, sus diferencias frente a competidores y cómo integrarlo en Android.
-5. Aplicar **reglas de seguridad y control de acceso** en Firebase (Auth, Firestore, Storage).
+1. Entender **SSO** y cómo funciona **Firebase Auth** (correo, Google y custom token).
+2. Subir un archivo a **Firebase Storage** con barra de progreso.
+3. Proteger los archivos con **reglas de seguridad** sin cambiar el login de la app.
+4. Guardar la URL en el backend y mostrar la imagen.
 
 ---
 
 ## Contenido
 
-1. Introducción al **SSO** y autenticación con correo y Google
-2. Lectura y escritura de documentos en **Firestore**
-3. Subida y descarga de archivos en **Storage**
-4. **Reglas de seguridad y control de acceso** en Firebase
+1. Firebase Auth (teoría)
+2. Firebase Storage, en dos tablas
+3. Proyectos de la clase
+4. Paso a paso: la foto de perfil
+5. ¿Y Firestore?
+6. Errores comunes
 
 ---
 
-## Desarrollo del contenido
+## 1) Firebase Auth (teoría)
 
-### 1. Autenticación con correo y Google
+**SSO (Single Sign-On):** inicias sesión una vez con un proveedor (Google, Apple…) y entras a varias apps sin otra contraseña.
 
-#### 1.1 Introducción al SSO (Single Sign-On)
+| Proveedor de identidad | Qué es                                     | Precio base                 |
+| ---------------------- | ------------------------------------------ | --------------------------- |
+| **Firebase Auth**      | Integrado con Storage, Firestore y FCM     | Gratis hasta 50 000 MAU     |
+| Auth0                  | Muy configurable, reglas y roles avanzados | De pago                     |
+| Amazon Cognito         | Parte de AWS                               | Gratis hasta 10 000 MAU     |
+| Keycloak               | Open source, lo hospedas tú                | Gratis (pagas el servidor)  |
 
-**SSO (Single Sign-On)** permite que un usuario se autentique una sola vez para acceder a múltiples aplicaciones sin tener que volver a iniciar sesión.  
-Ejemplo: Inicias sesión con tu cuenta de Google y accedes automáticamente a Gmail, YouTube y Drive.
+Firebase Auth entrega un **ID token** (JWT) que Storage, Firestore y tu backend pueden verificar:
 
-**Ventajas del SSO:**
+| Método            | Cómo entra el usuario                      | Código en Android                                         |
+| ----------------- | ------------------------------------------ | --------------------------------------------------------- |
+| Correo y clave    | Formulario propio                          | `auth.signInWithEmailAndPassword(email, password)`        |
+| Google            | Credential Manager muestra sus cuentas     | `auth.signInWithCredential(GoogleAuthProvider.getCredential(idToken, null))` |
+| Teléfono (SMS)    | Código que envía Firebase                  | `PhoneAuthProvider.verifyPhoneNumber(...)`                |
+| **Custom token**  | Tu backend ya autenticó al usuario         | `auth.signInWithCustomToken(token)`                       |
 
--   Menor fricción en el registro e inicio de sesión.
--   Centralización de credenciales.
--   Reducción de problemas de seguridad (menos contraseñas expuestas).
--   Mejor experiencia de usuario.
-
-**Principales proveedores de SSO del mercado:**
-
-| Proveedor      | Descripción                                               | Precio base                         | SDKs móviles      | Soporte OAuth2/OIDC |
-| -------------- | --------------------------------------------------------- | ----------------------------------- | ----------------- | ------------------- |
-| Firebase Auth  | Solución de Google integrada con otros productos Firebase | Gratis (hasta 10k usuarios activos) | Android, iOS, Web | ✅                  |
-| Auth0          | Plataforma avanzada con control granular y extensibilidad | Pago desde $23/mes                  | Android, iOS, Web | ✅                  |
-| Amazon Cognito | Parte de AWS, integración profunda con servicios cloud    | Gratis 50k MAU                      | Android, iOS, Web | ✅                  |
-| Keycloak       | Open Source auto hospedado                                | Gratis                              | SDKs externos     | ✅                  |
-
-**¿Por qué elegir Firebase Auth?**
-
--   Simplicidad de integración en Android (SDK oficial).
--   Soporte nativo para autenticación con correo, Google, Facebook, Apple, etc.
--   Sin servidor propio ni mantenimiento de base de datos de usuarios.
--   Perfecta integración con Firestore y Storage.
-
-#### 1.2 Implementación: autenticación con correo y Google
-
-Dependencias en `build.gradle.kts`:
+Google con Credential Manager (lo que reemplaza al antiguo `GoogleSignInClient`):
 
 ```kotlin
-implementation("com.google.firebase:firebase-auth-ktx")
-implementation("com.google.android.gms:play-services-auth:21.0.0")
+val option = GetGoogleIdOption.Builder()
+    .setServerClientId(webClientId)
+    .build()
+val result = CredentialManager.create(context)
+    .getCredential(context, GetCredentialRequest(listOf(option)))
+val idToken = GoogleIdTokenCredential.createFrom(result.credential.data).idToken
+Firebase.auth.signInWithCredential(GoogleAuthProvider.getCredential(idToken, null)).await()
 ```
 
-Inicialización (Application.kt):
+**¿Y nuestra app?** Ya inicia sesión con **OTP + JWT propio** (módulo 2). No la cambiamos: el backend firma un **custom token** con el id del pasajero y la app lo canjea en silencio. Firebase Auth solo nos sirve para que las reglas de Storage sepan **quién** sube el archivo.
+
+---
+
+## 2) Firebase Storage, en dos tablas
+
+| Servicio                 | Integración móvil        | Seguridad                    |
+| ------------------------ | ------------------------ | ---------------------------- |
+| **Firebase Storage**     | SDK Android/iOS oficial  | Reglas con `request.auth`    |
+| AWS S3                   | SDK de AWS               | Políticas IAM / URL firmadas |
+| Supabase Storage         | SDK móvil                | Políticas con JWT            |
+| Cloudflare R2            | API compatible con S3    | Tokens y URL firmadas        |
+
+| Concepto        | Qué es                                                        | En la app                              |
+| --------------- | ------------------------------------------------------------- | -------------------------------------- |
+| Bucket          | El «disco» del proyecto                                       | `app-taxi-xxxxx.firebasestorage.app`   |
+| Referencia      | Ruta de un archivo                                            | `passengers/{id}/avatar.jpg`           |
+| `putBytes` / `putFile` | Sube; avisa el progreso con `addOnProgressListener`     | `putBytes(jpeg, metadata)`             |
+| `downloadUrl`   | URL pública con token para descargar                          | Se guarda en `photo_url` del backend   |
+| Reglas          | Quién puede leer/escribir y qué                               | Solo el dueño, imágenes < 5 MB         |
+
+---
+
+## 3) Proyectos de la clase
+
+| Proyecto                                             | Qué es                                                                       | Guía                                   |
+| ---------------------------------------------------- | ---------------------------------------------------------------------------- | -------------------------------------- |
+| [`infra-app-taxi`](./infra-app-taxi)                 | MySQL 9.7, Redis 8.10 y la API con Docker Compose                             | [README](./infra-app-taxi/README.md)   |
+| [`backend-app-taxi`](./backend-app-taxi)             | API NestJS 12 + **`GET /passenger/me`, `POST /passenger/storage-token`, `PUT /passenger/photo`** y `firebase/storage.rules` | [README](./backend-app-taxi/README.md) |
+| [`android-app-taxi`](./android-app-taxi)             | App de la clase anterior + **pantalla «Mi perfil» con subida de foto**       | [README](./android-app-taxi/README.md) |
+| [`design-m04-c04.pen`](./design-m04-c04.pen)         | Diseño con la sección **«10 · Foto de perfil»**                              | —                                      |
+| [`diagrama-storage.html`](./diagrama-storage.html)   | **Diagrama interactivo**: ábrelo en el navegador y avanza paso a paso        | —                                      |
+
+Los tres proyectos parten de los del **módulo 4 · clase 03**.
+
+![Diseño: cambiar la foto](_img/profile-photo.png)
+
+---
+
+## 4) Paso a paso: la foto de perfil
+
+![Elegir, autorizar, subir y guardar la foto](android-app-taxi/docs/gif/storage-photo-flow.gif)
+
+> El mismo flujo, interactivo: [`diagrama-storage.html`](./diagrama-storage.html). Usa ← → o toca una caja para ver su código.
+
+```
+backend-app-taxi/
+├─ firebase/storage.rules                                // Paso 2
+├─ src/core/firebase/firebase-admin.service.ts           // Paso 3
+└─ src/features/passengers/                              // Pasos 3 y 7
+android-app-taxi/.../features/profile/
+├─ domain/  ChangePhotoUseCase, PhotoStorage, ImageCompressor   // Paso 4
+├─ data/storage/BitmapImageCompressor.kt                        // Paso 5
+├─ data/storage/FirebasePhotoStorage.kt                         // Paso 6
+└─ presentation/ProfileScreen.kt, ProfileViewModel.kt           // Paso 8
+```
+
+### Paso 1 · Firebase en el proyecto
+
+1. En Firebase Console activa **Storage** (el proyecto y `google-services.json` son los de la clase 03).
+2. Agrega las librerías:
 
 ```kotlin
-class MyApp : Application() {
-    override fun onCreate() {
-        super.onCreate()
-        FirebaseApp.initializeApp(this)
-    }
+// app/build.gradle.kts
+implementation(platform(libs.firebase.bom))   // 35.0.2
+implementation(libs.firebase.auth)
+implementation(libs.firebase.storage)
+implementation(libs.coil.compose)             // 3.6.3: mostrar la foto
+implementation(libs.coil.network.okhttp)
+```
+
+### Paso 2 · Las reglas de Storage
+
+```
+// backend-app-taxi/firebase/storage.rules
+match /passengers/{passengerId}/avatar.jpg {
+  allow read: if request.auth != null;
+  allow write: if request.auth != null
+               && request.auth.uid == passengerId
+               && request.resource.size < 5 * 1024 * 1024
+               && request.resource.contentType.matches('image/.*');
 }
 ```
 
-**Autenticación con correo:**
+Se publican en *Firebase Console → Storage → Reglas* o con `firebase deploy --only storage`. Sin reglas, cualquiera con la app podría escribir en cualquier ruta.
+
+### Paso 3 · Backend: el custom token
+
+```ts
+// features/passengers/services/storage-token.service.ts
+return {
+    token: await this.firebase.createCustomToken(passengerId, { role: "passenger" }),
+    bucket: this.firebase.storageBucket(),
+    photoPath: `passengers/${passengerId}/avatar.jpg`,
+};
+```
+
+-   `POST /passenger/storage-token` exige el access token de siempre: el `uid` sale de **nuestra** sesión.
+-   Usa la misma cuenta de servicio del push (`FIREBASE_*`). Sin ella responde **503**.
+
+### Paso 4 · El caso de uso
 
 ```kotlin
-val auth = Firebase.auth
-auth.createUserWithEmailAndPassword(email, password)
-    .addOnCompleteListener { task ->
-        if (task.isSuccessful) {
-            val user = auth.currentUser
+// domain/usecase/ChangePhotoUseCase.kt
+operator fun invoke(uri: String): Flow<PhotoState> = flow {
+    emit(PhotoState.Preparing)
+    val image = compressor.compress(uri)
+    emitAll(storage.upload(image).map { event ->
+        when (event) {
+            is UploadEvent.Progress -> PhotoState.Uploading(event.percent)
+            is UploadEvent.Done -> PhotoState.Success(repo.savePhoto(event.url))
         }
-    }
+    })
+}.catch { emit(PhotoState.Error(it.toDomainException().message)) }
 ```
 
-**Autenticación con Google:**
+El dominio no conoce Firebase: solo `PhotoStorage`, `ImageCompressor` y `ProfileRepository`. Por eso se prueba con fakes.
+
+### Paso 5 · Comprimir antes de subir
 
 ```kotlin
-val credential = GoogleAuthProvider.getCredential(idToken, null)
-Firebase.auth.signInWithCredential(credential)
+// data/storage/BitmapImageCompressor.kt
+val bitmap = ImageDecoder.decodeBitmap(source) { decoder, info, _ ->
+    decoder.setTargetSize(...)                      // lado mayor: 1080 px
+}
+bitmap.compress(Bitmap.CompressFormat.JPEG, 85, out)
 ```
 
-**Caso de uso real:**  
-Una app de comercio electrónico donde el usuario puede registrarse con Google y el backend valida su token para personalizar el catálogo.
+Una foto de cámara pesa ~4 MB; comprimida, ~200 KB: sube en segundos y cumple la regla de 5 MB.
+
+### Paso 6 · Subir con progreso
+
+```kotlin
+// data/storage/FirebasePhotoStorage.kt
+val access = safeCall { api.storageToken() }
+FirebaseAuth.getInstance().signInWithCustomToken(access.token).await()
+val ref = FirebaseStorage.getInstance("gs://${access.bucket}").reference.child(access.photoPath)
+
+callbackFlow {
+    val task = ref.putBytes(image, metadata)
+        .addOnProgressListener { trySend(UploadEvent.Progress((it.bytesTransferred * 100 / it.totalByteCount).toInt())) }
+        .addOnSuccessListener { launch { send(UploadEvent.Done(ref.downloadUrl.await().toString())); close() } }
+        .addOnFailureListener { close(it) }
+    awaitClose { if (!task.isComplete) task.cancel() }
+}
+```
+
+1. **Autorizar:** el custom token deja `request.auth.uid` = id del pasajero.
+2. **Subir:** `callbackFlow` convierte los *listeners* en un `Flow` (como el GPS de la clase 01).
+3. **Limpiar:** `awaitClose` cancela la subida si el usuario sale de la pantalla.
+
+### Paso 7 · Backend: guardar la URL
+
+```ts
+// PassengerService.updatePhoto
+if (!isPassengerAvatarUrl(request.photoUrl, passengerId)) {
+    throw new HttpCustomException(await this.i18n.t("photo.invalidUrl", { lang }));   // 422
+}
+return toPassengerDto(await this.passengerDao.updatePhotoUrl(passengerId, request.photoUrl));
+```
+
+El backend no confía en la app: solo acepta URLs de Firebase Storage de **la ruta del propio pasajero**.
+
+### Paso 8 · La pantalla
+
+```kotlin
+// presentation/ProfileScreen.kt (ProfileRoute)
+val picker = rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
+    uri?.let { vm.onPhotoPicked(it.toString()) }
+}
+picker.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
+
+AsyncImage(model = passenger.photoUrl, contentScale = ContentScale.Crop)   // Coil
+```
+
+| `PhotoState`    | Pantalla                                   |
+| --------------- | ------------------------------------------ |
+| `Preparing`     | Anillo girando; botón bloqueado            |
+| `Uploading(45)` | Anillo al 45 % sobre el avatar             |
+| `Success`       | Foto nueva y toast verde                   |
+| `Error`         | Toast rojo; la foto anterior se mantiene   |
+
+Se entra desde **Menú › Mi perfil** (el deeplink `app-taxi://passenger/profile` que ya enviaba el backend).
+
+![Errores y lo que queda en Firebase](_img/profile-storage.png)
+
+### Paso 9 · Probarlo
+
+```bash
+./gradlew testDebugUnitTest           # 77 pruebas JVM (7 nuevas): ChangePhoto, GetProfile, ProfileViewModel
+./gradlew connectedDebugAndroidTest   # BitmapImageCompressorTest: 3000×2000 → 1080×720 JPEG
+pnpm test                             # backend: 58 pruebas (9 nuevas): custom token, URL del avatar, perfil
+```
+
+De punta a punta: levanta infra y backend con `HTTP_FIREBASE_*`, entra a **Menú › Mi perfil**, toca «Agregar foto» y mira el archivo en *Firebase Console → Storage → passengers/{id}/avatar.jpg*.
 
 ---
 
-### 2. Firestore: lectura y escritura de documentos
+## 5) ¿Y Firestore?
 
-#### 2.1 Introducción
-
-**Cloud Firestore** es una base de datos **NoSQL** de Google que almacena información en **colecciones y documentos**.  
-Cada documento es un JSON que puede contener subcolecciones.
-
-**Ventajas:**
-
--   Sin esquema fijo.
--   Escala automáticamente.
--   Integración nativa con Firebase Auth y Realtime listeners.
--   Sin servidor ni mantenimiento.
-
-**Principales competidores:**
-
-| Servicio           | Modelo                 | Escalabilidad | Realtime        | Precio (lecturas/escrituras) | Región      |
-| ------------------ | ---------------------- | ------------- | --------------- | ---------------------------- | ----------- |
-| **Firestore**      | Documentos/Colecciones | Automática    | ✅              | $0.06 /100k lecturas         | Global      |
-| **MongoDB Atlas**  | Documentos             | Manual/Auto   | ⚙️ con triggers | $0.08 /100k                  | Multi Cloud |
-| **DynamoDB (AWS)** | Clave-valor            | Automática    | ❌              | $0.25 /100k lecturas         | Regional    |
-| **Supabase**       | SQL (Postgres)         | Automática    | ✅              | Gratis (limitado)            | Multi Cloud |
-
-#### 2.2 Implementación en Android
-
-Dependencia:
+Firestore es la base de datos NoSQL de Firebase (colecciones y documentos, con escucha en tiempo real). En App Taxi los datos viven en **MySQL** detrás de nuestro backend, así que no la usamos; sería útil, por ejemplo, para la posición del conductor en tiempo real.
 
 ```kotlin
-implementation("com.google.firebase:firebase-firestore-ktx")
+Firebase.firestore.collection("trips").document(tripId)
+    .snapshots()                                   // Flow: cada cambio llega solo
+    .collect { trip -> render(trip.toObject<Trip>()) }
 ```
 
-Guardar documento:
-
-```kotlin
-val db = Firebase.firestore
-val user = hashMapOf("name" to "Jorge", "email" to "jorge@example.com")
-
-db.collection("users").document("user123").set(user)
-    .addOnSuccessListener { Log.d("Firestore", "Documento guardado") }
-```
-
-Leer documento:
-
-```kotlin
-db.collection("users").document("user123")
-    .get()
-    .addOnSuccessListener { doc -> Log.d("Firestore", "Datos: ${doc.data}") }
-```
-
-**Caso de uso:**  
-Una app de delivery que guarda el historial de pedidos por usuario (`users/{id}/orders/{orderId}`) y muestra actualizaciones en tiempo real.
+| Necesito…                                   | Uso                       |
+| ------------------------------------------- | ------------------------- |
+| Guardar archivos (fotos, PDF, audio)        | **Storage**               |
+| Datos que cambian en vivo entre usuarios    | Firestore                 |
+| Datos de negocio con reglas y SQL           | Nuestro backend + MySQL   |
 
 ---
 
-### 3. Firebase Storage: subida y descarga de archivos
+## 6) Errores comunes
 
-#### 3.1 Introducción
-
-**Firebase Storage** almacena archivos (imágenes, audios, PDFs, etc.) en la nube con URLs seguras y acceso autenticado.
-
-**Comparativa de servicios:**
-
-| Servicio                       | Costo por GB | API REST | Integración móvil  | Reglas de seguridad |
-| ------------------------------ | ------------ | -------- | ------------------ | ------------------- |
-| **Firebase Storage**           | $0.026/GB    | ✅       | ✅ SDK Android/iOS | Basadas en Auth     |
-| **AWS S3**                     | $0.023/GB    | ✅       | SDK nativo AWS     | IAM Policies        |
-| **Google Cloud Storage (GCS)** | $0.020/GB    | ✅       | SDK Cloud          | IAM + ACL           |
-| **Supabase Storage**           | $0.025/GB    | ✅       | SDK JS/Móvil       | Basadas en JWT      |
-| **Backblaze B2**               | $0.005/GB    | ✅       | SDK externo        | Key-based           |
-
-**Ventajas de Firebase Storage:**
-
--   Integración nativa con Firebase Auth.
--   URLs firmadas automáticas.
--   Sin gestión de claves IAM.
--   Escalabilidad y CDN incluidas.
-
-#### 3.2 Implementación en Android
-
-Dependencia:
-
-```kotlin
-implementation("com.google.firebase:firebase-storage-ktx")
-```
-
-Subir archivo:
-
-```kotlin
-val storage = Firebase.storage
-val file = Uri.fromFile(File("/path/to/image.jpg"))
-val ref = storage.reference.child("images/${file.lastPathSegment}")
-ref.putFile(file)
-    .addOnSuccessListener { Log.d("Storage", "Archivo subido") }
-```
-
-Descargar archivo:
-
-```kotlin
-ref.downloadUrl.addOnSuccessListener { uri ->
-    Log.d("Storage", "URL: $uri")
-}
-```
-
-**Caso de uso:**  
-Una app de mensajería que guarda las fotos de perfil de los usuarios en `storage/images/{userId}.jpg`.
+| Error                                          | Qué pasa                                         | En el proyecto                                   |
+| ---------------------------------------------- | ------------------------------------------------ | ------------------------------------------------ |
+| Reglas abiertas (`allow read, write: if true`) | Cualquiera sube o borra archivos                 | Solo el dueño, imágenes y < 5 MB                 |
+| Subir la foto original                         | 4 MB por foto, lento y caro                      | 1080 px y JPEG 85                                |
+| Pedir `READ_MEDIA_IMAGES` para elegir una foto | Permiso innecesario y rechazos en Play           | Photo Picker                                     |
+| Cambiar todo el login a Firebase Auth          | Dos sistemas de usuarios                         | Custom token desde el backend                    |
+| Guardar cualquier URL que mande la app         | Un usuario apunta su foto a la de otro           | `isPassengerAvatarUrl` en el backend             |
+| No cancelar la subida                          | Sigue gastando datos con la pantalla cerrada     | `awaitClose { task.cancel() }`                   |
+| Un nombre de archivo nuevo en cada subida      | El bucket se llena de fotos huérfanas            | Siempre `avatar.jpg`: se reemplaza               |
+| Subir la cuenta de servicio a git              | Cualquiera firma tokens de tu proyecto           | Variables `FIREBASE_*` en `.env`                 |
 
 ---
 
-### 4. Seguridad y control de acceso en Firebase
+## Recursos recomendados
 
-Firebase permite definir **reglas de seguridad declarativas** en cada servicio:
-
-#### 4.1 Firestore Rules
-
-```js
-rules_version = '2';
-service cloud.firestore {
-  match /databases/{database}/documents {
-    match /users/{userId} {
-      allow read, write: if request.auth.uid == userId;
-    }
-  }
-}
-```
-
-#### 4.2 Storage Rules
-
-```js
-service firebase.storage {
-  match /b/{bucket}/o {
-    match /images/{userId}/{allPaths=**} {
-      allow read, write: if request.auth.uid == userId;
-    }
-  }
-}
-```
-
-#### 4.3 Recomendaciones generales
-
--   **No usar reglas públicas.**
--   **Usar Auth siempre.**
--   **Auditar accesos** desde Firebase Console.
--   **Combinar con App Check** para verificar integridad de la app.
--   **Usar Custom Claims** para roles (admin, user, guest).
-
-**Ejemplo:**
-
-```kotlin
-Firebase.auth.currentUser?.getIdToken(true)?.addOnSuccessListener {
-    val claims = it.claims
-}
-```
-
-**En conjunto**, Auth + Firestore + Storage con reglas bien definidas forman una arquitectura segura, escalable y sin servidor.
-
-![Diagrama](./_img/diagrama_001.svg)
-
-![Diagrama](./_img/diagrama_002.svg)
+-   [Firebase Auth en Android](https://firebase.google.com/docs/auth/android/start) y [custom tokens](https://firebase.google.com/docs/auth/admin/create-custom-tokens).
+-   [Iniciar sesión con Google y Credential Manager](https://developer.android.com/identity/sign-in/credential-manager-siwg).
+-   [Subir archivos con Cloud Storage para Firebase](https://firebase.google.com/docs/storage/android/upload-files) y [reglas de seguridad](https://firebase.google.com/docs/storage/security).
+-   [Photo Picker](https://developer.android.com/training/data-storage/shared/photopicker).
+-   Clase anterior: [Notificaciones y push](../clase-03/README.md).

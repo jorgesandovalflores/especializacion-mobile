@@ -1,0 +1,9 @@
+{
+    "validation": {
+        "isString": "El valor debe ser una cadena de texto.",
+        "required": "Este campo es obligatorio.",
+        "minLength": "Debe tener al menos 11 caracteres.",
+        "maxLength": "Debe tener como máximo 11 caracteres."
+    },
+    "notExists": "Tu número de teléfono no existe."
+}
