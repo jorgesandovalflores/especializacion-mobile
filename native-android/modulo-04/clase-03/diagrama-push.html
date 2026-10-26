@@ -12,14 +12,10 @@
     --muted: #6B6B6B;
     --line: #E2DDF2;
     --primary: #7843E6;
-    --primary-soft: #7843E61F;
+    --primary-soft: #F1EBFD;
+    --done: #B9B3CC;
     --ok: #2E7D32;
     --ok-soft: #E8F3E8;
-    --ok-line: #B9D9BB;
-    --off: #9AA0A6;
-    --off-soft: #F1F1F1;
-    --stop: #C62828;
-    --stop-soft: #FBE9E9;
     --code: #1E1B2E;
   }
   * { box-sizing: border-box; }
@@ -45,38 +41,45 @@
   svg { width: 100%; height: 100%; display: block; }
   .eyebrow { font-size: 12px; letter-spacing: .32em; fill: var(--primary); font-weight: 600; }
   .title { font-size: 22px; font-weight: 700; fill: var(--ink); }
-  .node rect { fill: #fff; stroke: var(--line); stroke-width: 1.5; transition: all .35s; }
-  .node .name { font-size: 13px; font-weight: 700; fill: var(--ink); font-family: ui-monospace, Menlo, monospace; }
-  .node .sub { font-size: 10.5px; fill: var(--muted); font-family: ui-monospace, Menlo, monospace; }
-  .node { cursor: pointer; }
-  .node:hover rect { stroke: var(--primary); }
-  .node.on rect { stroke: var(--primary); stroke-width: 2.5; filter: drop-shadow(0 4px 10px #7843E633); }
-  .node.stop rect { stroke: var(--stop); stroke-width: 2.5; }
-  .edge path { fill: none; stroke: #D8D2EA; stroke-width: 2; transition: all .35s; }
-  .edge text { font-size: 11px; font-weight: 600; fill: transparent; font-family: ui-monospace, Menlo, monospace; transition: fill .35s; }
-  .edge.on path { stroke: var(--primary); stroke-width: 3; stroke-dasharray: 7 5; animation: flow .8s linear infinite; }
-  .edge.on text { fill: var(--primary); }
-  .edge.stop path { stroke: var(--stop); stroke-width: 3; stroke-dasharray: 7 5; animation: flow .8s linear infinite; }
-  .edge.stop text { fill: var(--stop); }
-  @keyframes flow { to { stroke-dashoffset: -24; } }
-  .pill rect { transition: all .35s; }
-  .pill .k { font-size: 10.5px; fill: var(--muted); font-weight: 600; letter-spacing: .08em; }
-  .pill .v { font-size: 13px; font-weight: 700; }
-  .pill.ok rect { fill: var(--ok-soft); stroke: var(--ok-line); }
-  .pill.ok .v { fill: var(--ok); }
-  .pill.off rect { fill: var(--off-soft); stroke: #DDDDDD; }
-  .pill.off .v { fill: var(--off); }
-  .pill.warn rect { fill: var(--stop-soft); stroke: #F0C4C4; }
-  .pill.warn .v { fill: var(--stop); }
-  .notif { transition: opacity .4s, transform .4s; }
-  .notif.hidden { opacity: 0; transform: translateY(-8px); }
-  .notif .t { font-size: 12px; font-weight: 700; fill: var(--ink); }
-  .notif .b { font-size: 10.5px; fill: var(--muted); }
-  .lane { font-size: 10px; letter-spacing: .18em; font-weight: 700; fill: #B7ACD9; }
-  .caption { font-size: 15px; fill: var(--ink); }
-  .caption tspan.n { font-weight: 700; }
-  .codebox rect { fill: var(--code); }
-  .codebox text { font-size: 12px; fill: #E9E3FF; font-family: ui-monospace, Menlo, monospace; }
+
+  .actor rect { fill: var(--primary-soft); stroke: var(--primary); stroke-width: 1.5; }
+  .actor text { font-size: 15px; font-weight: 700; fill: var(--ink); }
+  .actor .sub { font-size: 11px; font-weight: 500; fill: var(--muted); }
+  .lifeline { stroke: #D8D2EA; stroke-width: 2; stroke-dasharray: 4 6; }
+
+  .store rect { fill: #fff; stroke: var(--line); stroke-width: 1.5; transition: all .35s; }
+  .store text { font-size: 11.5px; font-weight: 600; fill: var(--muted); font-family: ui-monospace, Menlo, monospace; transition: fill .35s; }
+  .store.on rect { fill: var(--ok-soft); stroke: var(--ok); stroke-width: 2.5; }
+  .store.on text { fill: var(--ok); }
+
+  .msg { opacity: 0; transition: opacity .35s; }
+  .msg.done, .msg.on { opacity: 1; }
+  .msg path, .msg line { fill: none; stroke: var(--done); stroke-width: 2; }
+  .msg.return path, .msg.return line { stroke-dasharray: 6 5; }
+  .msg text { font-size: 12.5px; font-weight: 600; fill: var(--done); font-family: ui-monospace, Menlo, monospace; }
+  .msg .num { fill: #fff; stroke: var(--done); stroke-width: 2; }
+  .msg .numtxt { font-family: Inter, Roboto, system-ui, sans-serif; font-size: 12px; font-weight: 700; fill: var(--done); }
+  .msg .pill { fill: #F7F6FA; stroke: var(--done); stroke-width: 1.5; }
+  .msg.on path, .msg.on line { stroke: var(--primary); stroke-width: 3; }
+  .msg.on:not(.return) path, .msg.on:not(.return) line { stroke-dasharray: 8 6; animation: flow .7s linear infinite; }
+  .msg.on text { fill: var(--primary); }
+  .msg.on .num { fill: var(--primary); stroke: var(--primary); }
+  .msg.on .numtxt { fill: #fff; }
+  .msg.on .pill { fill: var(--primary-soft); stroke: var(--primary); }
+  @keyframes flow { to { stroke-dashoffset: -28; } }
+
+  .bar-track { fill: #EEE9F8; }
+  #bar { fill: var(--primary); transition: width 2.2s ease-out; }
+  .badge { opacity: 0; transition: opacity .35s; }
+  .badge.on { opacity: 1; }
+  .badge rect { fill: var(--ok-soft); stroke: var(--ok); }
+  .badge text { font-size: 11px; font-weight: 700; fill: var(--ok); }
+
+  .panel rect { fill: var(--code); }
+  .panel .step { font-size: 15px; font-weight: 700; fill: #fff; }
+  .panel .desc { font-size: 13px; fill: #CFC6EE; }
+  .panel .code { font-size: 12px; fill: #9BE3A0; font-family: ui-monospace, Menlo, monospace; }
+
   .controls {
     width: 100%;
     max-width: 960px;
@@ -109,7 +112,7 @@
 </head>
 <body>
 <div class="stage">
-<svg viewBox="0 0 960 540" role="img" aria-label="Flujo de una notificación push del backend al teléfono">
+<svg viewBox="0 0 960 540" role="img" aria-label="Diagrama de secuencia de una notificación push">
   <defs>
     <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
       <path d="M0,0 L10,5 L0,10 z" fill="context-stroke"/>
@@ -117,62 +120,78 @@
   </defs>
 
   <text class="eyebrow" x="480" y="30" text-anchor="middle">HOME · NOTIFICACIONES PUSH</text>
-  <text class="title" x="480" y="58" text-anchor="middle">Del backend al teléfono y de vuelta a la pantalla</text>
+  <text class="title" x="480" y="58" text-anchor="middle">El backend no le habla al teléfono: le habla a FCM</text>
 
-  <text class="lane" x="30" y="84">1 · REGISTRAR EL TOKEN</text>
-  <text class="lane" x="30" y="184">2 · ENVIAR</text>
-  <text class="lane" x="30" y="284">3 · MOSTRAR Y ABRIR</text>
+  <g class="actor"><rect x="70" y="76" width="200" height="44" rx="12"/>
+    <text x="170" y="97" text-anchor="middle">App</text><text class="sub" x="170" y="112" text-anchor="middle">Android · teléfono del pasajero</text></g>
+  <g class="actor"><rect x="380" y="76" width="200" height="44" rx="12"/>
+    <text x="480" y="97" text-anchor="middle">Backend</text><text class="sub" x="480" y="112" text-anchor="middle">NestJS · firebase-admin</text></g>
+  <g class="actor"><rect x="690" y="76" width="200" height="44" rx="12"/>
+    <text x="790" y="97" text-anchor="middle">FCM</text><text class="sub" x="790" y="112" text-anchor="middle">Firebase Cloud Messaging (Google)</text></g>
 
-  <g class="edge" id="e-home-tok"><path d="M234,122 L260,122" marker-end="url(#arrow)"/></g>
-  <g class="edge" id="e-tok-api"><path d="M466,122 L492,122" marker-end="url(#arrow)"/></g>
-  <g class="edge" id="e-api-db"><path d="M698,122 L724,122" marker-end="url(#arrow)"/></g>
-  <g class="edge" id="e-db-svc"><path d="M828,154 C828,176 420,170 364,190" marker-end="url(#arrow)"/><text x="640" y="163" text-anchor="middle">tokens del pasajero</text></g>
-  <g class="edge" id="e-cli-svc"><path d="M234,222 L260,222" marker-end="url(#arrow)"/></g>
-  <g class="edge" id="e-svc-fcm"><path d="M466,222 L492,222" marker-end="url(#arrow)"/></g>
-  <g class="edge" id="e-fcm-msg"><path d="M698,222 L724,222" marker-end="url(#arrow)"/></g>
-  <g class="edge" id="e-msg-ntf"><path d="M828,254 L828,290" marker-end="url(#arrow)"/><text x="868" y="276" text-anchor="middle">show()</text></g>
-  <g class="edge" id="e-ntf-card"><path d="M724,322 L698,322" marker-end="url(#arrow)"/></g>
-  <g class="edge" id="e-card-main"><path d="M492,322 L466,322" marker-end="url(#arrow)"/></g>
-  <g class="edge" id="e-main-menu"><path d="M260,322 L234,322" marker-end="url(#arrow)"/></g>
+  <line class="lifeline" x1="170" y1="120" x2="170" y2="372"/>
+  <line class="lifeline" x1="480" y1="120" x2="480" y2="372"/>
+  <line class="lifeline" x1="790" y1="120" x2="790" y2="372"/>
 
-  <g class="node" id="n-home" data-code="home"><rect x="30" y="92" width="204" height="62" rx="14"/>
-    <text class="name" x="132" y="119" text-anchor="middle">HomeViewModel</text><text class="sub" x="132" y="138" text-anchor="middle">registerPushToken()</text></g>
-  <g class="node" id="n-tok" data-code="home"><rect x="262" y="92" width="204" height="62" rx="14"/>
-    <text class="name" x="364" y="119" text-anchor="middle">FirebaseMessaging</text><text class="sub" x="364" y="138" text-anchor="middle">token.await()</text></g>
-  <g class="node" id="n-api" data-code="api"><rect x="494" y="92" width="204" height="62" rx="14"/>
-    <text class="name" x="596" y="119" text-anchor="middle">PUT /passenger/device</text><text class="sub" x="596" y="138" text-anchor="middle">DeviceController</text></g>
-  <g class="node" id="n-db" data-code="api"><rect x="726" y="92" width="204" height="62" rx="14"/>
-    <text class="name" x="828" y="119" text-anchor="middle">MySQL</text><text class="sub" x="828" y="138" text-anchor="middle">entity_passenger_device</text></g>
-
-  <g class="node" id="n-cli" data-code="send"><rect x="30" y="192" width="204" height="62" rx="14"/>
-    <text class="name" x="132" y="219" text-anchor="middle">send-push.js</text><text class="sub" x="132" y="238" text-anchor="middle">51987654321 [deeplink]</text></g>
-  <g class="node" id="n-svc" data-code="send"><rect x="262" y="192" width="204" height="62" rx="14"/>
-    <text class="name" x="364" y="219" text-anchor="middle">NotificationService</text><text class="sub" x="364" y="238" text-anchor="middle">FcmPushService</text></g>
-  <g class="node" id="n-fcm" data-code="send"><rect x="494" y="192" width="204" height="62" rx="14"/>
-    <text class="name" x="596" y="219" text-anchor="middle">FCM</text><text class="sub" x="596" y="238" text-anchor="middle">Google entrega el mensaje</text></g>
-  <g class="node" id="n-msg" data-code="msg"><rect x="726" y="192" width="204" height="62" rx="14"/>
-    <text class="name" x="828" y="219" text-anchor="middle">TaxiMessagingService</text><text class="sub" x="828" y="238" text-anchor="middle">onMessageReceived</text></g>
-
-  <g class="node" id="n-ntf" data-code="ntf"><rect x="726" y="292" width="204" height="62" rx="14"/>
-    <text class="name" x="828" y="319" text-anchor="middle">PushNotifier</text><text class="sub" x="828" y="338" text-anchor="middle">canal «Viajes y avisos»</text></g>
-  <g class="notif hidden" id="notif">
-    <rect x="494" y="292" width="204" height="62" rx="16" fill="#F3EFFA" stroke="#E2DDF2"/>
-    <circle cx="516" cy="323" r="12" fill="#7843E6"/>
-    <rect x="509" y="318" width="14" height="8" rx="2" fill="#fff"/>
-    <text class="t" x="536" y="317">Tu taxi está llegando</text>
-    <text class="b" x="536" y="335">Carlos llega en 3 min</text>
+  <g class="msg" id="m1">
+    <circle class="num" cx="34" cy="146" r="11"/><text class="numtxt" x="34" y="150" text-anchor="middle">1</text>
+    <line x1="172" y1="150" x2="786" y2="150" marker-end="url(#arrow)"/>
+    <text x="480" y="143" text-anchor="middle">FirebaseMessaging.token</text>
   </g>
-  <g class="node" id="n-main" data-code="main"><rect x="262" y="292" width="204" height="62" rx="14"/>
-    <text class="name" x="364" y="319" text-anchor="middle">MainActivity</text><text class="sub" x="364" y="338" text-anchor="middle">onNewIntent(deeplink)</text></g>
-  <g class="node" id="n-menu" data-code="main"><rect x="30" y="292" width="204" height="62" rx="14"/>
-    <text class="name" x="132" y="319" text-anchor="middle">Route.Menu</text><text class="sub" x="132" y="338" text-anchor="middle">app-taxi://passenger/menu</text></g>
-
-  <g class="codebox">
-    <rect x="30" y="372" width="900" height="96" rx="12"/>
-    <text id="code" x="50" y="400" style="white-space: pre"></text>
+  <g class="msg return" id="m2">
+    <circle class="num" cx="34" cy="176" r="11"/><text class="numtxt" x="34" y="180" text-anchor="middle">2</text>
+    <line x1="788" y1="180" x2="174" y2="180" marker-end="url(#arrow)"/>
+    <text x="480" y="173" text-anchor="middle">token del teléfono (fcm…)</text>
+  </g>
+  <g class="msg" id="m3">
+    <circle class="num" cx="34" cy="206" r="11"/><text class="numtxt" x="34" y="210" text-anchor="middle">3</text>
+    <line x1="172" y1="210" x2="476" y2="210" marker-end="url(#arrow)"/>
+    <text x="325" y="203" text-anchor="middle">PUT /passenger/device {token}</text>
+  </g>
+  <g class="msg" id="m4">
+    <circle class="num" cx="34" cy="236" r="11"/><text class="numtxt" x="34" y="240" text-anchor="middle">4</text>
+    <rect class="pill" x="345" y="224" width="270" height="24" rx="12"/>
+    <text x="480" y="240" text-anchor="middle">send-push 51987654321 → tokens</text>
+  </g>
+  <g class="msg" id="m5">
+    <circle class="num" cx="34" cy="266" r="11"/><text class="numtxt" x="34" y="270" text-anchor="middle">5</text>
+    <line x1="482" y1="270" x2="786" y2="270" marker-end="url(#arrow)"/>
+    <text x="635" y="263" text-anchor="middle">sendEachForMulticast(data)</text>
+  </g>
+  <g class="msg return" id="m6">
+    <circle class="num" cx="34" cy="296" r="11"/><text class="numtxt" x="34" y="300" text-anchor="middle">6</text>
+    <line x1="788" y1="300" x2="174" y2="300" marker-end="url(#arrow)"/>
+    <text x="480" y="293" text-anchor="middle">onMessageReceived(data)</text>
+  </g>
+  <g class="msg" id="m7">
+    <circle class="num" cx="34" cy="326" r="11"/><text class="numtxt" x="34" y="330" text-anchor="middle">7</text>
+    <rect class="pill" x="55" y="314" width="230" height="24" rx="12"/>
+    <text x="170" y="330" text-anchor="middle">PushNotifier.show()</text>
+  </g>
+  <g class="msg" id="m8">
+    <circle class="num" cx="34" cy="356" r="11"/><text class="numtxt" x="34" y="360" text-anchor="middle">8</text>
+    <rect class="pill" x="55" y="344" width="230" height="24" rx="12"/>
+    <text x="170" y="360" text-anchor="middle">toca → abre el Menú</text>
   </g>
 
-  <text class="caption" x="480" y="504" text-anchor="middle" id="caption"></text>
+  <g class="badge" id="high">
+    <rect x="296" y="314" width="196" height="24" rx="8"/>
+    <text x="394" y="330" text-anchor="middle">canal «Viajes y avisos» · alta</text>
+  </g>
+
+  <g class="store" id="s-notif"><rect x="70" y="376" width="200" height="26" rx="8"/>
+    <text x="170" y="393" text-anchor="middle">notificación en pantalla</text></g>
+  <g class="store" id="s-db"><rect x="380" y="376" width="200" height="26" rx="8"/>
+    <text x="480" y="393" text-anchor="middle">MySQL · passenger_device</text></g>
+  <g class="store" id="s-token"><rect x="690" y="376" width="200" height="26" rx="8"/>
+    <text x="790" y="393" text-anchor="middle">token = este teléfono</text></g>
+
+  <g class="panel">
+    <rect x="30" y="414" width="900" height="100" rx="12"/>
+    <text class="step" id="p-step" x="52" y="444"></text>
+    <text class="desc" id="p-desc" x="52" y="468"></text>
+    <text class="code" id="p-code" x="52" y="494" style="white-space: pre"></text>
+  </g>
 </svg>
 </div>
 
@@ -181,65 +200,35 @@
   <button id="play" class="primary">▶ Reproducir</button>
   <button id="next" aria-label="Paso siguiente">Siguiente ›</button>
   <div class="dots" id="dots"></div>
-  <span class="hint">Toca una caja para ver su código · ← →</span>
+  <span class="hint">← → para avanzar</span>
 </div>
 
 <script>
-  const CODE = {
-    home: [
-      '// domain/usecase/RegisterPushTokenUseCase.kt',
-      'if (session.accessToken().first() == null) return false',
-      'val current = token ?: repo.currentToken() ?: return false   // FirebaseMessaging.getInstance().token.await()',
-      'repo.register(current)                                       // HomeViewModel: init { registerPushToken() }'
-    ],
-    api: [
-      '// backend · features/notifications',
-      '@Put("device") @UseGuards(AccessTokenGuard)',
-      'registerDevice(@Req() request, @Body() dto) { this.service.registerDevice(request.user.sub, dto) }',
-      'devices.upsert(passengerId, dto.token, dto.platform ?? DevicePlatform.ANDROID)   // token único'
-    ],
-    send: [
-      '// backend · remote/fcm-push.service.ts',
-      'getMessaging(app).sendEachForMulticast({',
-      '    tokens, data: { title, body, deeplink }, android: { priority: "high" }',
-      '})   // sin FIREBASE_* → [DEV] Push a 1 dispositivo(s): … (solo log)'
-    ],
-    msg: [
-      '// data/push/TaxiMessagingService.kt',
-      'override fun onMessageReceived(message: RemoteMessage) {',
-      '    message.data.toPushMessage()?.let(notifier::show)',
-      '}   override fun onNewToken(token: String) { scope.launch { registerPushToken(token) } }'
-    ],
-    ntf: [
-      '// data/push/PushNotifier.kt',
-      'NotificationChannelCompat.Builder("trips", IMPORTANCE_HIGH).setName("Viajes y avisos")',
-      'NotificationCompat.Builder(context, "trips").setContentTitle(title).setAutoCancel(true)',
-      '    .setContentIntent(PendingIntent → MainActivity + EXTRA_DEEPLINK)'
-    ],
-    main: [
-      '// core/presentation/activity/MainActivity.kt',
-      'override fun onNewIntent(intent: Intent) { pendingDeeplink.value = intent.getStringExtra(EXTRA_DEEPLINK) }',
-      'LaunchedEffect(deeplink, currentRoute) {',
-      '    if (currentRoute == Home || currentRoute == Menu) { DEEPLINK_MENU -> nav.navigate(Route.Menu.path) } }'
-    ],
-    clean: [
-      '// Al cerrar sesión (app) y al enviar (backend)',
-      'SignOutUseCase: push.delete()            // FirebaseMessaging.deleteToken(): este token deja de servir',
-      'FCM responde "registration-token-not-registered"',
-      'NotificationService: devices.deleteByTokens(delivery.invalidTokens)'
-    ]
-  };
-
   const STEPS = [
-    { on: ['n-home', 'e-home-tok', 'n-tok'], code: 'home', caption: ['1', ' · Al entrar a Home, la app pide su token a Firebase'] },
-    { on: ['n-tok', 'e-tok-api', 'n-api'], code: 'api', caption: ['2', ' · Lo manda al backend con el access token: PUT /passenger/device'] },
-    { on: ['n-api', 'e-api-db', 'n-db'], code: 'api', caption: ['3', ' · El backend lo guarda: un token por teléfono, un pasajero puede tener varios'] },
-    { on: ['n-cli', 'e-cli-svc', 'n-svc', 'e-db-svc', 'n-db'], code: 'send', caption: ['4', ' · Algo pasa en el negocio (aquí, el CLI): se buscan los tokens del pasajero'] },
-    { on: ['n-svc', 'e-svc-fcm', 'n-fcm'], code: 'send', caption: ['5', ' · firebase-admin envía un mensaje de solo datos con prioridad alta'] },
-    { on: ['n-fcm', 'e-fcm-msg', 'n-msg'], code: 'msg', caption: ['6', ' · FCM despierta a la app, abierta o cerrada: onMessageReceived'] },
-    { on: ['n-msg', 'e-msg-ntf', 'n-ntf', 'e-ntf-card'], notif: true, code: 'ntf', caption: ['7', ' · PushNotifier publica en el canal de importancia alta: heads-up'] },
-    { on: ['e-card-main', 'n-main', 'e-main-menu', 'n-menu'], notif: true, code: 'main', caption: ['8', ' · Al tocarla, MainActivity lee el deeplink y abre el Menú'] },
-    { stop: ['n-home', 'n-tok', 'n-svc', 'n-db', 'e-db-svc'], labels: { 'e-db-svc': 'deleteByTokens' }, code: 'clean', caption: ['9', ' · Logout borra el token; el backend limpia los que FCM rechaza'] }
+    { title: 'La app pide su dirección a FCM',
+      desc: 'Al entrar a Home, la app le pide a Firebase el token que identifica a este teléfono.',
+      code: 'RegisterPushTokenUseCase  →  FirebaseMessaging.getInstance().token.await()' },
+    { title: 'FCM entrega el token',
+      desc: 'Es como la «dirección» del teléfono para recibir mensajes. Cambia si reinstalas la app (onNewToken).',
+      code: 'token = "fcm…"     // TaxiMessagingService.onNewToken(token) si FCM lo rota' },
+    { title: 'La app registra el token en el backend',
+      desc: 'Con el access token de la sesión: el backend sabe de qué pasajero es y lo guarda en MySQL.',
+      code: 'PUT /passenger/device { "token": "fcm…", "platform": "ANDROID" }   →   204' },
+    { title: 'Pasa algo en el negocio',
+      desc: 'Por ejemplo, el taxi está llegando. En clase lo simulamos con el CLI: busca los tokens del pasajero.',
+      code: 'docker exec http-app-taxi node dist/features/notifications/cli/send-push.js 51987654321' },
+    { title: 'El backend le envía el mensaje a FCM',
+      desc: 'Un mensaje de solo datos (title, body, deeplink) con prioridad alta. Sin credenciales: queda en el log.',
+      code: 'getMessaging(app).sendEachForMulticast({ tokens, data: { title, body, deeplink } })' },
+    { title: 'FCM despierta a la app',
+      desc: 'Abierta, en segundo plano o cerrada: como es un mensaje data, siempre llega a onMessageReceived.',
+      code: 'override fun onMessageReceived(message: RemoteMessage) { message.data.toPushMessage() }' },
+    { title: 'La app muestra la notificación',
+      desc: 'PushNotifier la publica en el canal «Viajes y avisos» de importancia alta: suena y aparece arriba.',
+      code: 'NotificationCompat.Builder(context, "trips").setContentTitle(title).setContentIntent(open(deeplink))' },
+    { title: 'El usuario la toca',
+      desc: 'MainActivity recibe el deeplink y navega: app-taxi://passenger/menu abre el Menú.',
+      code: 'onNewIntent(intent)  →  pendingDeeplink  →  nav.navigate(Route.Menu.path)' }
   ];
 
   const $ = id => document.getElementById(id);
@@ -256,38 +245,21 @@
     dots.appendChild(b);
   });
 
-  function showCode(key) {
-    const el = $('code');
-    el.textContent = '';
-    CODE[key].forEach((line, i) => {
-      const t = document.createElementNS('http://www.w3.org/2000/svg', 'tspan');
-      t.setAttribute('x', 50);
-      t.setAttribute('dy', i === 0 ? 0 : 20);
-      t.textContent = line || ' ';
-      if (i === 0) t.setAttribute('fill', '#A99BD6');
-      el.appendChild(t);
-    });
-  }
-
   function go(i) {
     step = (i + STEPS.length) % STEPS.length;
     const s = STEPS[step];
-    document.querySelectorAll('.node, .edge').forEach(el => el.classList.remove('on', 'stop'));
-    document.querySelectorAll('.edge text').forEach(t => {
-      t.dataset.label ??= t.textContent;
-      t.textContent = (s.labels || {})[t.parentNode.id] || t.dataset.label;
+    STEPS.forEach((_, k) => {
+      const m = $('m' + (k + 1));
+      m.classList.toggle('done', k < step);
+      m.classList.toggle('on', k === step);
     });
-    (s.on || []).forEach(id => $(id).classList.add('on'));
-    (s.stop || []).forEach(id => $(id).classList.add('stop'));
-    $('notif').classList.toggle('hidden', !s.notif);
-    showCode(s.code);
-    const c = $('caption');
-    c.innerHTML = '';
-    const n = document.createElementNS('http://www.w3.org/2000/svg', 'tspan');
-    n.setAttribute('class', 'n');
-    n.textContent = s.caption[0];
-    c.appendChild(n);
-    c.appendChild(document.createTextNode(s.caption[1]));
+    $('s-token').classList.toggle('on', step >= 1);
+    $('s-db').classList.toggle('on', step >= 2);
+    $('s-notif').classList.toggle('on', step >= 6);
+    $('high').classList.toggle('on', step >= 6);
+    $('p-step').textContent = (step + 1) + ' de ' + STEPS.length + ' · ' + s.title;
+    $('p-desc').textContent = s.desc;
+    $('p-code').textContent = s.code;
     [...dots.children].forEach((d, k) => d.classList.toggle('on', k === step));
     history.replaceState(null, '', '#s=' + (step + 1) + (document.body.classList.contains('capture') ? '&capture' : ''));
   }
@@ -301,7 +273,7 @@
   $('play').onclick = () => {
     if (timer) return stopPlay();
     $('play').textContent = '❚❚ Pausa';
-    timer = setInterval(() => go(step + 1), 2600);
+    timer = setInterval(() => go(step + 1), 2800);
   };
   $('prev').onclick = () => { stopPlay(); go(step - 1); };
   $('next').onclick = () => { stopPlay(); go(step + 1); };
@@ -309,10 +281,6 @@
     if (e.key === 'ArrowRight') { stopPlay(); go(step + 1); }
     if (e.key === 'ArrowLeft') { stopPlay(); go(step - 1); }
   });
-  document.querySelectorAll('.node').forEach(n => n.addEventListener('click', () => {
-    stopPlay();
-    showCode(n.dataset.code);
-  }));
 
   const params = new URLSearchParams(location.hash.slice(1));
   if (params.has('capture')) document.body.classList.add('capture');
