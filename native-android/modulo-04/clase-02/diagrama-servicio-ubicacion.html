@@ -12,14 +12,10 @@
     --muted: #6B6B6B;
     --line: #E2DDF2;
     --primary: #7843E6;
-    --primary-soft: #7843E61F;
+    --primary-soft: #F1EBFD;
+    --done: #B9B3CC;
     --ok: #2E7D32;
     --ok-soft: #E8F3E8;
-    --ok-line: #B9D9BB;
-    --off: #9AA0A6;
-    --off-soft: #F1F1F1;
-    --stop: #C62828;
-    --stop-soft: #FBE9E9;
     --code: #1E1B2E;
   }
   * { box-sizing: border-box; }
@@ -45,37 +41,47 @@
   svg { width: 100%; height: 100%; display: block; }
   .eyebrow { font-size: 12px; letter-spacing: .32em; fill: var(--primary); font-weight: 600; }
   .title { font-size: 22px; font-weight: 700; fill: var(--ink); }
-  .node rect { fill: #fff; stroke: var(--line); stroke-width: 1.5; transition: all .35s; }
-  .node .name { font-size: 13px; font-weight: 700; fill: var(--ink); font-family: ui-monospace, Menlo, monospace; }
-  .node .sub { font-size: 10.5px; fill: var(--muted); font-family: ui-monospace, Menlo, monospace; }
-  .node { cursor: pointer; }
-  .node:hover rect { stroke: var(--primary); }
-  .node.on rect { stroke: var(--primary); stroke-width: 2.5; filter: drop-shadow(0 4px 10px #7843E633); }
-  .node.stop rect { stroke: var(--stop); stroke-width: 2.5; }
-  .edge path { fill: none; stroke: #D8D2EA; stroke-width: 2; transition: all .35s; }
-  .edge text { font-size: 11px; font-weight: 600; fill: transparent; font-family: ui-monospace, Menlo, monospace; transition: fill .35s; }
-  .edge.on path { stroke: var(--primary); stroke-width: 3; stroke-dasharray: 7 5; animation: flow .8s linear infinite; }
-  .edge.on text { fill: var(--primary); }
-  .edge.stop path { stroke: var(--stop); stroke-width: 3; stroke-dasharray: 7 5; animation: flow .8s linear infinite; }
-  .edge.stop text { fill: var(--stop); }
-  @keyframes flow { to { stroke-dashoffset: -24; } }
-  .pill rect { transition: all .35s; }
-  .pill .k { font-size: 10.5px; fill: var(--muted); font-weight: 600; letter-spacing: .08em; }
-  .pill .v { font-size: 13px; font-weight: 700; }
-  .pill.ok rect { fill: var(--ok-soft); stroke: var(--ok-line); }
-  .pill.ok .v { fill: var(--ok); }
-  .pill.off rect { fill: var(--off-soft); stroke: #DDDDDD; }
-  .pill.off .v { fill: var(--off); }
-  .pill.warn rect { fill: var(--stop-soft); stroke: #F0C4C4; }
-  .pill.warn .v { fill: var(--stop); }
-  .notif { transition: opacity .4s, transform .4s; }
-  .notif.hidden { opacity: 0; transform: translateY(-8px); }
-  .notif .t { font-size: 12px; font-weight: 700; fill: var(--ink); }
-  .notif .b { font-size: 11px; fill: var(--muted); }
-  .caption { font-size: 15px; fill: var(--ink); }
-  .caption tspan.n { font-weight: 700; }
-  .codebox rect { fill: var(--code); }
-  .codebox text { font-size: 12px; fill: #E9E3FF; font-family: ui-monospace, Menlo, monospace; }
+
+  .actor rect { fill: var(--primary-soft); stroke: var(--primary); stroke-width: 1.5; }
+  .actor text { font-size: 15px; font-weight: 700; fill: var(--ink); }
+  .actor .sub { font-size: 11px; font-weight: 500; fill: var(--muted); }
+  .lifeline { stroke: #D8D2EA; stroke-width: 2; stroke-dasharray: 4 6; }
+
+  .store rect { fill: #fff; stroke: var(--line); stroke-width: 1.5; transition: all .35s; }
+  .store text { font-size: 11.5px; font-weight: 600; fill: var(--muted); font-family: ui-monospace, Menlo, monospace; transition: fill .35s; }
+  .store.on rect { fill: var(--ok-soft); stroke: var(--ok); stroke-width: 2.5; }
+  .store.on text { fill: var(--ok); }
+  .store.stop rect { fill: #FBE9E9; stroke: #C62828; stroke-width: 2.5; }
+  .store.stop text { fill: #C62828; }
+
+  .msg { opacity: 0; transition: opacity .35s; }
+  .msg.done, .msg.on { opacity: 1; }
+  .msg path, .msg line { fill: none; stroke: var(--done); stroke-width: 2; }
+  .msg.return path, .msg.return line { stroke-dasharray: 6 5; }
+  .msg text { font-size: 12.5px; font-weight: 600; fill: var(--done); font-family: ui-monospace, Menlo, monospace; }
+  .msg .num { fill: #fff; stroke: var(--done); stroke-width: 2; }
+  .msg .numtxt { font-family: Inter, Roboto, system-ui, sans-serif; font-size: 12px; font-weight: 700; fill: var(--done); }
+  .msg .pill { fill: #F7F6FA; stroke: var(--done); stroke-width: 1.5; }
+  .msg.on path, .msg.on line { stroke: var(--primary); stroke-width: 3; }
+  .msg.on:not(.return) path, .msg.on:not(.return) line { stroke-dasharray: 8 6; animation: flow .7s linear infinite; }
+  .msg.on text { fill: var(--primary); }
+  .msg.on .num { fill: var(--primary); stroke: var(--primary); }
+  .msg.on .numtxt { fill: #fff; }
+  .msg.on .pill { fill: var(--primary-soft); stroke: var(--primary); }
+  @keyframes flow { to { stroke-dashoffset: -28; } }
+
+  .bar-track { fill: #EEE9F8; }
+  #bar { fill: var(--primary); transition: width 2.2s ease-out; }
+  .badge { opacity: 0; transition: opacity .35s; }
+  .badge.on { opacity: 1; }
+  .badge rect { fill: var(--ok-soft); stroke: var(--ok); }
+  .badge text { font-size: 11px; font-weight: 700; fill: var(--ok); }
+
+  .panel rect { fill: var(--code); }
+  .panel .step { font-size: 15px; font-weight: 700; fill: #fff; }
+  .panel .desc { font-size: 13px; fill: #CFC6EE; }
+  .panel .code { font-size: 12px; fill: #9BE3A0; font-family: ui-monospace, Menlo, monospace; }
+
   .controls {
     width: 100%;
     max-width: 960px;
@@ -108,74 +114,86 @@
 </head>
 <body>
 <div class="stage">
-<svg viewBox="0 0 960 540" role="img" aria-label="Flujo del servicio de ubicación en segundo plano">
+<svg viewBox="0 0 960 540" role="img" aria-label="Diagrama de secuencia del servicio de ubicación en segundo plano">
   <defs>
     <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
       <path d="M0,0 L10,5 L0,10 z" fill="context-stroke"/>
     </marker>
   </defs>
 
-  <text class="eyebrow" x="480" y="34" text-anchor="middle">HOME · SERVICIO EN SEGUNDO PLANO</text>
-  <text class="title" x="480" y="66" text-anchor="middle">La notificación vive mientras Home esté en la pila</text>
+  <text class="eyebrow" x="480" y="30" text-anchor="middle">HOME · SERVICIO EN SEGUNDO PLANO</text>
+  <text class="title" x="480" y="58" text-anchor="middle">El servicio vive mientras Home esté en la pila</text>
 
-  <g class="edge" id="e-ui-vm"><path d="M212,150 L254,150" marker-end="url(#arrow)"/><text x="233" y="101" text-anchor="middle">permiso</text></g>
-  <g class="edge" id="e-vm-tr"><path d="M446,150 L488,150" marker-end="url(#arrow)"/><text x="467" y="101" text-anchor="middle">start</text></g>
-  <g class="edge" id="e-tr-sv"><path d="M680,150 L722,150" marker-end="url(#arrow)"/><text x="701" y="101" text-anchor="middle">intent</text></g>
-  <g class="edge" id="e-sv-gps"><path d="M790,192 C790,240 640,236 600,262" marker-end="url(#arrow)"/><text x="668" y="226" text-anchor="middle">observeLocation</text></g>
-  <g class="edge" id="e-sv-nt"><path d="M850,192 L850,262" marker-end="url(#arrow)"/><text x="878" y="232" text-anchor="middle">notify</text></g>
+  <g class="actor"><rect x="70" y="76" width="200" height="44" rx="12"/>
+    <text x="170" y="97" text-anchor="middle">Home</text><text class="sub" x="170" y="112" text-anchor="middle">HomeRoute + HomeViewModel</text></g>
+  <g class="actor"><rect x="380" y="76" width="200" height="44" rx="12"/>
+    <text x="480" y="97" text-anchor="middle">LocationTrackingService</text><text class="sub" x="480" y="112" text-anchor="middle">Foreground Service · location</text></g>
+  <g class="actor"><rect x="690" y="76" width="200" height="44" rx="12"/>
+    <text x="790" y="97" text-anchor="middle">Android</text><text class="sub" x="790" y="112" text-anchor="middle">GPS (Fused) · notificaciones</text></g>
 
-  <g class="node" id="n-ui" data-code="ui">
-    <rect x="30" y="110" width="182" height="80" rx="14"/>
-    <text class="name" x="121" y="144" text-anchor="middle">HomeRoute</text>
-    <text class="sub" x="121" y="164" text-anchor="middle">LifecycleResumeEffect</text>
-  </g>
-  <g class="node" id="n-vm" data-code="vm">
-    <rect x="256" y="110" width="190" height="80" rx="14"/>
-    <text class="name" x="351" y="144" text-anchor="middle">HomeViewModel</text>
-    <text class="sub" x="351" y="164" text-anchor="middle">init · onCleared()</text>
-  </g>
-  <g class="node" id="n-tr" data-code="tr">
-    <rect x="490" y="110" width="190" height="80" rx="14"/>
-    <text class="name" x="585" y="144" text-anchor="middle">LocationTracker</text>
-    <text class="sub" x="585" y="164" text-anchor="middle">LocationTrackerImpl</text>
-  </g>
-  <g class="node" id="n-sv" data-code="sv">
-    <rect x="724" y="110" width="206" height="80" rx="14"/>
-    <text class="name" x="827" y="144" text-anchor="middle">LocationTracking</text>
-    <text class="name" x="827" y="161" text-anchor="middle">Service</text>
-    <text class="sub" x="827" y="179" text-anchor="middle">type = location</text>
-  </g>
-  <g class="node" id="n-gps" data-code="gps">
-    <rect x="490" y="264" width="190" height="72" rx="14"/>
-    <text class="name" x="585" y="294" text-anchor="middle">callbackFlow { }</text>
-    <text class="sub" x="585" y="314" text-anchor="middle">LocationRepositoryImpl</text>
-  </g>
+  <line class="lifeline" x1="170" y1="120" x2="170" y2="372"/>
+  <line class="lifeline" x1="480" y1="120" x2="480" y2="372"/>
+  <line class="lifeline" x1="790" y1="120" x2="790" y2="372"/>
 
-  <g class="notif" id="notif">
-    <rect x="724" y="264" width="206" height="72" rx="16" fill="#F3EFFA" stroke="#E2DDF2"/>
-    <circle cx="748" cy="300" r="13" fill="#7843E6"/>
-    <path d="M748,292 c-3.3,0 -6,2.6 -6,5.8 c0,4.4 6,10.2 6,10.2 s6,-5.8 6,-10.2 c0,-3.2 -2.7,-5.8 -6,-5.8z" fill="#fff"/>
-    <text class="t" x="770" y="294">Compartiendo tu ubicación</text>
-    <text class="b" x="770" y="313" id="notif-text">Buscando tu ubicación…</text>
+  <g class="msg" id="m1">
+    <circle class="num" cx="34" cy="146" r="11"/><text class="numtxt" x="34" y="150" text-anchor="middle">1</text>
+    <rect class="pill" x="50" y="134" width="240" height="24" rx="12"/>
+    <text x="170" y="150" text-anchor="middle">permiso OK → tracker.start()</text>
   </g>
-
-  <g class="pill" id="p-app">
-    <rect x="30" y="264" width="200" height="72" rx="36"/>
-    <text class="k" x="130" y="292" text-anchor="middle">APP</text>
-    <text class="v" x="130" y="314" text-anchor="middle" id="p-app-v">primer plano</text>
+  <g class="msg" id="m2">
+    <circle class="num" cx="34" cy="176" r="11"/><text class="numtxt" x="34" y="180" text-anchor="middle">2</text>
+    <line x1="172" y1="180" x2="476" y2="180" marker-end="url(#arrow)"/>
+    <text x="325" y="173" text-anchor="middle">startForegroundService(intent)</text>
   </g>
-  <g class="pill" id="p-stack">
-    <rect x="256" y="264" width="190" height="72" rx="36"/>
-    <text class="k" x="351" y="292" text-anchor="middle">PILA DE NAVEGACIÓN</text>
-    <text class="v" x="351" y="314" text-anchor="middle" id="p-stack-v">Home</text>
+  <g class="msg" id="m3">
+    <circle class="num" cx="34" cy="206" r="11"/><text class="numtxt" x="34" y="210" text-anchor="middle">3</text>
+    <line x1="482" y1="210" x2="786" y2="210" marker-end="url(#arrow)"/>
+    <text x="635" y="203" text-anchor="middle">startForeground(notificación)</text>
   </g>
-
-  <g class="codebox">
-    <rect x="30" y="362" width="900" height="96" rx="12"/>
-    <text id="code" x="50" y="390" style="white-space: pre"></text>
+  <g class="msg" id="m4">
+    <circle class="num" cx="34" cy="236" r="11"/><text class="numtxt" x="34" y="240" text-anchor="middle">4</text>
+    <line x1="482" y1="240" x2="786" y2="240" marker-end="url(#arrow)"/>
+    <text x="635" y="233" text-anchor="middle">requestLocationUpdates</text>
+  </g>
+  <g class="msg return" id="m5">
+    <circle class="num" cx="34" cy="266" r="11"/><text class="numtxt" x="34" y="270" text-anchor="middle">5</text>
+    <line x1="788" y1="270" x2="484" y2="270" marker-end="url(#arrow)"/>
+    <text x="635" y="263" text-anchor="middle">posición → notify(±12 m · 9:41)</text>
+  </g>
+  <g class="msg" id="m6">
+    <circle class="num" cx="34" cy="296" r="11"/><text class="numtxt" x="34" y="300" text-anchor="middle">6</text>
+    <rect class="pill" x="50" y="284" width="240" height="24" rx="12"/>
+    <text x="170" y="300" text-anchor="middle">sales de la app / bloqueas</text>
+  </g>
+  <g class="msg" id="m7">
+    <circle class="num" cx="34" cy="326" r="11"/><text class="numtxt" x="34" y="330" text-anchor="middle">7</text>
+    <line x1="172" y1="330" x2="476" y2="330" marker-end="url(#arrow)"/>
+    <text x="325" y="323" text-anchor="middle">logout → onCleared() → stop()</text>
+  </g>
+  <g class="msg" id="m8">
+    <circle class="num" cx="34" cy="356" r="11"/><text class="numtxt" x="34" y="360" text-anchor="middle">8</text>
+    <line x1="482" y1="360" x2="786" y2="360" marker-end="url(#arrow)"/>
+    <text x="635" y="353" text-anchor="middle">onDestroy → removeLocationUpdates</text>
   </g>
 
-  <text class="caption" x="480" y="500" text-anchor="middle" id="caption"></text>
+  <g class="badge" id="bg">
+    <rect x="300" y="284" width="230" height="24" rx="8"/>
+    <text x="415" y="300" text-anchor="middle">el mapa suelta el GPS · el servicio sigue</text>
+  </g>
+
+  <g class="store" id="s-vm"><rect x="70" y="376" width="200" height="26" rx="8"/>
+    <text x="170" y="393" text-anchor="middle">ViewModel vivo</text></g>
+  <g class="store" id="s-fgs"><rect x="380" y="376" width="200" height="26" rx="8"/>
+    <text x="480" y="393" text-anchor="middle">servicio en primer plano</text></g>
+  <g class="store" id="s-gps"><rect x="690" y="376" width="200" height="26" rx="8"/>
+    <text x="790" y="393" text-anchor="middle">GPS + notificación</text></g>
+
+  <g class="panel">
+    <rect x="30" y="414" width="900" height="100" rx="12"/>
+    <text class="step" id="p-step" x="52" y="444"></text>
+    <text class="desc" id="p-desc" x="52" y="468"></text>
+    <text class="code" id="p-code" x="52" y="494" style="white-space: pre"></text>
+  </g>
 </svg>
 </div>
 
@@ -184,62 +202,35 @@
   <button id="play" class="primary">▶ Reproducir</button>
   <button id="next" aria-label="Paso siguiente">Siguiente ›</button>
   <div class="dots" id="dots"></div>
-  <span class="hint">Toca una caja para ver su código · ← →</span>
+  <span class="hint">← → para avanzar</span>
 </div>
 
 <script>
-  const CODE = {
-    ui: [
-      '// presentation/HomeScreen.kt (HomeRoute)',
-      'LifecycleResumeEffect(Unit) { vm.onPermissionChecked(context.currentLocationPermission()) … }',
-      'LaunchedEffect(tracking) { if (tracking && context.needsNotificationPermission())',
-      '    notificationLauncher.launch(NOTIFICATION_PERMISSION) }'
-    ],
-    vm: [
-      '// presentation/HomeViewModel.kt',
-      'permission.map { (it as? LocationPermission.Granted)?.precise }.distinctUntilChanged()',
-      '    .onEach { precise -> if (precise != null) tracker.start(precise) else tracker.stop() }',
-      'override fun onCleared() { tracker.stop() }'
-    ],
-    tr: [
-      '// domain/repository/LocationTracker.kt  ·  data/tracking/LocationTrackerImpl.kt',
-      'interface LocationTracker { fun start(precise: Boolean); fun stop() }',
-      'ContextCompat.startForegroundService(context, LocationTrackingService.intent(context, precise))',
-      'context.stopService(Intent(context, LocationTrackingService::class.java))'
-    ],
-    sv: [
-      '// data/tracking/LocationTrackingService.kt',
-      'ServiceCompat.startForeground(this, ID, notification.build(null), FOREGROUND_SERVICE_TYPE_LOCATION)',
-      'tracking = repository.observeLocation(precise).onEach(notification::update).launchIn(scope)',
-      'override fun onDestroy() { scope.cancel() }   // → awaitClose → removeLocationUpdates'
-    ],
-    gps: [
-      '// data/location/LocationRepositoryImpl.kt (clase 01, sin cambios)',
-      'client.requestLocationUpdates(request, callback, Looper.getMainLooper()).await()',
-      'awaitClose { client.removeLocationUpdates(callback) }',
-      ''
-    ]
-  };
-
   const STEPS = [
-    { on: ['n-ui', 'e-ui-vm', 'n-vm'], app: ['ok', 'primer plano'], stack: ['ok', 'Home'], notif: null, code: 'ui',
-      caption: ['1', ' · Home vuelve a la pantalla y el permiso de ubicación está concedido'] },
-    { on: ['n-vm', 'e-vm-tr', 'n-tr'], app: ['ok', 'primer plano'], stack: ['ok', 'Home'], notif: null, code: 'vm',
-      caption: ['2', ' · El ViewModel ve Granted por primera vez y llama a tracker.start(precise)'] },
-    { on: ['n-tr', 'e-tr-sv', 'n-sv'], app: ['ok', 'primer plano'], stack: ['ok', 'Home'], notif: null, code: 'tr',
-      caption: ['3', ' · startForegroundService: solo se permite con la app en primer plano'] },
-    { on: ['n-sv', 'e-sv-nt'], app: ['ok', 'primer plano'], stack: ['ok', 'Home'], notif: 'Buscando tu ubicación…', code: 'sv',
-      caption: ['4', ' · En menos de 10 s: startForeground() publica la notificación'] },
-    { on: ['n-sv', 'e-sv-gps', 'n-gps', 'e-sv-nt'], app: ['ok', 'primer plano'], stack: ['ok', 'Home'], notif: 'Precisión ±12 m · 9:41', code: 'gps',
-      caption: ['5', ' · Cada posición nueva actualiza el texto de la notificación'] },
-    { on: ['n-sv', 'e-sv-gps', 'n-gps', 'e-sv-nt'], app: ['off', 'segundo plano'], stack: ['ok', 'Home'], notif: 'Precisión ±8 m · 9:43', code: 'sv',
-      caption: ['6', ' · Sales de la app: el mapa suelta el GPS, el servicio no'] },
-    { on: ['n-vm', 'n-sv', 'e-sv-gps', 'n-gps'], app: ['ok', 'primer plano'], stack: ['ok', 'Home → Menú'], notif: 'Precisión ±8 m · 9:44', code: 'vm',
-      caption: ['7', ' · Abres el menú: Home sigue en la pila, su ViewModel vive'] },
-    { stop: ['n-vm', 'e-vm-tr', 'n-tr', 'e-tr-sv', 'n-sv'], labels: { 'e-vm-tr': 'stop', 'e-tr-sv': 'stopService' }, app: ['ok', 'primer plano'], stack: ['warn', 'vacía (logout)'], notif: null, code: 'vm',
-      caption: ['8', ' · Cierras sesión: onCleared() → tracker.stop() → stopService()'] },
-    { stop: ['n-sv', 'e-sv-gps', 'n-gps'], labels: { 'e-sv-gps': 'scope.cancel()' }, app: ['ok', 'primer plano'], stack: ['warn', 'vacía (logout)'], notif: null, code: 'sv',
-      caption: ['9', ' · onDestroy cancela el scope: awaitClose apaga el GPS y la notificación se va'] }
+    { title: 'Home tiene permiso de ubicación',
+      desc: 'El ViewModel ve Granted por primera vez y le pide al tracker que arranque.',
+      code: 'permission.map { (it as? Granted)?.precise }.distinctUntilChanged().onEach { tracker.start(it) }' },
+    { title: 'Arrancar el servicio',
+      desc: 'Solo se permite con la app visible (Android 12+). Por eso lo inicia Home, no el fondo.',
+      code: 'ContextCompat.startForegroundService(context, LocationTrackingService.intent(context, precise))' },
+    { title: 'Pasar a primer plano con una notificación',
+      desc: 'En menos de 10 s el servicio publica su notificación: el usuario siempre sabe que corre.',
+      code: 'ServiceCompat.startForeground(this, ID, notification.build(null), FOREGROUND_SERVICE_TYPE_LOCATION)' },
+    { title: 'Pedir posiciones al GPS',
+      desc: 'Reutiliza el LocationRepository de la clase 01: el mismo callbackFlow.',
+      code: 'tracking = repository.observeLocation(precise).onEach(notification::update).launchIn(scope)' },
+    { title: 'Cada posición actualiza la notificación',
+      desc: 'Android entrega la posición y el servicio cambia el texto de la notificación.',
+      code: 'notification.update(location)   // «Precisión ±12 m · 9:41»' },
+    { title: 'Sales de la app o bloqueas el teléfono',
+      desc: 'El mapa deja de escuchar a los 5 s; el servicio NO se detiene: para eso existe.',
+      code: 'mapUi: WhileSubscribed(5_000)  →  se apaga   ·   LocationTrackingService  →  sigue' },
+    { title: 'Cerrar sesión detiene el servicio',
+      desc: 'Home sale de la pila, el ViewModel se destruye y llama a stop(). Abrir el menú NO lo detiene.',
+      code: 'override fun onCleared() { tracker.stop() }   →   context.stopService(intent)' },
+    { title: 'Se apaga el GPS y se quita la notificación',
+      desc: 'onDestroy cancela el scope: awaitClose quita el callback del GPS. También pasa al deslizar la app en Recientes.',
+      code: 'override fun onDestroy() { scope.cancel() }   ·   android:stopWithTask="true"' }
   ];
 
   const $ = id => document.getElementById(id);
@@ -256,46 +247,25 @@
     dots.appendChild(b);
   });
 
-  function showCode(key) {
-    const el = $('code');
-    el.textContent = '';
-    CODE[key].forEach((line, i) => {
-      const t = document.createElementNS('http://www.w3.org/2000/svg', 'tspan');
-      t.setAttribute('x', 50);
-      t.setAttribute('dy', i === 0 ? 0 : 20);
-      t.textContent = line || ' ';
-      if (i === 0) t.setAttribute('fill', '#A99BD6');
-      el.appendChild(t);
-    });
-  }
-
-  function setPill(id, [kind, value]) {
-    $(id).setAttribute('class', 'pill ' + kind);
-    $(id + '-v').textContent = value;
-  }
-
   function go(i) {
     step = (i + STEPS.length) % STEPS.length;
     const s = STEPS[step];
-    document.querySelectorAll('.node, .edge').forEach(el => el.classList.remove('on', 'stop'));
-    document.querySelectorAll('.edge text').forEach(t => {
-      t.dataset.label ??= t.textContent;
-      t.textContent = (s.labels || {})[t.parentNode.id] || t.dataset.label;
+    STEPS.forEach((_, k) => {
+      const m = $('m' + (k + 1));
+      m.classList.toggle('done', k < step);
+      m.classList.toggle('on', k === step);
     });
-    (s.on || []).forEach(id => $(id).classList.add('on'));
-    (s.stop || []).forEach(id => $(id).classList.add('stop'));
-    setPill('p-app', s.app);
-    setPill('p-stack', s.stack);
-    $('notif').classList.toggle('hidden', !s.notif);
-    if (s.notif) $('notif-text').textContent = s.notif;
-    showCode(s.code);
-    const c = $('caption');
-    c.innerHTML = '';
-    const n = document.createElementNS('http://www.w3.org/2000/svg', 'tspan');
-    n.setAttribute('class', 'n');
-    n.textContent = s.caption[0];
-    c.appendChild(n);
-    c.appendChild(document.createTextNode(s.caption[1]));
+    const state = (id, from) => {
+      $(id).classList.toggle('on', step >= from && step < 6);
+      $(id).classList.toggle('stop', step >= 6);
+    };
+    state('s-vm', 0);
+    state('s-fgs', 2);
+    state('s-gps', 3);
+    $('bg').classList.toggle('on', step === 5);
+    $('p-step').textContent = (step + 1) + ' de ' + STEPS.length + ' · ' + s.title;
+    $('p-desc').textContent = s.desc;
+    $('p-code').textContent = s.code;
     [...dots.children].forEach((d, k) => d.classList.toggle('on', k === step));
     history.replaceState(null, '', '#s=' + (step + 1) + (document.body.classList.contains('capture') ? '&capture' : ''));
   }
@@ -309,7 +279,7 @@
   $('play').onclick = () => {
     if (timer) return stopPlay();
     $('play').textContent = '❚❚ Pausa';
-    timer = setInterval(() => go(step + 1), 2600);
+    timer = setInterval(() => go(step + 1), 2800);
   };
   $('prev').onclick = () => { stopPlay(); go(step - 1); };
   $('next').onclick = () => { stopPlay(); go(step + 1); };
@@ -317,10 +287,6 @@
     if (e.key === 'ArrowRight') { stopPlay(); go(step + 1); }
     if (e.key === 'ArrowLeft') { stopPlay(); go(step - 1); }
   });
-  document.querySelectorAll('.node').forEach(n => n.addEventListener('click', () => {
-    stopPlay();
-    showCode(n.dataset.code);
-  }));
 
   const params = new URLSearchParams(location.hash.slice(1));
   if (params.has('capture')) document.body.classList.add('capture');
