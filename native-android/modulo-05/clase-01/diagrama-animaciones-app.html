@@ -1,0 +1,607 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Animaciones de App Taxi</title>
+<style>
+  :root {
+    --bg: #F4F2FA;
+    --stage: #FFFFFF;
+    --ink: #0F0F0F;
+    --muted: #6B6B6B;
+    --line: #E2DDF2;
+    --primary: #7843E6;
+    --primary-soft: #F1EBFD;
+    --code: #1E1B2E;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: Inter, Roboto, system-ui, -apple-system, sans-serif;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 24px 16px;
+  }
+  .stage {
+    width: 100%;
+    max-width: 960px;
+    aspect-ratio: 16 / 9;
+    background: var(--stage);
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    overflow: hidden;
+  }
+  svg { width: 100%; height: 100%; display: block; }
+  .eyebrow { font-size: 12px; letter-spacing: .28em; fill: var(--primary); font-weight: 600; }
+  .title { font-size: 22px; font-weight: 700; fill: var(--ink); }
+  .file { font-size: 11.5px; fill: var(--muted); font-family: ui-monospace, Menlo, monospace; }
+  .desc { font-size: 13.5px; fill: #3A3A3A; }
+  .chip rect { fill: var(--primary-soft); stroke: var(--primary); stroke-width: 1.2; }
+  .chip text { font-size: 12px; font-weight: 700; fill: var(--primary); font-family: ui-monospace, Menlo, monospace; }
+  .code-bg { fill: var(--code); }
+  .code-line { font-size: 11px; fill: #9BE3A0; font-family: ui-monospace, Menlo, monospace; white-space: pre; }
+  .code-line.comment { fill: #8E86B3; }
+  .slow { font-size: 10px; font-weight: 700; fill: #fff; }
+  .phone { fill: #17151F; }
+
+  .controls {
+    width: 100%;
+    max-width: 960px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    align-items: center;
+    margin-top: 14px;
+  }
+  button {
+    font: inherit;
+    font-size: 14px;
+    font-weight: 600;
+    border: 1px solid var(--line);
+    background: #fff;
+    color: var(--primary);
+    border-radius: 999px;
+    padding: 8px 16px;
+    cursor: pointer;
+  }
+  button.primary { background: var(--primary); color: #fff; border-color: var(--primary); }
+  .dots { display: flex; gap: 6px; flex-wrap: wrap; }
+  .dot { width: 28px; height: 28px; padding: 0; border-radius: 50%; font-size: 12px; }
+  .dot.on { background: var(--primary); color: #fff; border-color: var(--primary); }
+  .hint { color: var(--muted); font-size: 13px; margin-left: auto; }
+  body.capture { padding: 0; background: #fff; }
+  body.capture .stage { border: 0; border-radius: 0; max-width: none; width: 960px; }
+  body.capture .controls { display: none; }
+</style>
+</head>
+<body>
+<div class="stage">
+<svg viewBox="0 0 960 540" role="img" aria-label="Las ocho animaciones de App Taxi, con el código de cada una">
+  <defs>
+    <clipPath id="screen-clip"><rect x="0" y="0" width="224" height="476" rx="24"/></clipPath>
+    <radialGradient id="photo" cx="35%" cy="30%" r="80%">
+      <stop offset="0" stop-color="#F6C99B"/>
+      <stop offset=".55" stop-color="#C9825A"/>
+      <stop offset="1" stop-color="#5B3A8C"/>
+    </radialGradient>
+  </defs>
+
+  <rect class="phone" x="60" y="24" width="240" height="492" rx="34"/>
+  <g transform="translate(68 32)">
+    <g clip-path="url(#screen-clip)" id="screen"></g>
+  </g>
+
+  <text class="eyebrow" x="340" y="48">APP TAXI · ANIMACIONES EN LAS FEATURES</text>
+  <text class="title" id="r-title" x="340" y="80"></text>
+  <g id="r-chips"></g>
+  <text class="file" id="r-file" x="340" y="152"></text>
+  <text class="desc" id="r-desc1" x="340" y="180"></text>
+  <text class="desc" id="r-desc2" x="340" y="200"></text>
+  <rect class="code-bg" x="340" y="218" width="590" height="298" rx="12"/>
+  <g id="r-code"></g>
+</svg>
+</div>
+
+<div class="controls">
+  <button id="prev" aria-label="Paso anterior">‹ Anterior</button>
+  <button id="play" class="primary">▶ Reproducir</button>
+  <button id="next" aria-label="Paso siguiente">Siguiente ›</button>
+  <button id="replay" aria-label="Repetir el paso">↻ Repetir paso</button>
+  <div class="dots" id="dots"></div>
+  <span class="hint">← → para avanzar</span>
+</div>
+
+<script>
+  const STEP_MS = 3000;
+  const W = 224, H = 476;
+  const PRIMARY = '#7843E6';
+
+  const STEPS = [
+    { title: 'Splash: el logo entra con rebote',
+      chips: ['Animatable', 'spring', 'graphicsLayer'],
+      file: 'features/splash/presentation/SplashScreen.kt',
+      desc: ['Corre una sola vez al entrar (LaunchedEffect(Unit)). Animatable sirve cuando', 'no hay un estado que cambie: tú decides cuándo empieza y en qué orden.'],
+      code: [
+        'val logoScale = remember { Animatable(0.6f) }',
+        'val logoAlpha = remember { Animatable(0f) }',
+        'LaunchedEffect(Unit) {',
+        '    launch { logoAlpha.animateTo(1f, tween(MOTION_MEDIUM_MS)) }',
+        '    logoScale.animateTo(',
+        '        targetValue = 1f,',
+        '        animationSpec = spring(',
+        '            dampingRatio = Spring.DampingRatioMediumBouncy,',
+        '            stiffness = Spring.StiffnessLow',
+        '        )',
+        '    )',
+        '}',
+        'Image(modifier = Modifier.graphicsLayer {',
+        '    scaleX = logoScale.value; scaleY = logoScale.value; alpha = logoAlpha.value',
+        '})'
+      ] },
+    { title: 'Navegación: las pantallas se deslizan',
+      chips: ['NavHost', 'slideIntoContainer', 'fadeOut'],
+      file: 'core/presentation/activity/MainActivity.kt',
+      desc: ['Se define una vez en el NavHost y aplica a todas las rutas: avanzar entra por la', 'derecha, volver (pop) regresa por la izquierda. Desde el Splash solo hay fundido.'],
+      code: [
+        'NavHost(',
+        '    navController = nav,',
+        '    startDestination = Route.Splash.path,',
+        '    enterTransition = { forwardEnter() },',
+        '    exitTransition = { forwardExit() },',
+        '    popEnterTransition = { backEnter() },',
+        '    popExitTransition = { backExit() }',
+        ') { ... }',
+        '',
+        'private fun NavTransitionScope.forwardEnter(): EnterTransition =',
+        '    if (leavingSplash()) fadeIn(tween(MOTION_MEDIUM_MS))',
+        '    else slideIntoContainer(SlideDirection.Start, tween(MOTION_MEDIUM_MS))',
+        '',
+        'private fun NavTransitionScope.forwardExit(): ExitTransition =',
+        '    slideOutOfContainer(SlideDirection.Start, tween(MOTION_MEDIUM_MS)) { it / 4 } +',
+        '        fadeOut(tween(MOTION_MEDIUM_MS))'
+      ] },
+    { title: 'OTP: cada casilla reacciona al escribir',
+      chips: ['animateColorAsState', 'animateDpAsState'],
+      file: 'commons/presentation/OtpCodeInput.kt',
+      desc: ['El estado es «la casilla tiene un dígito». animate*AsState convierte ese cambio', 'en una transición del color y del grosor del borde. Es la API más simple.'],
+      code: [
+        'val filled = value.isNotEmpty()',
+        'val borderColor by animateColorAsState(',
+        '    targetValue = if (filled) Color(0xFF222222) else Color(0xFFCFCFCF),',
+        '    animationSpec = tween(MOTION_SHORT_MS),',
+        '    label = "otpBorderColor"',
+        ')',
+        'val borderWidth by animateDpAsState(',
+        '    targetValue = if (filled) 2.dp else 1.dp,',
+        '    animationSpec = tween(MOTION_SHORT_MS),',
+        '    label = "otpBorderWidth"',
+        ')',
+        '',
+        'Box(Modifier.border(width = borderWidth, color = borderColor, shape = shape))'
+      ] },
+    { title: 'OTP inválido: las casillas tiemblan',
+      chips: ['Animatable', 'LaunchedEffect', 'AnimatedContent'],
+      file: 'features/signin/presentation/SignInValidateOtpScreen.kt · commons/.../Motion.kt',
+      desc: ['Una secuencia (derecha, izquierda, más corto…) no es «ir a un valor»: es una', 'corrutina con varios animateTo. El toast rojo entra con el ToastHost de siempre.'],
+      code: [
+        'val shakeOffset = remember { Animatable(0f) }',
+        'LaunchedEffect(validateState) {',
+        '    if (validateState is OtpValidateState.Error) shakeOffset.shake(shakeDistance)',
+        '}',
+        'OtpCodeInput(..., modifier = Modifier.graphicsLayer {',
+        '    translationX = shakeOffset.value',
+        '})',
+        '',
+        '// commons/presentation/Motion.kt',
+        'suspend fun Animatable<Float, AnimationVector1D>.shake(distancePx: Float) {',
+        '    SHAKE_PATTERN.forEach { factor ->            // 1, -1, 0.6, -0.6, 0.3, 0',
+        '        animateTo(distancePx * factor, tween(durationMillis = SHAKE_STEP_MS))',
+        '    }',
+        '}'
+      ] },
+    { title: 'Botón principal: texto ↔ cargando',
+      chips: ['AnimatedContent', 'togetherWith', 'scaleIn'],
+      file: 'commons/presentation/PrimaryButton.kt',
+      desc: ['Un solo cambio en commons y lo heredan todas las pantallas: Validar, Continuar,', 'Registrar, Reintentar, Agregar foto…'],
+      code: [
+        'AnimatedContent(',
+        '    targetState = loading,',
+        '    transitionSpec = {',
+        '        (fadeIn(tween(MOTION_SHORT_MS)) + scaleIn(initialScale = 0.8f)) togetherWith',
+        '            fadeOut(tween(MOTION_SHORT_MS))',
+        '    },',
+        '    contentAlignment = Alignment.Center,',
+        '    label = "primaryButtonContent"',
+        ') { isLoading ->',
+        '    if (isLoading) CircularProgressIndicator(...)',
+        '    else Text(text = text, ...)',
+        '}'
+      ] },
+    { title: 'Home: buscando el GPS y encontrándote',
+      chips: ['rememberInfiniteTransition', 'AnimatedVisibility', 'animateFloatAsState'],
+      file: 'features/home/presentation/HomeScreen.kt',
+      desc: ['El pulso se repite mientras Idle esté en pantalla. Con Success el panel sale,', 'el botón «centrar» aparece y el círculo de precisión crece hasta su radio.'],
+      code: [
+        'val pulse by rememberInfiniteTransition(label = "searching").animateFloat(',
+        '    initialValue = 0f, targetValue = 1f,',
+        '    animationSpec = infiniteRepeatable(',
+        '        tween(PULSE_MS, easing = LinearOutSlowInEasing)',
+        '    ),',
+        '    label = "pulse"',
+        ')',
+        'Box(Modifier.graphicsLayer { scaleX = 0.4f + pulse * 0.6f; alpha = 1f - pulse })',
+        '',
+        'AnimatedVisibility(visible = success == null,',
+        '    enter = slideInVertically { it } + fadeIn(),',
+        '    exit = slideOutVertically { it } + fadeOut()) { LocationPanel(...) }',
+        '',
+        'val accuracy by animateFloatAsState(',
+        '    location?.accuracyMeters ?: 0f, tween(MOTION_LONG_MS), label = "accuracyRadius")',
+        'Circle(center = position, radius = accuracy.toDouble(), ...)'
+      ] },
+    { title: 'Menú: del skeleton a la lista en cascada',
+      chips: ['Crossfade', 'AnimatedVisibility', 'animateItem'],
+      file: 'features/menu/presentation/MenuScreen.kt',
+      desc: ['Crossfade cambia skeleton → lista. Cada ítem entra con un pequeño retraso', 'según su posición (60 ms) y animateItem() mueve los que cambian de orden.'],
+      code: [
+        'Crossfade(targetState = content, animationSpec = tween(MOTION_MEDIUM_MS)) {',
+        '    when (it) { List -> MenuList(...); Skeleton -> MenuSkeleton(); Empty -> ... }',
+        '}',
+        '',
+        'itemsIndexed(items, key = { _, item -> item.key }) { index, item ->',
+        '    val visible = remember {',
+        '        MutableTransitionState(false).apply { targetState = true }',
+        '    }',
+        '    val delay = index * STAGGER_MS',
+        '    AnimatedVisibility(',
+        '        visibleState = visible,',
+        '        enter = fadeIn(tween(MOTION_MEDIUM_MS, delayMillis = delay)) +',
+        '            slideInVertically(tween(MOTION_MEDIUM_MS, delay)) { it / 2 },',
+        '        modifier = Modifier.animateItem()',
+        '    ) { MenuItemCard(item = item, ...) }',
+        '}'
+      ] },
+    { title: 'Perfil: el avatar mientras sube la foto',
+      chips: ['updateTransition', 'animateFloatAsState', 'crossfade (Coil)'],
+      file: 'features/profile/presentation/ProfileScreen.kt',
+      desc: ['Un estado (uploading) mueve dos propiedades a la vez: escala y oscurecido.', 'El anillo avanza suave entre cada % que llega de Firebase Storage.'],
+      code: [
+        'val transition = updateTransition(uploading, label = "avatarUpload")',
+        'val avatarScale by transition.animateFloat(',
+        '    transitionSpec = { spring(dampingRatio = Spring.DampingRatioMediumBouncy) },',
+        '    label = "avatarScale"',
+        ') { if (it) 0.9f else 1f }',
+        'val overlayAlpha by transition.animateFloat(',
+        '    transitionSpec = { tween(MOTION_MEDIUM_MS) }, label = "overlayAlpha"',
+        ') { if (it) 1f else 0f }',
+        '',
+        'val progress by animateFloatAsState(',
+        '    targetValue = (percent ?: 0) / 100f, animationSpec = tween(MOTION_MEDIUM_MS))',
+        'CircularProgressIndicator(progress = { progress })',
+        '',
+        'ImageRequest.Builder(context).data(url).crossfade(MOTION_MEDIUM_MS).build()'
+      ] }
+  ];
+
+  const $ = id => document.getElementById(id);
+  const dots = $('dots');
+  let step = 0;
+  let stepStart = performance.now();
+  let playing = false;
+  let frozen = false;
+
+  const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
+  const lerp = (a, b, p) => a + (b - a) * p;
+  function bezier(x1, y1, x2, y2) {
+    return x => {
+      if (x <= 0) return 0;
+      if (x >= 1) return 1;
+      let t = x;
+      for (let i = 0; i < 8; i++) {
+        const cx = 3 * x1 * t * (1 - t) ** 2 + 3 * x2 * t * t * (1 - t) + t ** 3 - x;
+        const dx = 3 * x1 * (1 - t) ** 2 + 6 * (x2 - x1) * t * (1 - t) + 3 * (1 - x2) * t * t;
+        if (Math.abs(dx) < 1e-6) break;
+        t -= cx / dx;
+      }
+      return 3 * y1 * t * (1 - t) ** 2 + 3 * y2 * t * t * (1 - t) + t ** 3;
+    };
+  }
+  const fastOutSlowIn = bezier(0.4, 0, 0.2, 1);
+  const linearOutSlowIn = bezier(0, 0, 0.2, 1);
+  const tw = (t, start, dur, ease = fastOutSlowIn) => ease(clamp((t - start) / dur, 0, 1));
+  const springTo = (t, start, from, to, decay = 7, freq = 14) => {
+    if (t <= start) return from;
+    const s = (t - start) / 1000;
+    return to + (from - to) * Math.exp(-decay * s) * Math.cos(freq * s);
+  };
+
+  const esc = s => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  const rect = (x, y, w, h, rx, fill, extra = '') => `<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="${rx}" fill="${fill}" ${extra}/>`;
+  const txt = (x, y, s, size, weight, fill, anchor = 'start', extra = '') =>
+    `<text x="${x}" y="${y}" font-size="${size}" font-weight="${weight}" fill="${fill}" text-anchor="${anchor}" ${extra}>${esc(s)}</text>`;
+  const circle = (cx, cy, r, fill, extra = '') => `<circle cx="${cx}" cy="${cy}" r="${r}" fill="${fill}" ${extra}/>`;
+  const g = (inner, transform = '', opacity = 1) => `<g transform="${transform}" opacity="${opacity}">${inner}</g>`;
+  const arc = (cx, cy, r, from, sweep, color, width) => {
+    const a0 = (from - 90) * Math.PI / 180, a1 = (from + sweep - 90) * Math.PI / 180;
+    const large = sweep > 180 ? 1 : 0;
+    if (sweep <= 0.5) return '';
+    if (sweep >= 359.9) return `<circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="${color}" stroke-width="${width}"/>`;
+    return `<path d="M${cx + r * Math.cos(a0)},${cy + r * Math.sin(a0)} A${r},${r} 0 ${large} 1 ${cx + r * Math.cos(a1)},${cy + r * Math.sin(a1)}" fill="none" stroke="${color}" stroke-width="${width}" stroke-linecap="round"/>`;
+  };
+  const spinner = (cx, cy, r, t, color, width = 3) => arc(cx, cy, r, (t * 0.4) % 360, 200 + 70 * Math.sin(t / 300), color, width);
+
+  function statusBar(dark) {
+    const c = dark ? '#0F0F0F' : '#FFFFFF';
+    return txt(18, 22, '9:41', 11, 700, c) + rect(176, 13, 16, 8, 2, 'none', `stroke="${c}" stroke-width="1.2"`) + rect(178, 15, 10, 4, 1, c) + circle(162, 17, 3.5, c);
+  }
+
+  function slowBadge(label) {
+    return rect(W - 82, 30, 70, 18, 9, 'rgba(120,67,230,.92)') + txt(W - 47, 43, label, 10, 700, '#fff', 'middle');
+  }
+
+  function toast(y, color, message) {
+    return rect(12, y, W - 24, 40, 10, color) + circle(32, y + 20, 7, 'none', 'stroke="#fff" stroke-width="2"') + txt(48, y + 24, message, 10.5, 600, '#fff');
+  }
+
+  function button(y, label, enabled, loadingP, t) {
+    let inner = rect(16, y, W - 32, 44, 22, PRIMARY, `opacity="${enabled ? 1 : 0.4}"`);
+    const textAlpha = 1 - clamp(loadingP * 1.0, 0, 1);
+    const spinAlpha = clamp(loadingP, 0, 1);
+    const spinScale = lerp(0.8, 1, spinAlpha);
+    inner += txt(W / 2, y + 27, label, 14, 700, '#fff', 'middle', `opacity="${textAlpha}"`);
+    if (spinAlpha > 0) inner += g(spinner(0, 0, 9, t, '#fff', 3), `translate(${W / 2} ${y + 22}) scale(${spinScale})`, spinAlpha);
+    return inner;
+  }
+
+  function otpBoxes(y, digits, fills, offsetX = 0) {
+    let s = '';
+    const bw = 40, gap = 10, x0 = (W - (bw * 4 + gap * 3)) / 2 + offsetX;
+    for (let i = 0; i < 4; i++) {
+      const f = fills[i];
+      const gray = Math.round(lerp(0xCF, 0x22, f)).toString(16).padStart(2, '0');
+      const border = '#' + gray + gray + gray;
+      s += rect(x0 + i * (bw + gap), y, bw, 48, 10, '#F8F8F8', `stroke="${border}" stroke-width="${lerp(1, 2, f)}"`);
+      if (digits[i]) s += txt(x0 + i * (bw + gap) + bw / 2, y + 31, digits[i], 18, 600, '#0F0F0F', 'middle');
+    }
+    return s;
+  }
+
+  function generateScreen() {
+    return rect(0, 0, W, H, 0, '#FFFFFF') + statusBar(true) +
+      txt(18, 88, 'Ingresa tu número', 18, 800, '#0F0F0F') +
+      txt(18, 110, 'Te enviaremos un código por SMS', 11, 400, '#6B6B6B') +
+      rect(16, 130, W - 32, 46, 23, '#F0F0F0') + txt(34, 158, '+51 987 654 321', 13, 600, '#0F0F0F') +
+      button(H - 76, 'Continuar', true, 0, 0);
+  }
+
+  function validateHeader() {
+    return rect(0, 0, W, H, 0, '#FFFFFF') + statusBar(true) +
+      txt(18, 88, 'Ingresa el código', 18, 800, '#0F0F0F') +
+      txt(18, 110, 'Enviado al +51 987 654 321', 11, 400, '#6B6B6B') +
+      txt(W - 18, 214, 'Reenviar en 01:42', 10.5, 500, '#6B6B6B', 'end');
+  }
+
+  function scene(s, t) {
+    if (s === 0) {
+      const scale = springTo(t, 300, 0.6, 1, 4, 9);
+      const alpha = tw(t, 300, 300);
+      return rect(0, 0, W, H, 0, PRIMARY) + statusBar(false) +
+        g(`<image href="design-assets/feature_splash_logo.png" x="-70" y="-70" width="140" height="140"/>`,
+          `translate(${W / 2} ${H / 2 - 30}) scale(${scale})`, alpha) +
+        spinner(W / 2, H / 2 + 70, 14, t, '#00FFFF', 3.5);
+    }
+
+    if (s === 1) {
+      const p = tw(t, 500, 900) - tw(t, 1900, 900);
+      const incoming = validateHeader() + otpBoxes(140, ['', '', '', ''], [0, 0, 0, 0]) + button(H - 76, 'Validar', false, 0, 0);
+      return g(generateScreen(), `translate(${-W / 4 * p} 0)`, 1 - p) +
+        g(incoming, `translate(${W * (1 - p)} 0)`) + slowBadge('×3 lento');
+    }
+
+    if (s === 2) {
+      const times = [400, 900, 1400, 1900];
+      const digits = ['4', '8', '1', '5'].map((d, i) => t >= times[i] ? d : '');
+      const fills = times.map(start => tw(t, start, 300));
+      return validateHeader() + otpBoxes(140, digits, fills) + button(H - 76, 'Validar', t >= 1900, 0, 0) + slowBadge('×2 lento');
+    }
+
+    if (s === 3) {
+      const start = 500, seg = 100;
+      const pattern = [1, -1, 0.6, -0.6, 0.3, 0];
+      let offset = 0;
+      if (t > start) {
+        const k = Math.floor((t - start) / seg);
+        if (k >= pattern.length) offset = 0;
+        else {
+          const prev = k === 0 ? 0 : pattern[k - 1];
+          offset = 12 * lerp(prev, pattern[k], fastOutSlowIn((t - start - k * seg) / seg));
+        }
+      }
+      const toastIn = tw(t, start, 450);
+      const toastY = lerp(-50, 34, toastIn);
+      return validateHeader() + otpBoxes(140, ['1', '2', '3', '4'], [1, 1, 1, 1], offset) +
+        button(H - 76, 'Validar', true, 0, 0) + g(toast(toastY, '#C62828', 'El código OTP es inválido'), '', toastIn) + slowBadge('×2 lento');
+    }
+
+    if (s === 4) {
+      const on = tw(t, 600, 300), off = tw(t, 2200, 300);
+      const loadingP = on - off;
+      const tap = t > 500 && t < 1000 ? (t - 500) / 500 : 0;
+      return validateHeader() + otpBoxes(140, ['4', '8', '1', '5'], [1, 1, 1, 1]) +
+        button(H - 76, 'Validar', true, loadingP, t) +
+        (tap ? circle(W / 2, H - 54, lerp(6, 70, tap), '#FFFFFF', `opacity="${0.35 * (1 - tap)}"`) : '') + slowBadge('×2 lento');
+    }
+
+    if (s === 5) {
+      const found = 1600;
+      let map = rect(0, 0, W, H, 0, '#EDEBE6') +
+        `<line x1="0" y1="140" x2="${W}" y2="110" stroke="#fff" stroke-width="14"/>` +
+        `<line x1="0" y1="300" x2="${W}" y2="335" stroke="#fff" stroke-width="10"/>` +
+        `<line x1="60" y1="0" x2="80" y2="${H}" stroke="#fff" stroke-width="11"/>` +
+        `<line x1="170" y1="0" x2="150" y2="${H}" stroke="#fff" stroke-width="8"/>` +
+        circle(190, 210, 26, '#CDE8C8');
+      const accuracy = tw(t, found, 600);
+      if (t >= found) {
+        map += circle(W / 2, 230, 70 * accuracy, 'rgba(120,67,230,.15)', 'stroke="rgba(120,67,230,.5)" stroke-width="1.5"');
+        map += circle(W / 2, 230, 9, PRIMARY, 'stroke="#fff" stroke-width="3.5"');
+      }
+      map += statusBar(true);
+      map += circle(34, 62, 20, PRIMARY) + `<path d="M26 56h16M26 62h16M26 68h16" stroke="#fff" stroke-width="2"/>` + circle(W - 34, 62, 20, '#fff');
+      const out = tw(t, found, 500);
+      const panelY = H - 118 + 118 * out;
+      const pulse = ((t % 1200) / 1200);
+      const pv = linearOutSlowIn(pulse);
+      let panel = rect(0, 0, W, 130, 22, '#fff');
+      panel += g(circle(0, 0, 22, 'rgba(120,67,230,.35)'), `translate(40 50) scale(${0.4 + pv * 0.6})`, 1 - pv);
+      panel += circle(40, 50, 13, PRIMARY) + `<path d="M40 43a5 5 0 0 1 5 5c0 4-5 9-5 9s-5-5-5-9a5 5 0 0 1 5-5z" fill="#fff"/>`;
+      panel += txt(72, 46, 'Buscando tu ubicación…', 12.5, 700, '#0F0F0F') + txt(72, 64, 'El GPS puede tardar unos', 10.5, 400, '#6B6B6B') + txt(72, 78, 'segundos en encontrarte', 10.5, 400, '#6B6B6B');
+      const centerIn = tw(t, found + 150, 300);
+      const centerBtn = centerIn > 0 ? g(circle(0, 0, 20, '#fff', 'stroke="#E2DDF2"') + circle(0, 0, 6, PRIMARY), `translate(${W - 34} ${H - 46}) scale(${centerIn})`, centerIn) : '';
+      return map + g(panel, `translate(0 ${panelY})`, 1 - out) + centerBtn;
+    }
+
+    if (s === 6) {
+      const swap = 1300;
+      const fade = tw(t, swap, 300);
+      let base = rect(0, 0, W, H, 0, '#F0F0F0') + statusBar(true) +
+        circle(36, 62, 18, '#fff') + `<path d="M42 62H30m5-5-5 5 5 5" stroke="#0F0F0F" stroke-width="2" fill="none"/>` +
+        txt(64, 69, 'Menú', 18, 800, '#0F0F0F');
+      const skeletonAlpha = lerp(0.45, 1, (Math.sin(t / 700 * Math.PI) + 1) / 2);
+      let skeleton = '';
+      for (let i = 0; i < 4; i++) skeleton += rect(14, 96 + i * 60, W - 28, 50, 14, '#E2E2E2', `opacity="${skeletonAlpha}"`);
+      const items = ['Pedir taxi', 'Mi perfil', 'Mis viajes', 'Ayuda'];
+      let list = '';
+      items.forEach((label, i) => {
+        const p = tw(t, swap + i * 120, 600);
+        const dy = 25 * (1 - p);
+        list += g(rect(14, 96 + i * 60, W - 28, 50, 14, '#fff') + circle(44, 121 + i * 60, 15, 'rgba(120,67,230,.12)') + circle(44, 121 + i * 60, 5, PRIMARY) +
+          txt(70, 126 + i * 60, label, 12.5, 600, '#0F0F0F') + `<path d="M${W - 34} ${116 + i * 60}l5 5-5 5" stroke="#9AA0A6" stroke-width="2" fill="none"/>`, `translate(0 ${dy})`, p);
+      });
+      return base + g(skeleton, '', 1 - fade) + g(list, '', fade > 0 ? 1 : 0) + slowBadge('×2 lento');
+    }
+
+    if (s === 7) {
+      const up = 400, done = 2100;
+      const uploading = t >= up && t < done;
+      const scale = t < up ? 1 : t < done ? springTo(t, up, 1, 0.9) : springTo(t, done, springTo(done, up, 1, 0.9), 1);
+      const overlay = t < done ? tw(t, up, 300) : 1 - tw(t, done, 300);
+      const events = [[up, 0], [700, 20], [1100, 45], [1500, 80], [1900, 100]];
+      let progress = 0;
+      for (let i = 0; i < events.length; i++) {
+        const [at, value] = events[i];
+        if (t >= at) {
+          const prev = i === 0 ? 0 : events[i - 1][1];
+          progress = lerp(prev, value, tw(t, at, 300)) / 100;
+        }
+      }
+      const percent = events.filter(([at]) => t >= at).map(([, v]) => v).pop();
+      const photoIn = tw(t, done + 150, 300);
+      const cx = W / 2, cy = 150;
+      let avatar = circle(0, 0, 48, '#E4D9FB') + txt(0, 12, 'JS', 32, 800, PRIMARY, 'middle');
+      if (photoIn > 0) avatar += circle(0, 0, 48, 'url(#photo)', `opacity="${photoIn}"`) + g(circle(0, -10, 15, '#F6D3AE') + `<path d="M-26 32a26 22 0 0 1 52 0z" fill="#3E2A66"/>`, '', photoIn);
+      let screen = rect(0, 0, W, H, 0, '#F0F0F0') + statusBar(true) +
+        circle(36, 62, 18, '#fff') + `<path d="M42 62H30m5-5-5 5 5 5" stroke="#0F0F0F" stroke-width="2" fill="none"/>` +
+        txt(64, 69, 'Mi perfil', 18, 800, '#0F0F0F') +
+        g(avatar, `translate(${cx} ${cy}) scale(${scale})`);
+      if (overlay > 0) {
+        screen += g(circle(cx, cy, 48, '#000', 'opacity=".45"') + txt(cx, cy + 7, (percent ?? 0) + ' %', 17, 800, '#fff', 'middle') +
+          circle(cx, cy, 53, 'none', 'stroke="rgba(120,67,230,.18)" stroke-width="4"') + arc(cx, cy, 53, 0, 360 * progress, PRIMARY, 4), '', overlay);
+      }
+      screen += txt(cx, 230, 'Jorge Sandoval', 16, 800, '#0F0F0F', 'middle') + txt(cx, 250, '+51 987 654 321', 11.5, 400, '#6B6B6B', 'middle');
+      screen += rect(16, 270, W - 32, 74, 16, '#fff') + txt(32, 298, 'Correo', 11, 400, '#6B6B6B') + txt(W - 32, 298, 'jorge@example.com', 11, 600, '#0F0F0F', 'end') +
+        txt(32, 324, 'Estado', 11, 400, '#6B6B6B') + txt(W - 32, 324, 'Activo', 11, 600, '#0F0F0F', 'end');
+      const loadingP = tw(t, up, 300) - tw(t, done, 300);
+      screen += button(H - 76, t >= done ? 'Cambiar foto' : 'Agregar foto', true, loadingP, t);
+      const toastIn = tw(t, done, 450);
+      if (toastIn > 0) screen += g(toast(lerp(-50, 34, toastIn), '#2E7D32', 'Foto actualizada'), '', toastIn);
+      return screen;
+    }
+    return '';
+  }
+
+  STEPS.forEach((_, i) => {
+    const b = document.createElement('button');
+    b.className = 'dot';
+    b.textContent = i + 1;
+    b.setAttribute('aria-label', 'Paso ' + (i + 1));
+    b.onclick = () => { stopPlay(); go(i); };
+    dots.appendChild(b);
+  });
+
+  let renderedInfo = -1;
+  function renderInfo(s) {
+    if (renderedInfo === s) return;
+    renderedInfo = s;
+    const info = STEPS[s];
+    $('r-title').textContent = (s + 1) + ' de ' + STEPS.length + ' · ' + info.title;
+    let x = 340, chips = '';
+    info.chips.forEach(c => {
+      const w = c.length * 7.4 + 22;
+      chips += `<g class="chip"><rect x="${x}" y="98" width="${w}" height="26" rx="13"/><text x="${x + w / 2}" y="115" text-anchor="middle">${esc(c)}</text></g>`;
+      x += w + 8;
+    });
+    $('r-chips').innerHTML = chips;
+    $('r-file').textContent = info.file;
+    $('r-desc1').textContent = info.desc[0];
+    $('r-desc2').textContent = info.desc[1];
+    $('r-code').innerHTML = info.code.map((line, i) =>
+      `<text class="code-line${line.trim().startsWith('//') ? ' comment' : ''}" x="358" y="${242 + i * 17}">${esc(line)}</text>`).join('');
+    [...dots.children].forEach((d, k) => d.classList.toggle('on', k === s));
+  }
+
+  function render(s, t) {
+    renderInfo(s);
+    $('screen').innerHTML = scene(s, t);
+  }
+
+  function go(i) {
+    step = (i + STEPS.length) % STEPS.length;
+    stepStart = performance.now();
+    if (!document.body.classList.contains('capture')) history.replaceState(null, '', '#s=' + (step + 1));
+  }
+
+  function tick(now) {
+    if (frozen) return;
+    let t = now - stepStart;
+    if (t > STEP_MS + 400) {
+      if (playing) go(step + 1); else stepStart = now;
+      t = 0;
+    }
+    render(step, Math.min(t, STEP_MS));
+    requestAnimationFrame(tick);
+  }
+
+  function stopPlay() {
+    playing = false;
+    $('play').textContent = '▶ Reproducir';
+  }
+
+  $('play').onclick = () => {
+    if (playing) return stopPlay();
+    playing = true;
+    $('play').textContent = '❚❚ Pausa';
+    go(step + 1);
+  };
+  $('prev').onclick = () => { stopPlay(); go(step - 1); };
+  $('next').onclick = () => { stopPlay(); go(step + 1); };
+  $('replay').onclick = () => { stopPlay(); go(step); };
+  document.addEventListener('keydown', e => {
+    if (e.key === 'ArrowRight') { stopPlay(); go(step + 1); }
+    if (e.key === 'ArrowLeft') { stopPlay(); go(step - 1); }
+  });
+
+  window.renderFrame = (s, t) => { frozen = true; step = s; render(s, t); };
+  window.STEP_COUNT = STEPS.length;
+  window.STEP_MS = STEP_MS;
+
+  const params = new URLSearchParams(location.hash.slice(1));
+  if (params.has('capture')) document.body.classList.add('capture');
+  go((parseInt(params.get('s'), 10) || 1) - 1);
+  requestAnimationFrame(tick);
+</script>
+</body>
+</html>

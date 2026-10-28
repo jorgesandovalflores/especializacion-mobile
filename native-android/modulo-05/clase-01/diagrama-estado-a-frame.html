@@ -1,0 +1,409 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Del estado al frame</title>
+<style>
+  :root {
+    --bg: #F4F2FA;
+    --stage: #FFFFFF;
+    --ink: #0F0F0F;
+    --muted: #6B6B6B;
+    --line: #E2DDF2;
+    --primary: #7843E6;
+    --primary-soft: #F1EBFD;
+    --done: #B9B3CC;
+    --ok: #2E7D32;
+    --ok-soft: #E8F3E8;
+    --bad: #C62828;
+    --bad-soft: #FBE9E9;
+    --code: #1E1B2E;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: Inter, Roboto, system-ui, -apple-system, sans-serif;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 24px 16px;
+  }
+  .stage {
+    width: 100%;
+    max-width: 960px;
+    aspect-ratio: 16 / 9;
+    background: var(--stage);
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    overflow: hidden;
+  }
+  svg { width: 100%; height: 100%; display: block; }
+  .eyebrow { font-size: 12px; letter-spacing: .32em; fill: var(--primary); font-weight: 600; }
+  .title { font-size: 22px; font-weight: 700; fill: var(--ink); }
+  .mono { font-family: ui-monospace, Menlo, monospace; }
+
+  .actor rect { fill: var(--primary-soft); stroke: var(--primary); stroke-width: 1.5; }
+  .actor text { font-size: 15px; font-weight: 700; fill: var(--ink); }
+  .actor .sub { font-size: 11px; font-weight: 500; fill: var(--muted); }
+
+  .pill rect { fill: #F7F6FA; stroke: var(--done); stroke-width: 1.5; }
+  .pill text { font-size: 12.5px; font-weight: 600; fill: var(--muted); }
+  .pill .k { font-size: 10.5px; font-weight: 600; fill: var(--muted); letter-spacing: .08em; }
+  .pill.on rect { fill: var(--primary-soft); stroke: var(--primary); stroke-width: 2.5; }
+  .pill.on text { fill: var(--primary); }
+
+  .flow line { stroke: var(--done); stroke-width: 2; }
+  .flow text { font-size: 11px; font-weight: 600; fill: var(--done); }
+  .flow.on line { stroke: var(--primary); stroke-width: 3; stroke-dasharray: 8 6; animation: flow .7s linear infinite; }
+  .flow.on text { fill: var(--primary); }
+  @keyframes flow { to { stroke-dashoffset: -28; } }
+  body.capture .flow.on line { animation: none; }
+
+  .axis { stroke: #CFC8E6; stroke-width: 1.5; }
+  .grid { stroke: #EEE9F8; stroke-width: 1; }
+  .axis-label { font-size: 10.5px; fill: var(--muted); font-weight: 600; }
+  .target { stroke: var(--primary); stroke-width: 1.5; stroke-dasharray: 4 4; opacity: 0; }
+  .target.on { opacity: 1; }
+  .curve { fill: none; stroke: var(--primary); stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; }
+  .tick { stroke: var(--primary); stroke-width: 1.2; opacity: .55; }
+  .readout { font-size: 11.5px; font-weight: 700; fill: var(--primary); }
+
+  .card { fill: #F7F6FA; stroke: var(--line); stroke-width: 1.5; }
+  .avatar-name { font-size: 13px; font-weight: 700; fill: var(--ink); }
+  .avatar-sub { font-size: 11px; fill: var(--muted); }
+
+  .phase rect { fill: #fff; stroke: var(--line); stroke-width: 1.5; }
+  .phase text { font-size: 12.5px; font-weight: 700; fill: var(--done); }
+  .phase.on rect { fill: var(--ok-soft); stroke: var(--ok); stroke-width: 2.5; }
+  .phase.on text { fill: var(--ok); }
+  .phase.bad rect { fill: var(--bad-soft); stroke: var(--bad); stroke-width: 2.5; }
+  .phase.bad text { fill: var(--bad); }
+  .phase-label { font-size: 12px; font-weight: 700; fill: var(--muted); }
+
+  .badge rect { fill: var(--bad-soft); stroke: var(--bad); }
+  .badge text { font-size: 11px; font-weight: 700; fill: var(--bad); }
+
+  .panel rect { fill: var(--code); }
+  .panel .step { font-size: 15px; font-weight: 700; fill: #fff; }
+  .panel .desc { font-size: 13px; fill: #CFC6EE; }
+  .panel .code { font-size: 12px; fill: #9BE3A0; font-family: ui-monospace, Menlo, monospace; }
+
+  .controls {
+    width: 100%;
+    max-width: 960px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    align-items: center;
+    margin-top: 14px;
+  }
+  button {
+    font: inherit;
+    font-size: 14px;
+    font-weight: 600;
+    border: 1px solid var(--line);
+    background: #fff;
+    color: var(--primary);
+    border-radius: 999px;
+    padding: 8px 16px;
+    cursor: pointer;
+  }
+  button.primary { background: var(--primary); color: #fff; border-color: var(--primary); }
+  .dots { display: flex; gap: 6px; flex-wrap: wrap; }
+  .dot { width: 28px; height: 28px; padding: 0; border-radius: 50%; font-size: 12px; }
+  .dot.on { background: var(--primary); color: #fff; border-color: var(--primary); }
+  .hint { color: var(--muted); font-size: 13px; margin-left: auto; }
+  body.capture { padding: 0; background: #fff; }
+  body.capture .stage { border: 0; border-radius: 0; max-width: none; width: 960px; }
+  body.capture .controls { display: none; }
+</style>
+</head>
+<body>
+<div class="stage">
+<svg viewBox="0 0 960 540" role="img" aria-label="Diagrama de cómo un cambio de estado se convierte en una animación frame a frame">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="context-stroke"/>
+    </marker>
+  </defs>
+
+  <text class="eyebrow" x="480" y="30" text-anchor="middle">ANIMACIONES EN COMPOSE · DEL ESTADO AL FRAME</text>
+  <text class="title" x="480" y="58" text-anchor="middle">Tú cambias el estado; Compose calcula un valor en cada frame</text>
+
+  <g class="actor"><rect x="70" y="76" width="200" height="44" rx="12"/>
+    <text x="170" y="97" text-anchor="middle">Estado</text><text class="sub" x="170" y="112" text-anchor="middle">ViewModel · remember</text></g>
+  <g class="actor"><rect x="380" y="76" width="200" height="44" rx="12"/>
+    <text x="480" y="97" text-anchor="middle">Animación</text><text class="sub" x="480" y="112" text-anchor="middle">updateTransition · animate*AsState</text></g>
+  <g class="actor"><rect x="690" y="76" width="200" height="44" rx="12"/>
+    <text x="790" y="97" text-anchor="middle">Pantalla</text><text class="sub" x="790" y="112" text-anchor="middle">Avatar de «Mi perfil»</text></g>
+
+  <g class="pill" id="p-state"><rect x="80" y="146" width="180" height="44" rx="12"/>
+    <text class="k" x="170" y="162" text-anchor="middle">ESTADO</text>
+    <text class="mono" id="t-state" x="170" y="181" text-anchor="middle"></text></g>
+  <g class="pill" id="p-target"><rect x="80" y="204" width="180" height="44" rx="12"/>
+    <text class="k" x="170" y="220" text-anchor="middle">TARGET</text>
+    <text class="mono" id="t-target" x="170" y="239" text-anchor="middle"></text></g>
+  <g class="pill" id="p-spec"><rect x="80" y="262" width="180" height="44" rx="12"/>
+    <text class="k" x="170" y="278" text-anchor="middle">ANIMATIONSPEC</text>
+    <text class="mono" id="t-spec" x="170" y="297" text-anchor="middle"></text></g>
+
+  <g class="flow" id="f1"><line x1="272" y1="226" x2="384" y2="226" marker-end="url(#arrow)"/>
+    <text x="328" y="216" text-anchor="middle">nuevo target</text></g>
+  <g class="flow" id="f2"><line x1="582" y1="226" x2="694" y2="226" marker-end="url(#arrow)"/>
+    <text x="638" y="216" text-anchor="middle">valor por frame</text></g>
+
+  <line class="grid" x1="400" y1="190" x2="572" y2="190"/>
+  <line class="grid" x1="400" y1="290" x2="572" y2="290"/>
+  <line class="axis" x1="400" y1="146" x2="400" y2="322"/>
+  <line class="axis" x1="400" y1="322" x2="572" y2="322"/>
+  <text class="axis-label mono" x="394" y="194" text-anchor="end">1.0</text>
+  <text class="axis-label mono" x="394" y="294" text-anchor="end">0.9</text>
+  <text class="axis-label" x="572" y="338" text-anchor="end">tiempo →</text>
+  <text class="axis-label" x="404" y="338">frames:</text>
+  <line class="target" id="target-down" x1="400" y1="290" x2="572" y2="290"/>
+  <line class="target" id="target-up" x1="400" y1="190" x2="572" y2="190"/>
+  <g id="ticks"></g>
+  <path class="curve" id="curve" d=""/>
+  <circle id="dot" r="5" fill="#7843E6" cx="400" cy="190"/>
+  <text class="readout mono" id="readout" x="572" y="160" text-anchor="end"></text>
+
+  <rect class="card" x="690" y="140" width="200" height="186" rx="16" id="card"/>
+  <g id="avatar-group">
+    <circle id="avatar" cx="790" cy="210" r="46" fill="#E4D9FB"/>
+    <text id="initials" x="790" y="222" text-anchor="middle" font-size="32" font-weight="700" fill="#7843E6">JS</text>
+    <circle id="overlay" cx="790" cy="210" r="46" fill="#000" opacity="0"/>
+    <circle id="ring" cx="790" cy="210" r="51" fill="none" stroke="#7843E6" stroke-width="4" opacity="0"/>
+  </g>
+  <text class="avatar-name" x="790" y="290" text-anchor="middle">Jorge Sandoval</text>
+  <text class="avatar-sub mono" id="t-scale" x="790" y="310" text-anchor="middle"></text>
+  <g class="badge" id="cancel" opacity="0">
+    <rect x="720" y="150" width="140" height="24" rx="8"/>
+    <text x="790" y="166" text-anchor="middle">✕ animación cancelada</text>
+  </g>
+
+  <text class="phase-label" x="70" y="372">Cada frame ejecuta</text>
+  <g class="phase" id="ph1"><rect x="220" y="352" width="210" height="30" rx="10"/><text x="325" y="372" text-anchor="middle">1 · Composición</text></g>
+  <g class="phase" id="ph2"><rect x="450" y="352" width="210" height="30" rx="10"/><text x="555" y="372" text-anchor="middle">2 · Layout</text></g>
+  <g class="phase" id="ph3"><rect x="680" y="352" width="210" height="30" rx="10"/><text x="785" y="372" text-anchor="middle">3 · Dibujo</text></g>
+
+  <g class="panel">
+    <rect x="30" y="400" width="900" height="114" rx="12"/>
+    <text class="step" id="p-step" x="52" y="430"></text>
+    <text class="desc" id="p-desc" x="52" y="455"></text>
+    <text class="code" id="p-code" x="52" y="482" style="white-space: pre"></text>
+    <text class="code" id="p-code2" x="52" y="501" style="white-space: pre"></text>
+  </g>
+</svg>
+</div>
+
+<div class="controls">
+  <button id="prev" aria-label="Paso anterior">‹ Anterior</button>
+  <button id="play" class="primary">▶ Reproducir</button>
+  <button id="next" aria-label="Paso siguiente">Siguiente ›</button>
+  <button id="replay" aria-label="Repetir el paso">↻ Repetir paso</button>
+  <div class="dots" id="dots"></div>
+  <span class="hint">← → para avanzar</span>
+</div>
+
+<script>
+  const STEP_MS = 3000;
+  const ANIM_START = 450;
+  const WINDOW_MS = 900;
+
+  const STEPS = [
+    { title: 'Todo empieza en un estado',
+      desc: 'La pantalla dibuja lo que dice el estado. Sin subida, el avatar está a escala 1.',
+      code: 'val uploading = photo is PhotoState.Preparing || photo is PhotoState.Uploading',
+      code2: '' },
+    { title: 'El estado cambia',
+      desc: 'El usuario elige una foto: el ViewModel emite Uploading y la pantalla se recompone.',
+      code: 'vm.onPhotoPicked(uri)   →   PhotoState.Uploading(0)   →   uploading = true',
+      code2: '' },
+    { title: 'Compose fija el nuevo destino (target)',
+      desc: 'No le dices «anima»: le dices a qué valor llegar para cada estado. Compose detecta el cambio.',
+      code: 'val transition = updateTransition(targetState = uploading, label = "avatarUpload")',
+      code2: 'val avatarScale by transition.animateFloat(label = "avatarScale") { if (it) 0.9f else 1f }' },
+    { title: 'Un valor nuevo en cada frame (tween)',
+      desc: 'Cada ~16 ms Compose calcula el valor intermedio y la pantalla lo usa: 1.0 → 0.98 → 0.95 → … → 0.9.',
+      code: 'transitionSpec = { tween(durationMillis = 600) }   // duración fija y curva de aceleración',
+      code2: '' },
+    { title: 'spring: física en vez de duración',
+      desc: 'Un resorte se pasa un poco del destino y vuelve. Se siente natural y no tiene duración fija.',
+      code: 'transitionSpec = { spring(dampingRatio = Spring.DampingRatioMediumBouncy) }',
+      code2: '' },
+    { title: 'Si el estado cambia a mitad, no salta',
+      desc: 'La subida falla a la mitad: el target vuelve a 1.0 y la animación sigue desde el valor y la velocidad actuales.',
+      code: 'PhotoState.Error(...)   →   uploading = false   →   target = 1f (continúa, no reinicia)',
+      code2: '' },
+    { title: 'Lee el valor en la fase correcta',
+      desc: 'Leído en composición, cada frame recompone la pantalla. Dentro de graphicsLayer { } solo se vuelve a dibujar.',
+      code: '✗ Modifier.scale(avatarScale)            // lee en composición: recompone en cada frame',
+      code2: '✓ Modifier.graphicsLayer { scaleX = avatarScale; scaleY = avatarScale }   // solo dibujo' },
+    { title: 'Al salir de la pantalla, se cancela sola',
+      desc: 'La animación vive mientras el composable está en el árbol. No hay cancel() ni listeners que limpiar.',
+      code: 'onBack()   →   ProfileScreen sale del árbol   →   transition y LaunchedEffect se cancelan',
+      code2: '' }
+  ];
+
+  const $ = id => document.getElementById(id);
+  const dots = $('dots');
+  let step = 0;
+  let stepStart = performance.now();
+  let playing = false;
+  let frozen = null;
+
+  const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
+  const easeInOut = p => p < .5 ? 4 * p * p * p : 1 - Math.pow(-2 * p + 2, 3) / 2;
+  const tween = ms => 1 - 0.1 * easeInOut(clamp(ms / 600, 0, 1));
+  const spring = ms => { const s = ms / 1000; return 1 - 0.1 * (1 - Math.exp(-7 * s) * Math.cos(14 * s)); };
+  const INTERRUPT_MS = 300;
+  const interrupted = ms => {
+    if (ms <= INTERRUPT_MS) return tween(ms);
+    const u = ms - INTERRUPT_MS, k = 0.012, x0 = tween(INTERRUPT_MS) - 1, v0 = -0.0005;
+    return 1 + (x0 + (v0 + k * x0) * u) * Math.exp(-k * u);
+  };
+  const CANCEL_MS = 380;
+
+  const xOf = ms => 400 + clamp(ms, 0, WINDOW_MS) / WINDOW_MS * 170;
+  const yOf = v => clamp(190 + (1 - v) * 1000, 146, 320);
+
+  function curveFor(s) {
+    if (s === 3 || s === 6) return tween;
+    if (s === 4) return spring;
+    if (s === 5) return interrupted;
+    if (s === 7) return tween;
+    return null;
+  }
+
+  function animMs(s, t) {
+    if (s === 6) return WINDOW_MS;
+    const ms = clamp(t - ANIM_START, 0, WINDOW_MS);
+    return s === 7 ? Math.min(ms, CANCEL_MS) : ms;
+  }
+
+  STEPS.forEach((_, i) => {
+    const b = document.createElement('button');
+    b.className = 'dot';
+    b.textContent = i + 1;
+    b.setAttribute('aria-label', 'Paso ' + (i + 1));
+    b.onclick = () => { stopPlay(); go(i); };
+    dots.appendChild(b);
+  });
+
+  function render(s, t) {
+    const info = STEPS[s];
+    $('p-step').textContent = (s + 1) + ' de ' + STEPS.length + ' · ' + info.title;
+    $('p-desc').textContent = info.desc;
+    $('p-code').textContent = info.code;
+    $('p-code2').textContent = info.code2;
+    [...dots.children].forEach((d, k) => d.classList.toggle('on', k === s));
+
+    const fn = curveFor(s);
+    const ms = fn ? animMs(s, t) : 0;
+    const value = fn ? fn(ms) : 1;
+    const backToOne = s === 5 && ms > INTERRUPT_MS;
+    const uploading = s >= 1 && !backToOne;
+
+    $('t-state').textContent = 'uploading = ' + uploading;
+    $('t-target').textContent = s < 2 ? 'avatarScale = 1f' : (backToOne ? 'avatarScale = 1f' : 'avatarScale = 0.9f');
+    $('t-spec').textContent = s === 4 ? 'spring(MediumBouncy)' : s === 5 ? 'spring (continúa)' : 'tween(600)';
+    $('p-state').classList.toggle('on', s === 1 || (s === 5 && backToOne));
+    $('p-target').classList.toggle('on', s === 2 || (s === 5 && backToOne));
+    $('p-spec').classList.toggle('on', s === 3 || s === 4);
+
+    const animating = fn && s !== 6 && ms > 0 && ms < WINDOW_MS && !(s === 7 && ms >= CANCEL_MS);
+    $('f1').classList.toggle('on', s === 2 || (s === 5 && backToOne && ms < INTERRUPT_MS + 200));
+    $('f2').classList.toggle('on', !!animating);
+
+    $('target-down').classList.toggle('on', s >= 2 && !backToOne && s !== 0);
+    $('target-up').classList.toggle('on', backToOne);
+
+    let d = '';
+    let ticks = '';
+    if (fn) {
+      for (let m = 0; m <= ms; m += 8) d += (m === 0 ? 'M' : 'L') + xOf(m).toFixed(1) + ',' + yOf(fn(m)).toFixed(1) + ' ';
+      d += 'L' + xOf(ms).toFixed(1) + ',' + yOf(value).toFixed(1);
+      for (let m = 0; m <= ms; m += 16.7) ticks += '<line class="tick" x1="' + xOf(m).toFixed(1) + '" y1="316" x2="' + xOf(m).toFixed(1) + '" y2="322"/>';
+    }
+    $('curve').setAttribute('d', d);
+    $('ticks').innerHTML = ticks;
+    $('dot').setAttribute('cx', xOf(ms));
+    $('dot').setAttribute('cy', yOf(value));
+    $('dot').style.opacity = s < 2 ? 0 : 1;
+    const frame = Math.round(ms / 16.7);
+    $('readout').textContent = fn ? 'frame ' + frame + ' · ' + value.toFixed(3) : (s === 2 ? 'frame 0 · 1.000' : '');
+
+    const scale = value;
+    const overlay = clamp((1 - value) / 0.1, 0, 1);
+    $('avatar-group').setAttribute('transform', 'translate(790 210) scale(' + scale.toFixed(4) + ') translate(-790 -210)');
+    $('overlay').setAttribute('opacity', (overlay * 0.45).toFixed(3));
+    $('ring').setAttribute('opacity', overlay.toFixed(3));
+    $('t-scale').textContent = 'scale = ' + scale.toFixed(3);
+
+    const cancelled = s === 7 && t > ANIM_START + CANCEL_MS;
+    $('cancel').setAttribute('opacity', cancelled ? 1 : 0);
+    $('card').style.opacity = cancelled ? .35 : 1;
+    $('avatar-group').style.opacity = cancelled ? .35 : 1;
+
+    const phases = [$('ph1'), $('ph2'), $('ph3')];
+    phases.forEach(p => p.classList.remove('on', 'bad'));
+    if (s === 1 || s === 2) phases[0].classList.add('on');
+    if (s >= 3 && s <= 5 && animating) phases[2].classList.add('on');
+    if (s === 6) {
+      if (t < STEP_MS / 2) { phases[0].classList.add('bad'); phases[2].classList.add('bad'); }
+      else phases[2].classList.add('on');
+    }
+  }
+
+  function go(i) {
+    step = (i + STEPS.length) % STEPS.length;
+    stepStart = performance.now();
+    if (!document.body.classList.contains('capture')) {
+      history.replaceState(null, '', '#s=' + (step + 1));
+    }
+  }
+
+  function tick(now) {
+    if (frozen) return;
+    let t = now - stepStart;
+    if (t > STEP_MS + 400) {
+      if (playing) go(step + 1); else stepStart = now;
+      t = 0;
+    }
+    render(step, Math.min(t, STEP_MS));
+    requestAnimationFrame(tick);
+  }
+
+  function stopPlay() {
+    playing = false;
+    $('play').textContent = '▶ Reproducir';
+  }
+
+  $('play').onclick = () => {
+    if (playing) return stopPlay();
+    playing = true;
+    $('play').textContent = '❚❚ Pausa';
+    go(step + 1);
+  };
+  $('prev').onclick = () => { stopPlay(); go(step - 1); };
+  $('next').onclick = () => { stopPlay(); go(step + 1); };
+  $('replay').onclick = () => { stopPlay(); go(step); };
+  document.addEventListener('keydown', e => {
+    if (e.key === 'ArrowRight') { stopPlay(); go(step + 1); }
+    if (e.key === 'ArrowLeft') { stopPlay(); go(step - 1); }
+  });
+
+  window.renderFrame = (s, t) => { frozen = true; step = s; render(s, t); };
+  window.STEP_COUNT = STEPS.length;
+  window.STEP_MS = STEP_MS;
+
+  const params = new URLSearchParams(location.hash.slice(1));
+  if (params.has('capture')) document.body.classList.add('capture');
+  go((parseInt(params.get('s'), 10) || 1) - 1);
+  requestAnimationFrame(tick);
+</script>
+</body>
+</html>

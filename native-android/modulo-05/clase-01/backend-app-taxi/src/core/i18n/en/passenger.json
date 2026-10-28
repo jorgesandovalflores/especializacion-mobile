@@ -1,0 +1,9 @@
+{
+    "validation": {
+        "isString": "The value must be a string.",
+        "required": "This field is required.",
+        "minLength": "Must be at least 11 characters long.",
+        "maxLength": "Must be at most 11 characters long."
+    },
+    "notExists": "Your phone number does not exist."
+}
