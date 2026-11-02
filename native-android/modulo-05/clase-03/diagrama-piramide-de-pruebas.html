@@ -1,0 +1,404 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>La pirámide de pruebas en App Taxi</title>
+<style>
+  :root {
+    --bg: #F4F2FA;
+    --stage: #FFFFFF;
+    --ink: #0F0F0F;
+    --muted: #6B6B6B;
+    --line: #E2DDF2;
+    --primary: #7843E6;
+    --primary-soft: #F1EBFD;
+    --done: #B9B3CC;
+    --ok: #2E7D32;
+    --ok-soft: #E8F3E8;
+    --bad: #C62828;
+    --bad-soft: #FBE9E9;
+    --code: #1E1B2E;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: Inter, Roboto, system-ui, -apple-system, sans-serif;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 24px 16px;
+  }
+  .stage {
+    width: 100%;
+    max-width: 960px;
+    aspect-ratio: 16 / 9;
+    background: var(--stage);
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    overflow: hidden;
+  }
+  svg { width: 100%; height: 100%; display: block; }
+  .eyebrow { font-size: 12px; letter-spacing: .32em; fill: var(--primary); font-weight: 600; }
+  .title { font-size: 22px; font-weight: 700; fill: var(--ink); }
+  .mono { font-family: ui-monospace, Menlo, monospace; }
+
+  .actor rect { fill: var(--primary-soft); stroke: var(--primary); stroke-width: 1.5; }
+  .actor text { font-size: 14px; font-weight: 700; fill: var(--ink); }
+  .actor .sub { font-size: 10.5px; font-weight: 500; fill: var(--muted); font-family: ui-monospace, Menlo, monospace; }
+  .lifeline { stroke: #D9D4E8; stroke-width: 1.5; stroke-dasharray: 4 5; }
+
+  .msg line, .msg path { stroke: var(--done); stroke-width: 2; fill: none; }
+  .msg text { font-size: 11px; font-weight: 600; fill: var(--muted); font-family: ui-monospace, Menlo, monospace; }
+  .msg.ret line { stroke-dasharray: 5 4; }
+  .msg.on line, .msg.on path { stroke: var(--primary); stroke-width: 2.5; }
+  .msg.on text { fill: var(--primary); }
+  .msg.bad.on line, .msg.bad.on path { stroke: var(--bad); }
+  .msg.bad.on text { fill: var(--bad); }
+
+  .tier path { fill: #F7F6FA; stroke: var(--done); stroke-width: 1.5; }
+  .tier text { font-size: 12.5px; font-weight: 700; fill: var(--muted); }
+  .tier .n { font-size: 10.5px; font-weight: 600; fill: var(--muted); }
+  .tier.on path { fill: var(--primary-soft); stroke: var(--primary); stroke-width: 2.5; }
+  .tier.on text { fill: var(--primary); }
+  .axis-label { font-size: 10.5px; font-weight: 600; fill: var(--muted); }
+
+  .panel rect { fill: var(--code); }
+  .panel .step { font-size: 15px; font-weight: 700; fill: #fff; }
+  .panel .desc { font-size: 13px; fill: #CFC6EE; }
+  .panel .code { font-size: 12px; fill: #9BE3A0; font-family: ui-monospace, Menlo, monospace; }
+
+  .controls {
+    width: 100%;
+    max-width: 960px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    align-items: center;
+    margin-top: 14px;
+  }
+  button {
+    font: inherit;
+    font-size: 14px;
+    font-weight: 600;
+    border: 1px solid var(--line);
+    background: #fff;
+    color: var(--primary);
+    border-radius: 999px;
+    padding: 8px 16px;
+    cursor: pointer;
+  }
+  button.primary { background: var(--primary); color: #fff; border-color: var(--primary); }
+  .dots { display: flex; gap: 6px; flex-wrap: wrap; }
+  .dot { width: 28px; height: 28px; padding: 0; border-radius: 50%; font-size: 12px; }
+  .dot.on { background: var(--primary); color: #fff; border-color: var(--primary); }
+  .hint { color: var(--muted); font-size: 13px; margin-left: auto; }
+  body.capture { padding: 0; background: #fff; }
+  body.capture .stage { border: 0; border-radius: 0; max-width: none; width: 960px; }
+  body.capture .controls { display: none; }
+</style>
+</head>
+<body>
+<div class="stage">
+<svg viewBox="0 0 960 540" role="img" aria-label="Diagrama de la pirámide de pruebas de App Taxi y de cómo una prueba usa un sujeto y un doble">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="context-stroke"/>
+    </marker>
+  </defs>
+
+  <text class="eyebrow" x="480" y="30" text-anchor="middle">TESTING CON JUNIT Y COMPOSE TEST · LA PIRÁMIDE EN APP TAXI</text>
+  <text class="title" x="480" y="58" text-anchor="middle">Cada prueba prepara, actúa y verifica; los dobles reemplazan lo lento</text>
+
+  <g id="pyramid"></g>
+  <g id="lanes"></g>
+  <g id="msgs"></g>
+
+  <g class="panel">
+    <rect x="30" y="400" width="900" height="114" rx="12"/>
+    <text class="step" id="p-step" x="52" y="430"></text>
+    <text class="desc" id="p-desc" x="52" y="455"></text>
+    <text class="code" id="p-code" x="52" y="482" style="white-space: pre"></text>
+    <text class="code" id="p-code2" x="52" y="501" style="white-space: pre"></text>
+  </g>
+</svg>
+</div>
+
+<div class="controls">
+  <button id="prev" aria-label="Paso anterior">‹ Anterior</button>
+  <button id="play" class="primary">▶ Reproducir</button>
+  <button id="next" aria-label="Paso siguiente">Siguiente ›</button>
+  <button id="replay" aria-label="Repetir el paso">↻ Repetir paso</button>
+  <div class="dots" id="dots"></div>
+  <span class="hint">← → para avanzar</span>
+</div>
+
+<script>
+  const STEP_MS = 4200;
+  const LANE_X = { test: 404, subject: 626, double: 848 };
+  const ROW_Y0 = 156;
+  const ROW_GAP = 44;
+
+  const STEPS = [
+    { title: 'Tres partes en cada prueba',
+      desc: 'Preparar el sujeto con dobles, actuar sobre él y verificar el resultado. El doble reemplaza red, base de datos o Android.',
+      code: '// Arrange: crea el sujeto con dobles   // Act: llama al sujeto   // Assert: compara el resultado',
+      code2: 'Sujeto = lo que pruebas · Doble = lo que finge ser una dependencia (fake o mock)',
+      tier: null,
+      actors: { test: ['Prueba', 'JUnit'], subject: ['Sujeto', 'lo que se prueba'], double: ['Doble', 'fake o mock'] },
+      msgs: [
+        { from: 'test', to: 'subject', label: 'Arrange: crea el sujeto', at: 300 },
+        { from: 'test', to: 'subject', label: 'Act: llama', at: 1000 },
+        { from: 'subject', to: 'double', label: 'usa la dependencia', at: 1700 },
+        { from: 'double', to: 'subject', label: 'responde al instante', at: 2400, ret: true },
+        { assert: 'Assert: el resultado es el esperado', at: 3100 }
+      ] },
+    { title: 'Unitaria: un caso de uso con un fake',
+      desc: 'OtpGenerateUseCase se prueba en la JVM con FakeAuthRepository: responde sin red y recuerda con qué lo llamaron.',
+      code: 'val states = OtpGenerateUseCase(FakeAuthRepository())("987654321").toList()',
+      code2: 'assertEquals(listOf(Loading, Success(...)), states); assertEquals(listOf("51987654321"), repo.generatedFor)',
+      tier: 0,
+      actors: { test: ['Prueba', 'OtpGenerateUseCaseTest'], subject: ['Sujeto', 'OtpGenerateUseCase'], double: ['Doble', 'FakeAuthRepository'] },
+      msgs: [
+        { from: 'test', to: 'subject', label: 'invoke("987654321")', at: 300 },
+        { from: 'subject', to: 'double', label: 'otpGenerate("51987654321")', at: 1000 },
+        { from: 'double', to: 'subject', label: 'OtpGenerateResult(expiresAt)', at: 1700, ret: true },
+        { from: 'subject', to: 'test', label: 'Loading, Success', at: 2400, ret: true },
+        { assert: 'generatedFor == ["51987654321"]', at: 3100 }
+      ] },
+    { title: 'Fake o mock',
+      desc: 'Un fake es una implementación simple. Un mock (MockK) se programa en la prueba y verifica llamadas, incluso las que no deben ocurrir.',
+      code: 'coEvery { repo.otpValidate(any(), any()) } throws DomainException.ValidationException("...")',
+      code2: 'coVerify(exactly = 0) { session.saveTokens(any(), any()) }      // con un código inválido, la sesión no se toca',
+      tier: 0,
+      actors: { test: ['Prueba', 'OtpValidateUseCaseMockTest'], subject: ['Sujeto', 'OtpValidateUseCase'], double: ['Doble', 'mockk<AuthRepository>()'] },
+      msgs: [
+        { from: 'test', to: 'double', label: 'coEvery { … } throws', at: 300 },
+        { from: 'test', to: 'subject', label: 'invoke("987654321", "0000")', at: 1000 },
+        { from: 'subject', to: 'double', label: 'otpValidate(…)', at: 1700 },
+        { from: 'double', to: 'subject', label: '✗ ValidationException', at: 2300, ret: true, bad: true },
+        { assert: 'Error(…) y coVerify(exactly = 0) { saveTokens }', at: 3000 }
+      ] },
+    { title: 'ViewModel: estados en el tiempo',
+      desc: 'El ViewModel usa Dispatchers.Main: la prueba lo cambia por uno de prueba. Un CompletableDeferred deja ver el Loading antes del Success.',
+      code: 'Dispatchers.setMain(UnconfinedTestDispatcher())     // en @Before; resetMain() en @After',
+      code2: 'vm.callGenerateOtp("987654321"); assertEquals(Loading, vm.generateOtpUi.value); response.complete(...)',
+      tier: 0,
+      actors: { test: ['Prueba', 'SignInViewModelTest'], subject: ['Sujeto', 'SignInViewModel'], double: ['Doble', 'Fake + CompletableDeferred'] },
+      msgs: [
+        { from: 'test', to: 'subject', label: 'callGenerateOtp("987654321")', at: 300 },
+        { from: 'subject', to: 'double', label: 'otpGenerate(…) espera', at: 900 },
+        { assert: 'generateOtpUi.value == Loading', at: 1600 },
+        { from: 'test', to: 'double', label: 'response.complete(…)', at: 2300 },
+        { assert: 'generateOtpUi.value == Success(…)', at: 3000 }
+      ] },
+    { title: 'UI con Compose: buscar, actuar, verificar',
+      desc: 'La prueba dibuja solo la Screen, sin ViewModel. Busca nodos como lo haría TalkBack (texto, acciones, rol) y actúa sobre ellos.',
+      code: 'rule.setContent { AndroidTheme { SignInGenerateOtpScreen(state = Idle, phone = phone, …) } }',
+      code2: 'rule.onNode(hasSetTextAction()).performTextInput("987654321"); rule.onNodeWithText(submit).assertIsEnabled()',
+      tier: 2,
+      actors: { test: ['Prueba', 'createComposeRule()'], subject: ['Sujeto', 'SignInGenerateOtpScreen'], double: ['Doble', 'onSubmit = { sent = it }'] },
+      msgs: [
+        { from: 'test', to: 'subject', label: 'setContent { Screen(…) }', at: 300 },
+        { from: 'test', to: 'subject', label: 'performTextInput("987654321")', at: 900 },
+        { assert: 'onNodeWithText("Ingresar").assertIsEnabled()', at: 1600 },
+        { from: 'test', to: 'subject', label: 'performClick()', at: 2300 },
+        { from: 'subject', to: 'double', label: 'onSubmit("987654321")', at: 3000 }
+      ] },
+    { title: 'UI: el estado manda',
+      desc: 'Como la Screen solo recibe estado, cada caso se prueba pasándolo directo: error, carga, y también la accesibilidad de la clase anterior.',
+      code: 'setScreen(state = OtpGenerateState.Error("Ya existe un código activo."))   → assertIsDisplayed()',
+      code2: 'setScreen(state = OtpGenerateState.Loading)   → campo assertIsNotEnabled()     ·     onNode(isHeading())',
+      tier: 2,
+      actors: { test: ['Prueba', 'createComposeRule()'], subject: ['Sujeto', 'SignInGenerateOtpScreen'], double: ['Doble', 'estado de prueba'] },
+      msgs: [
+        { from: 'test', to: 'subject', label: 'state = Error("Ya existe…")', at: 300 },
+        { assert: 'el mensaje se muestra', at: 1000 },
+        { from: 'test', to: 'subject', label: 'state = Loading', at: 1700 },
+        { assert: 'el campo no se puede editar', at: 2400 },
+        { assert: 'onNode(isHeading()) existe', at: 3100 }
+      ] },
+    { title: 'Integración: Route y ViewModel reales',
+      desc: 'Route, ViewModel y casos de uso son los de verdad; solo el repositorio es falso. Sin Hilt: el ViewModel se pasa por parámetro.',
+      code: 'val vm = SignInViewModel(OtpGenerateUseCase(repo), OtpValidateUseCase(repo, NoSessionStore))',
+      code2: 'rule.setContent { SignInGenerateOtpRoute(onGoValidate = { p, e -> destination = p to e }, vm = vm) }',
+      tier: 1,
+      actors: { test: ['Prueba', 'SignInGenerateOtpRouteTest'], subject: ['Sujeto', 'Route + ViewModel'], double: ['Doble', 'FakeGenerateRepository'] },
+      msgs: [
+        { from: 'test', to: 'subject', label: 'escribe y toca «Ingresar»', at: 300 },
+        { from: 'subject', to: 'double', label: 'otpGenerate("51987654321")', at: 1000 },
+        { from: 'double', to: 'subject', label: 'expiresAt', at: 1700, ret: true },
+        { from: 'subject', to: 'test', label: 'onGoValidate("987654321", …)', at: 2400, ret: true },
+        { assert: 'waitUntil { destination != null }', at: 3100 }
+      ] },
+    { title: 'Dónde corre cada una',
+      desc: 'Muchas pruebas rápidas en la JVM y pocas en el dispositivo, para lo que necesita Android de verdad: pantallas, Room, Keystore.',
+      code: './gradlew testDebugUnitTest          // src/test        · JVM          · segundos · 86 pruebas',
+      code2: './gradlew connectedDebugAndroidTest  // src/androidTest · emulador     · minutos  · 35 pruebas',
+      tier: 'all',
+      actors: null,
+      msgs: [] }
+  ];
+
+  const TIERS = [
+    { label: 'Unitarias', sub: 'JVM · src/test · 86', path: 'M24,370 L264,370 L222,296 L66,296 Z', ty: 336 },
+    { label: 'Integración', sub: 'dispositivo · 27', path: 'M70,290 L218,290 L178,222 L110,222 Z', ty: 256 },
+    { label: 'UI', sub: 'Compose · 7', path: 'M114,216 L174,216 L144,160 Z', ty: 202 }
+  ];
+
+  const $ = id => document.getElementById(id);
+  const dots = $('dots');
+  let step = 0;
+  let stepStart = performance.now();
+  let playing = false;
+  let frozen = null;
+
+  const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
+  const esc = s => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');
+
+  function renderPyramid(tier) {
+    let s = '';
+    TIERS.forEach((t, i) => {
+      const on = tier === 'all' || tier === i;
+      s += '<g class="tier' + (on ? ' on' : '') + '"><path d="' + t.path + '"/>';
+      if (i === 2) {
+        s += '<text x="144" y="' + t.ty + '" text-anchor="middle">' + t.label + '</text>';
+      } else {
+        s += '<text x="144" y="' + t.ty + '" text-anchor="middle">' + t.label + '</text>' +
+          '<text class="n" x="144" y="' + (t.ty + 15) + '" text-anchor="middle">' + t.sub + '</text>';
+      }
+      s += '</g>';
+    });
+    s += '<text class="axis-label" x="144" y="148" text-anchor="middle">UI: Compose · 7</text>';
+    s += '<text class="axis-label" x="144" y="392" text-anchor="middle">↑ más reales y lentas · ↓ más rápidas y baratas</text>';
+    $('pyramid').innerHTML = s;
+  }
+
+  function renderLanes(actors) {
+    if (!actors) { $('lanes').innerHTML = ''; return; }
+    let s = '';
+    Object.keys(LANE_X).forEach(k => {
+      const x = LANE_X[k];
+      s += '<line class="lifeline" x1="' + x + '" y1="122" x2="' + x + '" y2="384"/>';
+      s += '<g class="actor"><rect x="' + (x - 100) + '" y="76" width="200" height="46" rx="12"/>' +
+        '<text x="' + x + '" y="96" text-anchor="middle">' + actors[k][0] + '</text>' +
+        '<text class="sub" x="' + x + '" y="112" text-anchor="middle">' + esc(actors[k][1]) + '</text></g>';
+    });
+    $('lanes').innerHTML = s;
+  }
+
+  function renderMsgs(list, t) {
+    let s = '';
+    const shown = list.filter(m => t >= m.at);
+    const last = shown.length - 1;
+    shown.forEach((m, i) => {
+      const y = ROW_Y0 + i * ROW_GAP;
+      const on = i === last;
+      if (m.assert) {
+        const w = Math.max(160, m.assert.length * 6.9 + 30);
+        const x = LANE_X.test - 60;
+        s += '<g><rect x="' + x + '" y="' + (y - 13) + '" width="' + w.toFixed(0) + '" height="24" rx="8" fill="#E8F3E8" stroke="#2E7D32" stroke-width="' + (on ? 2 : 1) + '"/>' +
+          '<text x="' + (x + 12) + '" y="' + (y + 3) + '" font-size="11.5" font-weight="700" fill="#2E7D32" font-family="ui-monospace, Menlo, monospace">✓ ' + esc(m.assert) + '</text></g>';
+        return;
+      }
+      const x1 = LANE_X[m.from];
+      const x2 = LANE_X[m.to];
+      const p = clamp((t - m.at) / 350, 0, 1);
+      const dir = Math.sign(x2 - x1);
+      const xe = x1 + (x2 - x1) * p - dir * 4;
+      const cls = 'msg' + (m.ret ? ' ret' : '') + (m.bad ? ' bad' : '') + (on ? ' on' : '');
+      s += '<g class="' + cls + '"><line x1="' + x1 + '" y1="' + y + '" x2="' + xe.toFixed(1) + '" y2="' + y + '" marker-end="url(#arrow)"/>' +
+        '<text x="' + ((x1 + x2) / 2) + '" y="' + (y - 7) + '" text-anchor="middle" opacity="' + p.toFixed(2) + '">' + esc(m.label) + '</text></g>';
+    });
+    $('msgs').innerHTML = s;
+  }
+
+  function renderWhere(t) {
+    const p = clamp((t - 300) / 600, 0, 1);
+    const q = clamp((t - 1300) / 600, 0, 1);
+    let s = '';
+    s += card(310, 90, 300, 'src/test · JVM', ['Casos de uso, repositorios, ViewModels', 'Fakes y MockK, MockWebServer', 'Segundos · en cada cambio'], '86 pruebas', p);
+    s += card(630, 90, 300, 'src/androidTest · dispositivo', ['Pantallas con Compose Test', 'Room, Keystore, DataStore, servicios', 'Minutos · antes de integrar'], '35 pruebas', q);
+    $('msgs').innerHTML = s;
+  }
+
+  function card(x, y, w, title, lines, count, alpha) {
+    let s = '<g opacity="' + alpha.toFixed(2) + '"><rect x="' + x + '" y="' + y + '" width="' + w + '" height="280" rx="16" fill="#F1EBFD" stroke="#7843E6" stroke-width="2"/>';
+    s += '<text x="' + (x + 20) + '" y="' + (y + 36) + '" font-size="15" font-weight="700" fill="#7843E6" font-family="ui-monospace, Menlo, monospace">' + esc(title) + '</text>';
+    lines.forEach((l, i) => { s += '<text x="' + (x + 20) + '" y="' + (y + 80 + i * 34) + '" font-size="13" fill="#0F0F0F">• ' + esc(l) + '</text>'; });
+    s += '<text x="' + (x + w / 2) + '" y="' + (y + 240) + '" text-anchor="middle" font-size="26" font-weight="700" fill="#7843E6">' + count + '</text>';
+    return s + '</g>';
+  }
+
+  function render(s, t) {
+    const info = STEPS[s];
+    $('p-step').textContent = (s + 1) + ' de ' + STEPS.length + ' · ' + info.title;
+    $('p-desc').textContent = info.desc;
+    $('p-code').textContent = info.code;
+    $('p-code2').textContent = info.code2;
+    [...dots.children].forEach((d, k) => d.classList.toggle('on', k === s));
+    renderPyramid(info.tier);
+    renderLanes(info.actors);
+    if (info.actors) renderMsgs(info.msgs, t); else renderWhere(t);
+  }
+
+  STEPS.forEach((_, i) => {
+    const b = document.createElement('button');
+    b.className = 'dot';
+    b.textContent = i + 1;
+    b.setAttribute('aria-label', 'Paso ' + (i + 1));
+    b.onclick = () => { stopPlay(); go(i); };
+    dots.appendChild(b);
+  });
+
+  function go(i) {
+    step = (i + STEPS.length) % STEPS.length;
+    stepStart = performance.now();
+    if (!document.body.classList.contains('capture')) {
+      history.replaceState(null, '', '#s=' + (step + 1));
+    }
+  }
+
+  function tick(now) {
+    if (frozen) return;
+    let t = now - stepStart;
+    if (t > STEP_MS + 400) {
+      if (playing) go(step + 1); else stepStart = now;
+      t = 0;
+    }
+    render(step, Math.min(t, STEP_MS));
+    requestAnimationFrame(tick);
+  }
+
+  function stopPlay() {
+    playing = false;
+    $('play').textContent = '▶ Reproducir';
+  }
+
+  $('play').onclick = () => {
+    if (playing) return stopPlay();
+    playing = true;
+    $('play').textContent = '❚❚ Pausa';
+    go(step + 1);
+  };
+  $('prev').onclick = () => { stopPlay(); go(step - 1); };
+  $('next').onclick = () => { stopPlay(); go(step + 1); };
+  $('replay').onclick = () => { stopPlay(); go(step); };
+  document.addEventListener('keydown', e => {
+    if (e.key === 'ArrowRight') { stopPlay(); go(step + 1); }
+    if (e.key === 'ArrowLeft') { stopPlay(); go(step - 1); }
+  });
+
+  window.renderFrame = (s, t) => { frozen = true; step = s; render(s, t); };
+  window.STEP_COUNT = STEPS.length;
+  window.STEP_MS = STEP_MS;
+
+  const params = new URLSearchParams(location.hash.slice(1));
+  if (params.has('capture')) document.body.classList.add('capture');
+  go((parseInt(params.get('s'), 10) || 1) - 1);
+  requestAnimationFrame(tick);
+</script>
+</body>
+</html>

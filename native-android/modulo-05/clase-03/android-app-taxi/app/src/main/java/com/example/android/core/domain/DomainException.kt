@@ -1,0 +1,47 @@
+package com.example.android.core.domain
+
+sealed class DomainException(
+    override val message: String,
+    open val code: Int? = null,
+    open val causeThrowable: Throwable? = null
+) : RuntimeException(message, causeThrowable) {
+
+    data class ValidationException(
+        override val message: String,
+        override val code: Int? = 422,
+        override val causeThrowable: Throwable? = null
+    ) : DomainException(message, code, causeThrowable)
+
+    data class UnauthorizedException(
+        override val message: String,
+        override val code: Int? = 401,
+        override val causeThrowable: Throwable? = null
+    ) : DomainException(message, code, causeThrowable)
+
+    data class ClientException(
+        override val message: String,
+        override val code: Int? = null,
+        override val causeThrowable: Throwable? = null
+    ) : DomainException(message, code, causeThrowable)
+
+    data class ServerException(
+        override val message: String,
+        override val code: Int? = null,
+        override val causeThrowable: Throwable? = null
+    ) : DomainException(message, code, causeThrowable)
+
+    data class NetworkException(
+        override val message: String,
+        override val code: Int? = null,
+        override val causeThrowable: Throwable? = null
+    ) : DomainException(message, code, causeThrowable)
+
+    data class UnknownException(
+        override val message: String = "Ocurrió un error inesperado",
+        override val code: Int? = null,
+        override val causeThrowable: Throwable? = null
+    ) : DomainException(message, code, causeThrowable)
+}
+
+fun Throwable.toDomainException(): DomainException =
+    this as? DomainException ?: DomainException.UnknownException(causeThrowable = this)

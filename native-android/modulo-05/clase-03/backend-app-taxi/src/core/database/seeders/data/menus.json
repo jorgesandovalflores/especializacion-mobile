@@ -1,0 +1,38 @@
+[
+    {
+        "key": "passenger_home",
+        "text": "Pedir taxi",
+        "icon": "home",
+        "deeplink": "app-taxi://passenger/home",
+        "order": 1,
+        "application": "PASSENGER",
+        "status": "ACTIVE"
+    },
+    {
+        "key": "passenger_profile",
+        "text": "Mi perfil",
+        "icon": "profile",
+        "deeplink": "app-taxi://passenger/profile",
+        "order": 2,
+        "application": "PASSENGER",
+        "status": "ACTIVE"
+    },
+    {
+        "key": "passenger_historic",
+        "text": "Mis viajes",
+        "icon": "history",
+        "deeplink": "app-taxi://passenger/historic",
+        "order": 3,
+        "application": "PASSENGER",
+        "status": "ACTIVE"
+    },
+    {
+        "key": "passenger_support",
+        "text": "Ayuda",
+        "icon": "support",
+        "deeplink": "app-taxi://passenger/support",
+        "order": 4,
+        "application": "PASSENGER",
+        "status": "ACTIVE"
+    }
+]

@@ -1,0 +1,8 @@
+allowBuilds:
+    "@firebase/util": false
+    "@parcel/watcher": false
+    "@scarf/scarf": false
+    "@swc/core": false
+    argon2: false
+    protobufjs: false
+    unrs-resolver: false

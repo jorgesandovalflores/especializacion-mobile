@@ -1,0 +1,6 @@
+{
+    "validation": {
+        "token": "El token del dispositivo es obligatorio (máximo 255 caracteres).",
+        "platform": "La plataforma debe ser ANDROID o IOS."
+    }
+}

@@ -1,0 +1,7 @@
+{
+    "validation": {
+        "url": "The photo URL must use https and be at most 255 characters."
+    },
+    "invalidUrl": "The photo does not belong to your profile. Upload it again.",
+    "notConfigured": "Photo upload is not available right now."
+}

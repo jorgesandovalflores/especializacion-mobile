@@ -1,0 +1,7 @@
+<resources>
+    <string name="app_name" translatable="false">App taxi</string>
+    <string name="common_back">Volver</string>
+    <string name="common_retry">Reintentar</string>
+    <string name="common_session_expired">Tu sesión expiró. Inicia sesión nuevamente</string>
+    <string name="common_otp_digit">Dígito %1$d de %2$d</string>
+</resources>
