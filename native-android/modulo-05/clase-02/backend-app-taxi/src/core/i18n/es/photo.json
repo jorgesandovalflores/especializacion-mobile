@@ -1,0 +1,7 @@
+{
+    "validation": {
+        "url": "La URL de la foto debe ser https y tener como máximo 255 caracteres."
+    },
+    "invalidUrl": "La foto no pertenece a tu perfil. Vuelve a subirla.",
+    "notConfigured": "La subida de fotos no está disponible en este momento."
+}

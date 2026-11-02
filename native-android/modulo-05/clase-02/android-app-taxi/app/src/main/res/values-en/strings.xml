@@ -1,0 +1,6 @@
+<resources>
+    <string name="common_back">Back</string>
+    <string name="common_retry">Try again</string>
+    <string name="common_session_expired">Your session expired. Please sign in again</string>
+    <string name="common_otp_digit">Digit %1$d of %2$d</string>
+</resources>

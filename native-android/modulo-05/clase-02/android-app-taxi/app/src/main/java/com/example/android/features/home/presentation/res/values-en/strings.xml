@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="home_open_menu">Open menu</string>
+    <string name="home_logout">Sign out</string>
+    <string name="home_center">Center on my location</string>
+    <string name="home_welcome">Signed in successfully</string>
+    <string name="home_user_marker">Your location</string>
+    <string name="home_searching_title">Finding your location…</string>
+    <string name="home_searching_body">GPS may take a few seconds to find you</string>
+    <string name="home_permission_title">Turn on your location</string>
+    <string name="home_permission_body">We use it to show you on the map and send you the nearest taxi</string>
+    <string name="home_permission_action">Allow location</string>
+    <string name="home_blocked_title">Location permission blocked</string>
+    <string name="home_blocked_body">Turn it on in Settings › Permissions › Location to see yourself on the map</string>
+    <string name="home_blocked_action">Open settings</string>
+    <string name="home_settings_off_title">Your phone\'s location is off</string>
+    <string name="home_settings_off_body">Turn it on so we can find you on the map</string>
+    <string name="home_settings_off_action">Turn on location</string>
+    <string name="home_missing_title">No location permission</string>
+    <string name="home_missing_body">Grant it again to see yourself on the map</string>
+    <string name="home_unavailable_title">We couldn\'t find you</string>
+    <string name="home_unavailable_body">Check your signal or move closer to a window and try again</string>
+</resources>

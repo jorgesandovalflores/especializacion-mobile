@@ -1,0 +1,528 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Una pantalla, cinco contextos</title>
+<style>
+  :root {
+    --bg: #F4F2FA;
+    --stage: #FFFFFF;
+    --ink: #0F0F0F;
+    --muted: #6B6B6B;
+    --line: #E2DDF2;
+    --primary: #7843E6;
+    --primary-soft: #F1EBFD;
+    --done: #B9B3CC;
+    --ok: #2E7D32;
+    --ok-soft: #E8F3E8;
+    --bad: #C62828;
+    --bad-soft: #FBE9E9;
+    --code: #1E1B2E;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: Inter, Roboto, system-ui, -apple-system, sans-serif;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 24px 16px;
+  }
+  .stage {
+    width: 100%;
+    max-width: 960px;
+    aspect-ratio: 16 / 9;
+    background: var(--stage);
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    overflow: hidden;
+  }
+  svg { width: 100%; height: 100%; display: block; }
+  .eyebrow { font-size: 12px; letter-spacing: .32em; fill: var(--primary); font-weight: 600; }
+  .title { font-size: 22px; font-weight: 700; fill: var(--ink); }
+  .mono { font-family: ui-monospace, Menlo, monospace; }
+
+  .actor rect { fill: var(--primary-soft); stroke: var(--primary); stroke-width: 1.5; }
+  .actor text { font-size: 15px; font-weight: 700; fill: var(--ink); }
+  .actor .sub { font-size: 11px; font-weight: 500; fill: var(--muted); }
+
+  .pill rect { fill: #F7F6FA; stroke: var(--done); stroke-width: 1.5; }
+  .pill text { font-size: 12px; font-weight: 600; fill: var(--muted); }
+  .pill .k { font-size: 10px; font-weight: 600; fill: var(--muted); letter-spacing: .08em; }
+  .pill.on rect { fill: var(--primary-soft); stroke: var(--primary); stroke-width: 2.5; }
+  .pill.on text { fill: var(--primary); }
+
+  .flow line { stroke: var(--done); stroke-width: 2; }
+  .flow text { font-size: 11px; font-weight: 600; fill: var(--done); }
+  .flow.on line { stroke: var(--primary); stroke-width: 3; stroke-dasharray: 8 6; animation: flow .7s linear infinite; }
+  .flow.on text { fill: var(--primary); }
+  @keyframes flow { to { stroke-dashoffset: -28; } }
+  body.capture .flow.on line { animation: none; }
+
+  .panel rect { fill: var(--code); }
+  .panel .step { font-size: 15px; font-weight: 700; fill: #fff; }
+  .panel .desc { font-size: 13px; fill: #CFC6EE; }
+  .panel .code { font-size: 12px; fill: #9BE3A0; font-family: ui-monospace, Menlo, monospace; }
+
+  .controls {
+    width: 100%;
+    max-width: 960px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    align-items: center;
+    margin-top: 14px;
+  }
+  button {
+    font: inherit;
+    font-size: 14px;
+    font-weight: 600;
+    border: 1px solid var(--line);
+    background: #fff;
+    color: var(--primary);
+    border-radius: 999px;
+    padding: 8px 16px;
+    cursor: pointer;
+  }
+  button.primary { background: var(--primary); color: #fff; border-color: var(--primary); }
+  .dots { display: flex; gap: 6px; flex-wrap: wrap; }
+  .dot { width: 28px; height: 28px; padding: 0; border-radius: 50%; font-size: 12px; }
+  .dot.on { background: var(--primary); color: #fff; border-color: var(--primary); }
+  .hint { color: var(--muted); font-size: 13px; margin-left: auto; }
+  body.capture { padding: 0; background: #fff; }
+  body.capture .stage { border: 0; border-radius: 0; max-width: none; width: 960px; }
+  body.capture .controls { display: none; }
+</style>
+</head>
+<body>
+<div class="stage">
+<svg viewBox="0 0 960 540" role="img" aria-label="Diagrama de cómo la misma pantalla se adapta al ancho, a TalkBack, al tamaño de fuente, al tema y al idioma">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="context-stroke"/>
+    </marker>
+  </defs>
+
+  <text class="eyebrow" x="480" y="30" text-anchor="middle">DISEÑO ADAPTATIVO Y ACCESIBILIDAD · UNA PANTALLA, CINCO CONTEXTOS</text>
+  <text class="title" x="480" y="58" text-anchor="middle">El contexto cambia; Compose vuelve a componer la misma pantalla</text>
+
+  <g class="actor"><rect x="24" y="76" width="160" height="44" rx="12"/>
+    <text x="104" y="97" text-anchor="middle">Contexto</text><text class="sub" x="104" y="112" text-anchor="middle">lo entrega Android</text></g>
+  <g class="actor"><rect x="214" y="76" width="196" height="44" rx="12"/>
+    <text x="312" y="97" text-anchor="middle">Compose resuelve</text><text class="sub" x="312" y="112" text-anchor="middle">semántica · tema · recursos</text></g>
+  <g class="actor"><rect x="584" y="76" width="200" height="44" rx="12"/>
+    <text x="684" y="97" text-anchor="middle">Pantalla</text><text class="sub" x="684" y="112" text-anchor="middle">ProfileScreen («Mi perfil»)</text></g>
+
+  <g id="rows"></g>
+
+  <g class="flow" id="f-out"><line x1="412" y1="262" x2="440" y2="262" marker-end="url(#arrow)"/></g>
+
+  <g id="mock"></g>
+
+  <g class="panel">
+    <rect x="30" y="400" width="900" height="114" rx="12"/>
+    <text class="step" id="p-step" x="52" y="430"></text>
+    <text class="desc" id="p-desc" x="52" y="455"></text>
+    <text class="code" id="p-code" x="52" y="482" style="white-space: pre"></text>
+    <text class="code" id="p-code2" x="52" y="501" style="white-space: pre"></text>
+  </g>
+</svg>
+</div>
+
+<div class="controls">
+  <button id="prev" aria-label="Paso anterior">‹ Anterior</button>
+  <button id="play" class="primary">▶ Reproducir</button>
+  <button id="next" aria-label="Paso siguiente">Siguiente ›</button>
+  <button id="replay" aria-label="Repetir el paso">↻ Repetir paso</button>
+  <div class="dots" id="dots"></div>
+  <span class="hint">← → para avanzar</span>
+</div>
+
+<script>
+  const STEP_MS = 4200;
+
+  const STEPS = [
+    { title: 'Una pantalla, cinco contextos',
+      desc: 'ProfileScreen no sabe en qué teléfono corre: lee el contexto que entrega Android y se compone según él.',
+      code: '@Composable fun ProfileScreen(profile, photo, onBack, onChangePhoto, onRetry)   // un solo composable',
+      code2: 'Ancho · TalkBack · tamaño de fuente · tema · idioma   →   no hay una pantalla por caso' },
+    { title: 'Mide el espacio, no el dispositivo',
+      desc: 'Al girar el teléfono el ancho pasa de 360 a 800 dp. Al cruzar 600 dp la clase es Medium y el perfil usa dos paneles.',
+      code: 'BoxWithConstraints { if (widthClassOf(maxWidth) == WidthClass.Compact) Column { … } else Row { … } }',
+      code2: '< 600 dp Compact · 600–839 dp Medium · ≥ 840 dp Expanded        // commons/presentation/Adaptive.kt' },
+    { title: 'TalkBack lee el árbol de semántica',
+      desc: 'TalkBack no ve píxeles: recorre los nodos en orden y dice qué es cada uno (texto, rol, estado).',
+      code: 'Icon(contentDescription = stringResource(R.string.common_back))      → «Volver, botón»',
+      code2: 'Text(title, modifier = Modifier.semantics { heading() })           → «Mi perfil, encabezado»' },
+    { title: 'Agrupa lo que va junto',
+      desc: 'Sin agrupar, «Correo» y su valor son dos paradas. Con mergeDescendants la fila se lee de una vez.',
+      code: 'Row(Modifier.semantics(mergeDescendants = true) { }) { Text(label); Text(value) }',
+      code2: 'Box(avatarModifier.clearAndSetSemantics { }) { Text(initials) }   // «J S» no aporta: oculto' },
+    { title: 'Texto grande: altura mínima, no fija',
+      desc: 'Con la fuente al 200 % el texto mide el doble. Una altura fija lo recorta; una altura mínima lo deja crecer.',
+      code: '✗ Modifier.height(56.dp)          // con fontScale 2.0 el texto ya no entra',
+      code2: '✓ Modifier.heightIn(min = 56.dp)   // PrimaryButton, campos de texto, casillas OTP y menú' },
+    { title: 'Modo oscuro: tokens, no colores',
+      desc: 'La pantalla pide «el fondo» y «el texto», no un hex. AndroidTheme entrega el ColorScheme claro u oscuro.',
+      code: '✗ background(Color(0xFFF0F0F0))      ✓ background(MaterialTheme.colorScheme.background)',
+      code2: 'AndroidTheme(darkTheme = isSystemInDarkTheme()) { … }   → LightColorScheme o DarkColorScheme' },
+    { title: 'Idioma: Android elige el strings.xml',
+      desc: 'Los textos viven en recursos. En inglés Android usa values-en/; si falta una clave, cae en values/ (español).',
+      code: 'Text(stringResource(R.string.profile_title))     // values: «Mi perfil» · values-en: «My profile»',
+      code2: 'Idioma por app (Android 13+): Ajustes › Apps › App taxi › Idioma   ← res/xml/locales_config.xml' },
+    { title: 'Todo a la vez, sin un if por caso',
+      desc: 'Horizontal, oscuro, en inglés y con TalkBack: la misma ProfileScreen. Cada cambio de contexto es una recomposición.',
+      code: 'nuevo contexto   →   Compose recompone   →   misma ProfileScreen, otro resultado',
+      code2: 'El estado vive en el ViewModel: girar, cambiar tema o idioma no pierde el perfil cargado' }
+  ];
+
+  const THEMES = {
+    light: { bg: '#F0F0F0', surface: '#FFFFFF', on: '#0F0F0F', variant: '#6B6B6B', primary: '#7843E6', soft: '#E9E0FB', frame: '#CFC8E6' },
+    dark: { bg: '#121212', surface: '#1E1E1E', on: '#ECECEC', variant: '#B0B0B0', primary: '#B9A0F5', soft: '#2E2546', frame: '#4A4466' }
+  };
+  const TEXTS = {
+    es: { title: 'Mi perfil', email: 'Correo', status: 'Estado', active: 'Activo', button: 'Agregar foto', back: 'Volver', heading: 'encabezado', role: 'botón' },
+    en: { title: 'My profile', email: 'Email', status: 'Status', active: 'Active', button: 'Add photo', back: 'Back', heading: 'heading', role: 'button' }
+  };
+  const NAME = 'Jorge Sandoval';
+  const PHONE = '+51 987 654 321';
+  const EMAIL = 'jorge@mail.com';
+
+  const $ = id => document.getElementById(id);
+  const dots = $('dots');
+  let step = 0;
+  let stepStart = performance.now();
+  let playing = false;
+  let frozen = null;
+
+  const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
+  const ease = p => p < .5 ? 4 * p * p * p : 1 - Math.pow(-2 * p + 2, 3) / 2;
+  const prog = (t, from, dur) => ease(clamp((t - from) / dur, 0, 1));
+  const esc = s => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');
+
+  function hex(c) { return [1, 3, 5].map(i => parseInt(c.slice(i, i + 2), 16)); }
+  function mix(a, b, p) {
+    const x = hex(a), y = hex(b);
+    return '#' + x.map((v, i) => Math.round(v + (y[i] - v) * p).toString(16).padStart(2, '0')).join('');
+  }
+  function palette(p) {
+    const out = {};
+    Object.keys(THEMES.light).forEach(k => out[k] = mix(THEMES.light[k], THEMES.dark[k], p));
+    return out;
+  }
+
+  const ROWS = [
+    { key: 'ANCHO', res: 'LAYOUT', y: 136 },
+    { key: 'TALKBACK', res: 'SEMÁNTICA', y: 184 },
+    { key: 'FUENTE', res: 'TEXTO', y: 232 },
+    { key: 'TEMA', res: 'COLORES', y: 280 },
+    { key: 'IDIOMA', res: 'TEXTOS', y: 328 }
+  ];
+
+  function pill(x, y, w, k, value, on) {
+    return '<g class="pill' + (on ? ' on' : '') + '"><rect x="' + x + '" y="' + y + '" width="' + w + '" height="40" rx="11"/>' +
+      '<text class="k" x="' + (x + w / 2) + '" y="' + (y + 14) + '" text-anchor="middle">' + k + '</text>' +
+      '<text class="mono" x="' + (x + w / 2) + '" y="' + (y + 31) + '" text-anchor="middle">' + esc(value) + '</text></g>';
+  }
+
+  function txt(x, y, s, size, color, opts) {
+    opts = opts || {};
+    return '<text x="' + x.toFixed(1) + '" y="' + y.toFixed(1) + '" font-size="' + size + '" fill="' + color + '"' +
+      (opts.bold ? ' font-weight="700"' : (opts.medium ? ' font-weight="600"' : '')) +
+      (opts.anchor ? ' text-anchor="' + opts.anchor + '"' : '') +
+      (opts.opacity !== undefined ? ' opacity="' + opts.opacity.toFixed(3) + '"' : '') + '>' + esc(s) + '</text>';
+  }
+
+  function layout(wide, W, H) {
+    if (!wide) {
+      const card = { x: 12, y: 134, w: W - 24, h: 46 };
+      return {
+        back: { cx: 20, cy: 22 }, title: { x: 38, y: 26 },
+        avatar: { cx: W / 2, cy: 70, r: 24 },
+        name: { x: W / 2, y: 108, anchor: 'middle' }, phone: { x: W / 2, y: 122, anchor: 'middle' },
+        card, row1: card.y + 18, row2: card.y + 36, rowL: card.x + 10, rowR: card.x + card.w - 10,
+        button: { x: 12, y: H - 38, w: W - 24, h: 28 }
+      };
+    }
+    const card = { x: W * 0.5, y: 48, w: W * 0.5 - 14, h: 46 };
+    return {
+      back: { cx: 20, cy: 22 }, title: { x: 38, y: 26 },
+      avatar: { cx: W * 0.26, cy: 84, r: 28 },
+      name: { x: W * 0.26, y: 132, anchor: 'middle' }, phone: { x: W * 0.26, y: 147, anchor: 'middle' },
+      card, row1: card.y + 18, row2: card.y + 36, rowL: card.x + 10, rowR: card.x + card.w - 10,
+      button: { x: W * 0.5, y: H - 40, w: W * 0.5 - 14, h: 28 }
+    };
+  }
+
+  function boxes(L) {
+    const b = {
+      back: [L.back.cx - 13, L.back.cy - 13, 26, 26],
+      title: [L.title.x - 4, L.title.y - 13, 74, 18],
+      name: [L.name.x - 52, L.name.y - 12, 104, 17],
+      phone: [L.phone.x - 44, L.phone.y - 10, 88, 14],
+      row1: [L.card.x + 4, L.row1 - 12, L.card.w - 8, 16],
+      row2: [L.card.x + 4, L.row2 - 12, L.card.w - 8, 16],
+      row1label: [L.rowL - 4, L.row1 - 12, 46, 16],
+      row1value: [L.rowR - 84, L.row1 - 12, 88, 16],
+      button: [L.button.x - 3, L.button.y - 3, L.button.w + 6, L.button.h + 6]
+    };
+    return b;
+  }
+
+  function screen(L, W, H, c, tx, alpha, textAlpha) {
+    let s = '<g opacity="' + alpha.toFixed(3) + '">';
+    s += '<circle cx="' + L.back.cx + '" cy="' + L.back.cy + '" r="11" fill="' + c.surface + '"/>';
+    s += '<path d="M' + (L.back.cx + 4) + ',' + L.back.cy + ' h-8 m4,-4 l-4,4 l4,4" stroke="' + c.on + '" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/>';
+    s += txt(L.title.x, L.title.y, tx.title, 12.5, c.on, { bold: true, opacity: textAlpha });
+    s += '<circle cx="' + L.avatar.cx.toFixed(1) + '" cy="' + L.avatar.cy + '" r="' + L.avatar.r + '" fill="' + c.soft + '"/>';
+    s += txt(L.avatar.cx, L.avatar.cy + 6, 'JS', L.avatar.r * 0.62, c.primary, { bold: true, anchor: 'middle' });
+    s += txt(L.name.x, L.name.y, NAME, 12.5, c.on, { bold: true, anchor: 'middle' });
+    s += txt(L.phone.x, L.phone.y, PHONE, 9.5, c.variant, { anchor: 'middle' });
+    s += '<rect x="' + L.card.x.toFixed(1) + '" y="' + L.card.y + '" width="' + L.card.w.toFixed(1) + '" height="' + L.card.h + '" rx="10" fill="' + c.surface + '"/>';
+    s += txt(L.rowL, L.row1, tx.email, 9.5, c.variant, { opacity: textAlpha });
+    s += txt(L.rowR, L.row1, EMAIL, 9.5, c.on, { medium: true, anchor: 'end' });
+    s += txt(L.rowL, L.row2, tx.status, 9.5, c.variant, { opacity: textAlpha });
+    s += txt(L.rowR, L.row2, tx.active, 9.5, c.on, { medium: true, anchor: 'end', opacity: textAlpha });
+    s += '<rect x="' + L.button.x.toFixed(1) + '" y="' + L.button.y + '" width="' + L.button.w.toFixed(1) + '" height="' + L.button.h + '" rx="14" fill="#7843E6"/>';
+    s += txt(L.button.x + L.button.w / 2, L.button.y + 18, tx.button, 11, '#FFFFFF', { medium: true, anchor: 'middle', opacity: textAlpha });
+    return s + '</g>';
+  }
+
+  function badge(x, y, ok, label) {
+    const w = label.length * 6.4 + 22;
+    return '<g><rect x="' + x + '" y="' + y + '" width="' + w + '" height="22" rx="8" fill="' + (ok ? '#E8F3E8' : '#FBE9E9') +
+      '" stroke="' + (ok ? '#2E7D32' : '#C62828') + '"/>' +
+      txt(x + w / 2, y + 15, (ok ? '✓ ' : '✗ ') + label, 11, ok ? '#2E7D32' : '#C62828', { bold: true, anchor: 'middle' }) + '</g>';
+  }
+
+  function bubble(cx, y, say) {
+    const text = '🔊 «' + say + '»';
+    const w = text.length * 6.6 + 24;
+    return '<g><rect x="' + (cx - w / 2).toFixed(1) + '" y="' + y + '" width="' + w.toFixed(1) + '" height="24" rx="12" fill="#1E1B2E"/>' +
+      txt(cx, y + 16, text, 12, '#FFFFFF', { medium: true, anchor: 'middle' }) + '</g>';
+  }
+
+  function utterances(tx, merged) {
+    const base = [
+      ['back', tx.back + ', ' + tx.role],
+      ['title', tx.title + ', ' + tx.heading],
+      ['name', NAME],
+      ['phone', PHONE]
+    ];
+    const rows = merged
+      ? [['row1', tx.email + ', ' + EMAIL], ['row2', tx.status + ', ' + tx.active]]
+      : [['row1label', tx.email], ['row1value', EMAIL]];
+    return base.concat(rows, [['button', tx.button + ', ' + tx.role]]);
+  }
+
+  function buttonDemo(x, top, w, h, fontPx, lines, lineH, clipId) {
+    let s = '';
+    if (clipId) s += '<clipPath id="' + clipId + '"><rect x="' + x + '" y="' + top + '" width="' + w + '" height="' + h + '" rx="20"/></clipPath>';
+    s += '<rect x="' + x + '" y="' + top + '" width="' + w + '" height="' + h.toFixed(1) + '" rx="20" fill="#7843E6"/>';
+    const first = top + h / 2 - (lines.length - 1) * lineH / 2 + fontPx * 0.36;
+    let t = '';
+    lines.forEach((l, i) => { t += txt(x + w / 2, first + i * lineH, l, fontPx, '#FFFFFF', { medium: true, anchor: 'middle' }); });
+    return s + (clipId ? '<g clip-path="url(#' + clipId + ')">' + t + '</g>' : t);
+  }
+
+  function fontDemo(fs) {
+    const fontPx = 14 * fs;
+    const lineH = fontPx * 1.3;
+    const w = 150;
+    const label = 'Agregar foto';
+    const lines = label.length * fontPx * 0.56 > w - 24 ? ['Agregar', 'foto'] : [label];
+    const needed = lines.length * lineH + 16;
+    const fixedH = 40;
+    const grownH = Math.max(fixedH, needed);
+    const top = 200;
+    let s = '';
+    s += txt(561, 176, '.height(56.dp)', 12, '#C62828', { bold: true, anchor: 'middle' });
+    s += txt(807, 176, '.heightIn(min = 56.dp)', 12, '#2E7D32', { bold: true, anchor: 'middle' });
+    s += buttonDemo(561 - w / 2, top, w, fixedH, fontPx, lines, lineH, 'clipFixed');
+    s += buttonDemo(807 - w / 2, top, w, grownH, fontPx, lines, lineH, null);
+    const clipped = needed > fixedH + 0.5;
+    if (clipped) s += badge(500, 316, false, 'texto recortado');
+    s += badge(748, 316, true, clipped ? 'crece con el texto' : 'mismo tamaño');
+    s += txt(684, 366, 'fontScale = ' + fs.toFixed(2) + '   ·   titleMedium 16.sp → ' + (16 * fs).toFixed(1) + ' dp', 12, '#6B6B6B', { medium: true, anchor: 'middle' });
+    return s;
+  }
+
+  function contextFor(s, t) {
+    const ctx = { widthP: 0, talkback: false, fs: 1, darkP: 0, lang: 'es', langAlpha: 1, merged: true };
+    if (s === 1) ctx.widthP = prog(t, 500, 2000);
+    if (s === 2 || s === 3 || s === 7) ctx.talkback = true;
+    if (s === 3) ctx.merged = t >= STEP_MS * 0.48;
+    if (s === 4) ctx.fs = 1 + prog(t, 500, 2200);
+    if (s === 5) ctx.darkP = prog(t, 700, 1300);
+    if (s >= 6) ctx.darkP = 1;
+    if (s === 6) {
+      const sw = 1500;
+      ctx.lang = t < sw ? 'es' : 'en';
+      ctx.langAlpha = clamp(Math.abs(t - sw) / 180, 0, 1);
+    }
+    if (s === 7) { ctx.lang = 'en'; ctx.widthP = prog(t, 200, 1200); }
+    return ctx;
+  }
+
+  function focusFor(s, t, ctx, tx) {
+    if (!ctx.talkback) return null;
+    let list, start, per;
+    if (s === 2) { list = utterances(tx, true); start = 300; per = 540; }
+    else if (s === 3) {
+      const all = utterances(tx, ctx.merged).filter(u => u[0].startsWith('row'));
+      list = all; per = 800;
+      start = ctx.merged ? STEP_MS * 0.48 + 200 : 300;
+    } else { list = [['row1', tx.email + ', ' + EMAIL]]; start = 1500; per = 99999; }
+    if (t < start) return null;
+    const i = Math.min(list.length - 1, Math.floor((t - start) / per));
+    return { node: list[i][0], say: list[i][1] };
+  }
+
+  function renderRows(s, t, ctx) {
+    const width = Math.round(360 + 440 * ctx.widthP);
+    const wc = width < 600 ? 'Compact · Column' : (width < 840 ? 'Medium · Row' : 'Expanded · Row');
+    const tx = TEXTS[ctx.lang];
+    const focus = focusFor(s, t, ctx, tx);
+    const said = focus ? '«' + (focus.say.length > 20 ? focus.say.slice(0, 19) + '…' : focus.say) + '»' : (ctx.talkback ? 'esperando foco' : 'sin lector');
+    const dark = ctx.darkP > 0.5;
+    const values = [
+      ['maxWidth = ' + width + 'dp', wc],
+      [ctx.talkback ? 'encendido' : 'apagado', said],
+      ['fontScale = ' + ctx.fs.toFixed(2), '16.sp → ' + (16 * ctx.fs).toFixed(1) + 'dp'],
+      [dark ? 'oscuro' : 'claro', dark ? 'DarkColorScheme' : 'LightColorScheme'],
+      [ctx.lang, ctx.lang === 'en' ? 'values-en/strings.xml' : 'values/strings.xml']
+    ];
+    const active = [
+      s === 1 || s === 7,
+      s === 2 || s === 3 || s === 7,
+      s === 4,
+      s === 5 || s === 7,
+      s === 6 || s === 7
+    ];
+    let out = '';
+    ROWS.forEach((r, i) => {
+      out += pill(24, r.y, 160, r.key, values[i][0], active[i]);
+      out += '<g class="flow' + (active[i] ? ' on' : '') + '"><line x1="186" y1="' + (r.y + 20) + '" x2="212" y2="' + (r.y + 20) + '" marker-end="url(#arrow)"/></g>';
+      out += pill(214, r.y, 196, r.res, values[i][1], active[i]);
+    });
+    $('rows').innerHTML = out;
+    $('f-out').classList.toggle('on', active.some(Boolean));
+    return focus;
+  }
+
+  function renderMock(s, t, ctx, focus) {
+    const c = palette(ctx.darkP);
+    const tx = TEXTS[ctx.lang];
+    const p = ctx.widthP;
+    const W = 165 + (480 - 165) * p;
+    const H = 230 - 30 * p;
+    const cx = 684;
+    const fx = cx - W / 2;
+    const fy = 158 + (230 - H) / 2;
+    const widthDp = 360 + 440 * p;
+    const wideAlpha = clamp((widthDp - 570) / 60, 0, 1);
+
+    let svg = '';
+    const dim = s === 4 ? 0.18 : 1;
+    svg += '<g opacity="' + dim + '">';
+    svg += '<rect x="' + fx.toFixed(1) + '" y="' + fy.toFixed(1) + '" width="' + W.toFixed(1) + '" height="' + H.toFixed(1) + '" rx="20" fill="' + c.bg + '" stroke="' + c.frame + '" stroke-width="2"/>';
+    svg += '<g transform="translate(' + fx.toFixed(1) + ' ' + fy.toFixed(1) + ')">';
+    const Lp = layout(false, W, H);
+    const Lw = layout(true, W, H);
+    if (wideAlpha < 1) svg += screen(Lp, W, H, c, tx, 1 - wideAlpha, ctx.langAlpha);
+    if (wideAlpha > 0) svg += screen(Lw, W, H, c, tx, wideAlpha, ctx.langAlpha);
+    if (focus) {
+      const b = boxes(wideAlpha > 0.5 ? Lw : Lp)[focus.node];
+      svg += '<rect x="' + b[0].toFixed(1) + '" y="' + b[1].toFixed(1) + '" width="' + b[2].toFixed(1) + '" height="' + b[3].toFixed(1) +
+        '" rx="6" fill="none" stroke="#2EA043" stroke-width="3"/>';
+    }
+    svg += '</g></g>';
+
+    if (s === 1) {
+      const wcLabel = widthDp < 600 ? 'Compact' : 'Medium';
+      svg += txt(cx, fy - 8, Math.round(widthDp) + ' dp · ' + wcLabel, 12, '#7843E6', { bold: true, anchor: 'middle' });
+    }
+    if (focus) svg += bubble(cx, 128, focus.say);
+    if (s === 3 && t > 300) {
+      const merged = ctx.merged;
+      svg += badge(fx + W + 12, fy + 126, merged, merged ? '1 parada por fila' : '2 paradas para 1 dato');
+    }
+    if (s === 4) svg += fontDemo(ctx.fs);
+    if (s === 7 && t > 1500) svg += badge(796, 129, true, 'misma ProfileScreen');
+    $('mock').innerHTML = svg;
+  }
+
+  function render(s, t) {
+    const info = STEPS[s];
+    $('p-step').textContent = (s + 1) + ' de ' + STEPS.length + ' · ' + info.title;
+    $('p-desc').textContent = info.desc;
+    $('p-code').textContent = info.code;
+    $('p-code2').textContent = info.code2;
+    [...dots.children].forEach((d, k) => d.classList.toggle('on', k === s));
+
+    const ctx = contextFor(s, t);
+    const focus = renderRows(s, t, ctx);
+    renderMock(s, t, ctx, focus);
+  }
+
+  STEPS.forEach((_, i) => {
+    const b = document.createElement('button');
+    b.className = 'dot';
+    b.textContent = i + 1;
+    b.setAttribute('aria-label', 'Paso ' + (i + 1));
+    b.onclick = () => { stopPlay(); go(i); };
+    dots.appendChild(b);
+  });
+
+  function go(i) {
+    step = (i + STEPS.length) % STEPS.length;
+    stepStart = performance.now();
+    if (!document.body.classList.contains('capture')) {
+      history.replaceState(null, '', '#s=' + (step + 1));
+    }
+  }
+
+  function tick(now) {
+    if (frozen) return;
+    let t = now - stepStart;
+    if (t > STEP_MS + 400) {
+      if (playing) go(step + 1); else stepStart = now;
+      t = 0;
+    }
+    render(step, Math.min(t, STEP_MS));
+    requestAnimationFrame(tick);
+  }
+
+  function stopPlay() {
+    playing = false;
+    $('play').textContent = '▶ Reproducir';
+  }
+
+  $('play').onclick = () => {
+    if (playing) return stopPlay();
+    playing = true;
+    $('play').textContent = '❚❚ Pausa';
+    go(step + 1);
+  };
+  $('prev').onclick = () => { stopPlay(); go(step - 1); };
+  $('next').onclick = () => { stopPlay(); go(step + 1); };
+  $('replay').onclick = () => { stopPlay(); go(step); };
+  document.addEventListener('keydown', e => {
+    if (e.key === 'ArrowRight') { stopPlay(); go(step + 1); }
+    if (e.key === 'ArrowLeft') { stopPlay(); go(step - 1); }
+  });
+
+  window.renderFrame = (s, t) => { frozen = true; step = s; render(s, t); };
+  window.STEP_COUNT = STEPS.length;
+  window.STEP_MS = STEP_MS;
+
+  const params = new URLSearchParams(location.hash.slice(1));
+  if (params.has('capture')) document.body.classList.add('capture');
+  go((parseInt(params.get('s'), 10) || 1) - 1);
+  requestAnimationFrame(tick);
+</script>
+</body>
+</html>

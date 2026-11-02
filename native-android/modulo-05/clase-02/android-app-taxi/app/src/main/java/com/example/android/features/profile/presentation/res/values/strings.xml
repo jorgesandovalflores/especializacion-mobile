@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="profile_title">Mi perfil</string>
+    <string name="profile_photo">Foto de perfil</string>
+    <string name="profile_photo_uploading">Subiendo foto</string>
+    <string name="profile_photo_updated">Foto actualizada</string>
+    <string name="profile_add_photo">Agregar foto</string>
+    <string name="profile_change_photo">Cambiar foto</string>
+    <string name="profile_email">Correo</string>
+    <string name="profile_no_email">Sin correo</string>
+    <string name="profile_status">Estado</string>
+    <string name="profile_status_active">Activo</string>
+    <string name="profile_default_name">Pasajero</string>
+</resources>
