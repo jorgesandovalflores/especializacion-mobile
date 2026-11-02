@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="trip_where_title">Where are you going?</string>
+    <string name="trip_where_body">Tap the map to choose your destination</string>
+    <string name="trip_quoting">Calculating the route…</string>
+    <string name="trip_origin_label">From</string>
+    <string name="trip_destination_label">To</string>
+    <string name="trip_your_location">Your location</string>
+    <string name="trip_point_on_map">Point on the map</string>
+    <string name="trip_summary">%1$s · %2$s</string>
+    <string name="trip_suggested_fare">Suggested fare</string>
+    <string name="trip_request">Request trip</string>
+    <string name="trip_change_destination">Change destination</string>
+    <string name="trip_searching_title">Looking for drivers</string>
+    <string name="trip_searching_body">Offers will show up here in real time</string>
+    <plurals name="trip_offers_count">
+        <item quantity="one">%d offer received</item>
+        <item quantity="other">%d offers received</item>
+    </plurals>
+    <string name="trip_offer_eta">Arrives in %d min</string>
+    <string name="trip_accept">Accept</string>
+    <string name="trip_accept_offer_of">Accept %1$s\'s offer for %2$s</string>
+    <string name="trip_cancel_request">Cancel request</string>
+    <string name="trip_cancel">Cancel trip</string>
+    <string name="trip_status_accepted">Your driver is on the way</string>
+    <string name="trip_status_arrived">Your driver has arrived</string>
+    <string name="trip_status_in_progress">On your way</string>
+    <string name="trip_status_arrived_body">Meet them at the pickup point</string>
+    <string name="trip_status_in_progress_body">Heading to %1$s</string>
+    <string name="trip_vehicle">%1$s %2$s · %3$s</string>
+    <string name="trip_rating_value">%.1f</string>
+    <string name="trip_rating_title">How was your trip?</string>
+    <string name="trip_rating_body">Rate %1$s</string>
+    <string name="trip_rating_star">%1$d of 5 stars</string>
+    <string name="trip_rating_comment">Comment (optional)</string>
+    <string name="trip_rating_send">Send rating</string>
+    <string name="trip_rating_skip">Skip</string>
+    <string name="trip_cancelled">The trip was cancelled</string>
+    <string name="trip_rated">Thanks for your rating!</string>
+    <string name="trip_destination_marker">Destination</string>
+    <string name="trip_driver_marker">Your driver</string>
+</resources>

@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="signin_title"><![CDATA[Ingresa como <b>conductor</b> con tu teléfono y contraseña]]></string>
+    <string name="signin_phone_placeholder">Ingresa tu número de teléfono</string>
+    <string name="signin_password_placeholder">Ingresa tu contraseña</string>
+    <string name="signin_password_show">Mostrar contraseña</string>
+    <string name="signin_password_hide">Ocultar contraseña</string>
+    <string name="signin_submit">Ingresar</string>
+</resources>

@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="signin_title"><![CDATA[Sign in as a <b>driver</b> with your phone and password]]></string>
+    <string name="signin_phone_placeholder">Enter your phone number</string>
+    <string name="signin_password_placeholder">Enter your password</string>
+    <string name="signin_password_show">Show password</string>
+    <string name="signin_password_hide">Hide password</string>
+    <string name="signin_submit">Sign in</string>
+</resources>

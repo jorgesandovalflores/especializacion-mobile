@@ -1,0 +1,14 @@
+{
+    "notFound": "The trip does not exist.",
+    "activeExists": "You already have a trip in progress.",
+    "routeUnavailable": "We could not calculate the route. Please try again.",
+    "notRequested": "The trip is no longer waiting for offers.",
+    "offerUnavailable": "The offer is no longer available.",
+    "offerExists": "You already sent an offer for this trip.",
+    "driverBusy": "The driver already has a trip in progress.",
+    "driverOffline": "Start your shift to send offers.",
+    "notCancellable": "The trip can no longer be cancelled.",
+    "invalidTransition": "The status change is not valid for this trip.",
+    "notCompleted": "You can only rate a finished trip.",
+    "alreadyRated": "You already rated this trip."
+}

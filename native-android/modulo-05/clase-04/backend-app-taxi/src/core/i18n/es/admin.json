@@ -1,0 +1,6 @@
+{
+    "notFound": "El administrador no existe.",
+    "emailTaken": "Ya existe un administrador con ese email.",
+    "selfDelete": "No puedes eliminar tu propia cuenta.",
+    "selfDeactivate": "No puedes desactivar tu propia cuenta."
+}

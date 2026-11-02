@@ -1,0 +1,444 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ofertas de viaje en tiempo real con Socket.IO</title>
+<style>
+  :root {
+    --bg: #F4F2FA;
+    --stage: #FFFFFF;
+    --ink: #0F0F0F;
+    --muted: #6B6B6B;
+    --line: #E2DDF2;
+    --primary: #7843E6;
+    --primary-soft: #F1EBFD;
+    --done: #B9B3CC;
+    --ok: #2E7D32;
+    --ok-soft: #E8F3E8;
+    --bad: #C62828;
+    --bad-soft: #FBE9E9;
+    --code: #1E1B2E;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: Inter, Roboto, system-ui, -apple-system, sans-serif;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 24px 16px;
+  }
+  .stage {
+    width: 100%;
+    max-width: 960px;
+    aspect-ratio: 16 / 9;
+    background: var(--stage);
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    overflow: hidden;
+  }
+  svg { width: 100%; height: 100%; display: block; }
+  .eyebrow { font-size: 12px; letter-spacing: .32em; fill: var(--primary); font-weight: 600; }
+  .title { font-size: 22px; font-weight: 700; fill: var(--ink); }
+  .mono { font-family: ui-monospace, Menlo, monospace; }
+
+  .actor rect { fill: var(--primary-soft); stroke: var(--primary); stroke-width: 1.5; }
+  .actor text { font-size: 14px; font-weight: 700; fill: var(--ink); }
+  .actor .sub { font-size: 10.5px; font-weight: 500; fill: var(--muted); font-family: ui-monospace, Menlo, monospace; }
+  .lifeline { stroke: #D9D4E8; stroke-width: 1.5; stroke-dasharray: 4 5; }
+
+  .msg line, .msg path { stroke: var(--done); stroke-width: 2; fill: none; }
+  .msg text { font-size: 11px; font-weight: 600; fill: var(--muted); font-family: ui-monospace, Menlo, monospace; }
+  .msg.ret line { stroke-dasharray: 5 4; }
+  .msg.on line, .msg.on path { stroke: var(--primary); stroke-width: 2.5; }
+  .msg.on text { fill: var(--primary); }
+  .msg.bad.on line, .msg.bad.on path { stroke: var(--bad); }
+  .msg.bad.on text { fill: var(--bad); }
+
+  .msg.sock line { stroke-dasharray: 2 4; stroke-linecap: round; }
+  .msg.sock.on line { stroke: #00A3A3; stroke-width: 3; }
+  .msg.sock.on text { fill: #007F7F; }
+  .note rect { fill: #FFF8E1; stroke: #E0B400; }
+  .note text { font-size: 10.5px; font-weight: 600; fill: #7A5D00; font-family: ui-monospace, Menlo, monospace; }
+  .phone-frame { fill: #0F0F0F; }
+  .phone-map { fill: #EDEBE6; }
+  .phone-road { stroke: #FFFFFF; stroke-width: 6; }
+  .sheet { fill: #FFFFFF; }
+  .sheet-title { font-size: 11px; font-weight: 700; fill: var(--ink); }
+  .sheet-body { font-size: 9px; fill: var(--muted); }
+  .legend text { font-size: 10.5px; font-weight: 600; fill: var(--muted); }
+
+  .panel rect { fill: var(--code); }
+  .panel .step { font-size: 15px; font-weight: 700; fill: #fff; }
+  .panel .desc { font-size: 13px; fill: #CFC6EE; }
+  .panel .code { font-size: 12px; fill: #9BE3A0; font-family: ui-monospace, Menlo, monospace; }
+
+  .controls {
+    width: 100%;
+    max-width: 960px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    align-items: center;
+    margin-top: 14px;
+  }
+  button {
+    font: inherit;
+    font-size: 14px;
+    font-weight: 600;
+    border: 1px solid var(--line);
+    background: #fff;
+    color: var(--primary);
+    border-radius: 999px;
+    padding: 8px 16px;
+    cursor: pointer;
+  }
+  button.primary { background: var(--primary); color: #fff; border-color: var(--primary); }
+  .dots { display: flex; gap: 6px; flex-wrap: wrap; }
+  .dot { width: 28px; height: 28px; padding: 0; border-radius: 50%; font-size: 12px; }
+  .dot.on { background: var(--primary); color: #fff; border-color: var(--primary); }
+  .hint { color: var(--muted); font-size: 13px; margin-left: auto; }
+  body.capture { padding: 0; background: #fff; }
+  body.capture .stage { border: 0; border-radius: 0; max-width: none; width: 960px; }
+  body.capture .controls { display: none; }
+</style>
+</head>
+<body>
+<div class="stage">
+<svg viewBox="0 0 960 540" role="img" aria-label="Diagrama de secuencia: el pasajero solicita un viaje, los conductores cercanos reciben la solicitud, envían ofertas y las ofertas llegan al pasajero por Socket.IO">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="context-stroke"/>
+    </marker>
+    <clipPath id="screen"><rect x="44" y="84" width="200" height="300" rx="16"/></clipPath>
+  </defs>
+
+  <text class="eyebrow" x="480" y="30" text-anchor="middle">DATOS EN TIEMPO REAL · SOCKET.IO EN APP TAXI</text>
+  <text class="title" x="480" y="58" text-anchor="middle">Los comandos van por REST; los eventos llegan solos por el socket</text>
+
+  <g id="phone"></g>
+  <g id="lanes"></g>
+  <g id="msgs"></g>
+  <g class="legend">
+    <line x1="318" y1="392" x2="348" y2="392" stroke="#7843E6" stroke-width="2.5" marker-end="url(#arrow)"/>
+    <text x="354" y="396">REST (pedido y respuesta)</text>
+    <line x1="520" y1="392" x2="550" y2="392" stroke="#00A3A3" stroke-width="3" stroke-dasharray="2 4" stroke-linecap="round" marker-end="url(#arrow)"/>
+    <text x="556" y="396">Socket.IO (evento empujado por el servidor)</text>
+  </g>
+
+  <g class="panel">
+    <rect x="30" y="404" width="900" height="114" rx="12"/>
+    <text class="step" id="p-step" x="52" y="434"></text>
+    <text class="desc" id="p-desc" x="52" y="459"></text>
+    <text class="code" id="p-code" x="52" y="486" style="white-space: pre"></text>
+    <text class="code" id="p-code2" x="52" y="505" style="white-space: pre"></text>
+  </g>
+</svg>
+</div>
+
+<div class="controls">
+  <button id="prev" aria-label="Paso anterior">‹ Anterior</button>
+  <button id="play" class="primary">▶ Reproducir</button>
+  <button id="next" aria-label="Paso siguiente">Siguiente ›</button>
+  <button id="replay" aria-label="Repetir el paso">↻ Repetir paso</button>
+  <div class="dots" id="dots"></div>
+  <span class="hint">← → para avanzar</span>
+</div>
+
+<script>
+  const STEP_MS = 4600;
+  const LANE_X = { passenger: 404, server: 626, driver: 848 };
+  const ACTORS = {
+    passenger: ['Pasajero', 'App Taxi · TripViewModel'],
+    server: ['Backend', 'NestJS · REST + /realtime'],
+    driver: ['Conductores', 'App Conductor']
+  };
+  const ROW_Y0 = 150;
+  const ROW_GAP = 38;
+
+  const STEPS = [
+    { title: 'Conectar: un socket autenticado por usuario',
+      desc: 'Al abrir Home, la app abre el socket con su access token. El servidor lo valida y une el socket a su sala personal.',
+      code: 'IO.socket("$API_BASE_URL/realtime", IO.Options.builder().setAuth(mapOf("token" to accessToken)).build())',
+      code2: 'servidor: namespace.use(verificar JWT) → client.join("passenger:{id}") → emit("session:ready")',
+      phone: 'idle',
+      msgs: [
+        { from: 'passenger', to: 'server', label: 'connect /realtime · auth.token', at: 300, sock: true },
+        { note: 'JWT válido → sala passenger:{id}', lane: 'server', at: 1000 },
+        { from: 'server', to: 'passenger', label: 'session:ready', at: 1600, sock: true, ret: true },
+        { from: 'driver', to: 'server', label: 'connect /realtime · auth.token', at: 2300, sock: true },
+        { from: 'server', to: 'driver', label: 'session:ready · sala driver:{id}', at: 3000, sock: true, ret: true }
+      ] },
+    { title: 'El conductor inicia labores y comparte su ubicación',
+      desc: 'Iniciar labores es un comando (REST). La ubicación es un flujo constante: va por el socket cada 3 segundos y se guarda en Redis.',
+      code: 'PUT /driver/availability { online: true, lat, lng }        // Redis: SADD drivers:online {id}',
+      code2: 'socket.emit("driver:location", { lat, lng, bearing, speed })   // Redis: HSET drivers:locations {id}',
+      phone: 'idle',
+      msgs: [
+        { from: 'driver', to: 'server', label: 'PUT /driver/availability {online}', at: 300 },
+        { from: 'server', to: 'driver', label: '200 { online: true }', at: 1000, ret: true },
+        { from: 'driver', to: 'server', label: 'driver:location (cada 3 s)', at: 1700, sock: true },
+        { note: 'Redis guarda la última posición', lane: 'server', at: 2400 },
+        { from: 'driver', to: 'server', label: 'driver:location', at: 3100, sock: true }
+      ] },
+    { title: 'El pasajero cotiza y solicita el viaje',
+      desc: 'El backend pide la ruta a OSRM y calcula la tarifa (base + precio por km). Solicitar crea el viaje en estado REQUESTED.',
+      code: 'POST /trips/quote { origin, destination }   →   { distanceMeters: 9919, polyline, estimatedFare: 19.88 }',
+      code2: 'POST /trips { origin, destination }         →   201 TripDto { status: "REQUESTED" }',
+      phone: 'quoted',
+      msgs: [
+        { from: 'passenger', to: 'server', label: 'POST /trips/quote', at: 300 },
+        { note: 'OSRM: ruta · tarifa: 5 + 1.5 × km', lane: 'server', at: 900 },
+        { from: 'server', to: 'passenger', label: 'polyline · S/ 19.88', at: 1500, ret: true },
+        { from: 'passenger', to: 'server', label: 'POST /trips', at: 2300 },
+        { from: 'server', to: 'passenger', label: '201 REQUESTED', at: 3000, ret: true }
+      ] },
+    { title: 'La solicitud llega a los conductores cercanos',
+      desc: 'Nadie preguntó: el servidor empuja el evento a la sala de cada conductor en labores, libre y a menos de 10 km del origen.',
+      code: 'const nearby = await presence.nearbyAvailable(origin)        // drivers:online + drivers:locations',
+      code2: 'namespace.to(nearby.map(id => `driver:${id}`)).emit("trip:requested", trip)',
+      phone: 'searching',
+      msgs: [
+        { note: 'busca conductores a < 10 km', lane: 'server', at: 300 },
+        { from: 'server', to: 'driver', label: 'trip:requested → driver:{id}', at: 1000, sock: true },
+        { from: 'server', to: 'driver', label: 'trip:requested → driver:{id2}', at: 1700, sock: true },
+        { note: 'tarjeta: origen, destino, S/ 19.88', lane: 'driver', at: 2500 }
+      ] },
+    { title: 'El conductor envía su oferta',
+      desc: 'Ofertar es un comando con respuesta: el servidor valida que esté en labores, libre y sin oferta previa, y calcula su ETA con OSRM.',
+      code: 'POST /driver/trips/{id}/offers { price: 17.00 }',
+      code2: '→ 201 OfferDto { price: 17, etaSeconds: 465, driver: { givenName: "María", vehicle: { plate: "XYZ-789" } } }',
+      phone: 'searching',
+      msgs: [
+        { from: 'driver', to: 'server', label: 'POST /driver/trips/:id/offers', at: 300 },
+        { note: 'valida y calcula el ETA (OSRM)', lane: 'server', at: 1000 },
+        { from: 'server', to: 'driver', label: '201 OfferDto', at: 1700, ret: true },
+        { note: '«Oferta enviada, esperando…»', lane: 'driver', at: 2400 }
+      ] },
+    { title: 'La oferta llega al pasajero por el socket',
+      desc: 'El servidor emite trip:offer a la sala del pasajero. El ViewModel la agrega a la lista, sin repetirla, y la pantalla se redibuja.',
+      code: 'realtime.on("trip:offer").mapNotNull { parser.parse(it) }    // JSON → TripEvent.OfferReceived',
+      code2: 'if (stage.offers.none { it.id == offer.id }) setStage(stage.copy(offers = stage.offers + offer))',
+      phone: 'offers',
+      msgs: [
+        { from: 'server', to: 'passenger', label: 'trip:offer → passenger:{id}', at: 300, sock: true },
+        { note: 'OfferReceived → offers + offer', lane: 'passenger', at: 1000 },
+        { from: 'server', to: 'passenger', label: 'trip:offer (otro conductor)', at: 1900, sock: true },
+        { note: 'la lista crece en tiempo real', lane: 'passenger', at: 2600 }
+      ] },
+    { title: 'Aceptar: uno gana, los demás se enteran',
+      desc: 'Aceptar es REST. Después el servidor avisa por socket al ganador, cierra la solicitud para el resto y notifica el nuevo estado.',
+      code: 'POST /trips/{id}/offers/{offerId}/accept   →   TripDto { status: "ACCEPTED", finalFare: 17 }',
+      code2: 'emit("trip:offer-accepted") al ganador · emit("trip:unavailable", { reason: "TAKEN" }) a los demás',
+      phone: 'accepted',
+      msgs: [
+        { from: 'passenger', to: 'server', label: 'POST …/offers/:offerId/accept', at: 300 },
+        { from: 'server', to: 'passenger', label: '200 ACCEPTED', at: 1000, ret: true },
+        { from: 'server', to: 'driver', label: 'trip:offer-accepted → ganador', at: 1700, sock: true },
+        { from: 'server', to: 'driver', label: 'trip:unavailable TAKEN → resto', at: 2400, sock: true, bad: true },
+        { from: 'driver', to: 'server', label: 'driver:location (en vivo)', at: 3100, sock: true }
+      ] },
+    { title: 'Si se corta la conexión, se resincroniza',
+      desc: 'Un evento emitido sin conexión se pierde. Al reconectar, la app vuelve a pedir el estado por REST: el servidor es la fuente de verdad.',
+      code: 'observeTripEvents.connected().onEach { syncWithServer() }      // cada vez que el socket vuelve a Connected',
+      code2: 'GET /trips/current   →   { trip: TripDto, offers: [OfferDto] }   // recupera las ofertas perdidas',
+      phone: 'reconnect',
+      msgs: [
+        { note: 'sin señal: trip:offer se pierde', lane: 'passenger', at: 300 },
+        { from: 'passenger', to: 'server', label: 'reconnect · auth.token', at: 1100, sock: true },
+        { from: 'server', to: 'passenger', label: 'session:ready', at: 1800, sock: true, ret: true },
+        { from: 'passenger', to: 'server', label: 'GET /trips/current', at: 2500 },
+        { from: 'server', to: 'passenger', label: '{ trip, offers }', at: 3200, ret: true }
+      ] }
+  ];
+
+  const $ = id => document.getElementById(id);
+  const dots = $('dots');
+  let step = 0;
+  let stepStart = performance.now();
+  let playing = false;
+  let frozen = null;
+
+  const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
+  const esc = s => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');
+
+  function txt(x, y, s, cls, extra) {
+    return '<text class="' + cls + '" x="' + x + '" y="' + y + '"' + (extra || '') + '>' + esc(s) + '</text>';
+  }
+
+  function button(x, y, w, label, alpha) {
+    return '<g opacity="' + alpha + '"><rect x="' + x + '" y="' + y + '" width="' + w + '" height="20" rx="10" fill="#7843E6"/>' +
+      '<text x="' + (x + w / 2) + '" y="' + (y + 13.5) + '" text-anchor="middle" font-size="9" font-weight="700" fill="#fff">' + esc(label) + '</text></g>';
+  }
+
+  function offerCard(y, name, car, price, alpha) {
+    return '<g opacity="' + alpha.toFixed(2) + '"><rect x="56" y="' + y + '" width="176" height="34" rx="8" fill="#F8F8F8"/>' +
+      '<circle cx="70" cy="' + (y + 17) + '" r="8" fill="#F1EBFD"/>' +
+      '<text x="84" y="' + (y + 14) + '" font-size="9" font-weight="700" fill="#0F0F0F">' + name + ' <tspan fill="#FFB300">★</tspan> 5.0</text>' +
+      '<text x="84" y="' + (y + 26) + '" font-size="8" fill="#6B6B6B">' + car + '</text>' +
+      '<text x="224" y="' + (y + 21) + '" text-anchor="end" font-size="11" font-weight="700" fill="#7843E6">' + price + '</text></g>';
+  }
+
+  function renderPhone(kind, t) {
+    const appear = (at) => clamp((t - at) / 400, 0, 1);
+    let s = '<rect class="phone-frame" x="36" y="76" width="216" height="316" rx="24"/>';
+    s += '<g clip-path="url(#screen)"><rect class="phone-map" x="44" y="84" width="200" height="300"/>';
+    s += '<line class="phone-road" x1="44" y1="150" x2="244" y2="128"/><line class="phone-road" x1="44" y1="230" x2="244" y2="250"/>' +
+      '<line class="phone-road" x1="100" y1="84" x2="120" y2="384"/><line class="phone-road" x1="200" y1="84" x2="180" y2="384"/>' +
+      '<circle cx="218" cy="190" r="22" fill="#CDE8C8"/>';
+    const route = kind !== 'idle' && kind !== 'reconnect-pre';
+    if (route) s += '<polyline points="112,118 118,160 150,172 168,210 176,236" fill="none" stroke="#7843E6" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>' +
+      '<path d="M176,236 m-6,-14 a6,6 0 1,1 12,0 c0,5 -6,10 -6,14 c0,-4 -6,-9 -6,-14z" fill="#0F0F0F"/>';
+    s += '<circle cx="112" cy="118" r="7" fill="#7843E6" stroke="#fff" stroke-width="3"/>';
+    const carVisible = kind === 'accepted' || (kind === 'idle' && step === 1);
+    if (carVisible) {
+      const p = kind === 'accepted' ? clamp((t - 3100) / 1200, 0, 1) : appear(1700);
+      const cx = kind === 'accepted' ? 182 - 40 * p : 160;
+      const cy = kind === 'accepted' ? 140 + 4 * p : 100;
+      s += '<g opacity="' + (kind === 'accepted' ? 1 : p).toFixed(2) + '"><circle cx="' + cx + '" cy="' + cy + '" r="8" fill="#0F0F0F" stroke="#fff" stroke-width="2.5"/></g>';
+    }
+    const sheetY = kind === 'offers' || kind === 'reconnect' ? 262 : 300;
+    s += '<rect class="sheet" x="44" y="' + sheetY + '" width="200" height="' + (384 - sheetY + 20) + '" rx="16"/>';
+    const x = 58;
+    if (kind === 'idle') {
+      s += txt(x, 322, '¿A dónde vas?', 'sheet-title') + txt(x, 336, 'Toca el mapa para elegir tu destino', 'sheet-body');
+    } else if (kind === 'quoted') {
+      const requested = t >= 2300;
+      if (!requested) {
+        s += txt(x, 318, 'Tarifa sugerida', 'sheet-body') + txt(230, 320, 'S/ 19.88', 'sheet-title', ' text-anchor="end" fill="#7843E6"');
+        s += txt(x, 330, 'Plaza San Martín → Parque Kennedy', 'sheet-body') + button(x, 340, 172, 'Solicitar viaje', appear(1500).toFixed(2));
+      } else {
+        s += txt(x, 322, 'Buscando conductores', 'sheet-title') + txt(x, 336, 'Las ofertas llegarán aquí', 'sheet-body');
+      }
+    } else if (kind === 'searching') {
+      s += txt(x, 322, 'Buscando conductores…', 'sheet-title') + txt(x, 336, 'Las ofertas llegarán aquí en tiempo real', 'sheet-body');
+      const pulse = (t % 1200) / 1200;
+      s += '<circle cx="222" cy="318" r="' + (4 + 8 * pulse).toFixed(1) + '" fill="#7843E6" opacity="' + (1 - pulse).toFixed(2) + '"/><circle cx="222" cy="318" r="4" fill="#7843E6"/>';
+    } else if (kind === 'offers' || kind === 'reconnect') {
+      const lost = kind === 'reconnect' && t < 3200;
+      const n = kind === 'offers' ? (t >= 1900 ? 2 : t >= 300 ? 1 : 0) : (lost ? 0 : 2);
+      s += txt(x, 282, lost ? (t < 1800 ? 'Reconectando…' : 'Conectado · sincronizando') : (n + (n === 1 ? ' oferta recibida' : ' ofertas recibidas')), 'sheet-title');
+      if (lost) s += txt(x, 296, 'El socket vuelve solo; luego GET /trips/current', 'sheet-body');
+      if (n >= 1) s += offerCard(292, 'María R.', 'Kia Rio · XYZ-789 · 8 min', 'S/ 17.00', kind === 'offers' ? appear(300) : appear(3200));
+      if (n >= 2) s += offerCard(330, 'Carlos Q.', 'Toyota Yaris · ABC-123 · 6 min', 'S/ 18.50', kind === 'offers' ? appear(1900) : appear(3200));
+    } else if (kind === 'accepted') {
+      s += txt(x, 322, 'Tu conductor va en camino', 'sheet-title') + txt(x, 336, 'María Rojas · Kia Rio · XYZ-789', 'sheet-body') +
+        txt(230, 352, 'S/ 17.00', 'sheet-title', ' text-anchor="end" fill="#7843E6"');
+    }
+    s += '</g>';
+    const live = kind === 'reconnect' && t < 1800 ? ['#C62828', 'sin conexión'] : ['#2E7D32', 'tiempo real'];
+    s += '<rect x="58" y="94" width="86" height="18" rx="9" fill="#fff"/><circle cx="68" cy="103" r="4" fill="' + live[0] + '"/>' +
+      '<text x="76" y="106.5" font-size="8.5" font-weight="700" fill="' + live[0] + '">' + live[1] + '</text>';
+    $('phone').innerHTML = s;
+  }
+
+  function renderLanes() {
+    let s = '';
+    Object.keys(LANE_X).forEach(k => {
+      const x = LANE_X[k];
+      s += '<line class="lifeline" x1="' + x + '" y1="122" x2="' + x + '" y2="376"/>';
+      s += '<g class="actor"><rect x="' + (x - 100) + '" y="76" width="200" height="46" rx="12"/>' +
+        '<text x="' + x + '" y="96" text-anchor="middle">' + ACTORS[k][0] + '</text>' +
+        '<text class="sub" x="' + x + '" y="112" text-anchor="middle">' + esc(ACTORS[k][1]) + '</text></g>';
+    });
+    $('lanes').innerHTML = s;
+  }
+
+  function renderMsgs(list, t) {
+    let s = '';
+    const shown = list.filter(m => t >= m.at);
+    const last = shown.length - 1;
+    shown.forEach((m, i) => {
+      const y = ROW_Y0 + i * ROW_GAP;
+      const on = i === last;
+      if (m.note) {
+        const w = Math.max(140, m.note.length * 6.3 + 24);
+        const x = LANE_X[m.lane] - w / 2;
+        s += '<g class="note" opacity="' + clamp((t - m.at) / 300, 0, 1).toFixed(2) + '"><rect x="' + x.toFixed(0) + '" y="' + (y - 13) + '" width="' + w.toFixed(0) + '" height="24" rx="8" stroke-width="' + (on ? 2 : 1) + '"/>' +
+          '<text x="' + LANE_X[m.lane] + '" y="' + (y + 3) + '" text-anchor="middle">' + esc(m.note) + '</text></g>';
+        return;
+      }
+      const x1 = LANE_X[m.from];
+      const x2 = LANE_X[m.to];
+      const p = clamp((t - m.at) / 380, 0, 1);
+      const dir = Math.sign(x2 - x1);
+      const xe = x1 + (x2 - x1) * p - dir * 4;
+      const cls = 'msg' + (m.ret ? ' ret' : '') + (m.sock ? ' sock' : '') + (m.bad ? ' bad' : '') + (on ? ' on' : '');
+      s += '<g class="' + cls + '"><line x1="' + x1 + '" y1="' + y + '" x2="' + xe.toFixed(1) + '" y2="' + y + '" marker-end="url(#arrow)"/>' +
+        '<text x="' + ((x1 + x2) / 2) + '" y="' + (y - 7) + '" text-anchor="middle" opacity="' + p.toFixed(2) + '">' + esc(m.label) + '</text></g>';
+    });
+    $('msgs').innerHTML = s;
+  }
+
+  function render(s, t) {
+    const info = STEPS[s];
+    $('p-step').textContent = (s + 1) + ' de ' + STEPS.length + ' · ' + info.title;
+    $('p-desc').textContent = info.desc;
+    $('p-code').textContent = info.code;
+    $('p-code2').textContent = info.code2;
+    [...dots.children].forEach((d, k) => d.classList.toggle('on', k === s));
+    renderPhone(info.phone, t);
+    renderLanes();
+    renderMsgs(info.msgs, t);
+  }
+  STEPS.forEach((_, i) => {
+    const b = document.createElement('button');
+    b.className = 'dot';
+    b.textContent = i + 1;
+    b.setAttribute('aria-label', 'Paso ' + (i + 1));
+    b.onclick = () => { stopPlay(); go(i); };
+    dots.appendChild(b);
+  });
+
+  function go(i) {
+    step = (i + STEPS.length) % STEPS.length;
+    stepStart = performance.now();
+    if (!document.body.classList.contains('capture')) {
+      history.replaceState(null, '', '#s=' + (step + 1));
+    }
+  }
+
+  function tick(now) {
+    if (frozen) return;
+    let t = now - stepStart;
+    if (t > STEP_MS + 400) {
+      if (playing) go(step + 1); else stepStart = now;
+      t = 0;
+    }
+    render(step, Math.min(t, STEP_MS));
+    requestAnimationFrame(tick);
+  }
+
+  function stopPlay() {
+    playing = false;
+    $('play').textContent = '▶ Reproducir';
+  }
+
+  $('play').onclick = () => {
+    if (playing) return stopPlay();
+    playing = true;
+    $('play').textContent = '❚❚ Pausa';
+    go(step + 1);
+  };
+  $('prev').onclick = () => { stopPlay(); go(step - 1); };
+  $('next').onclick = () => { stopPlay(); go(step + 1); };
+  $('replay').onclick = () => { stopPlay(); go(step); };
+  document.addEventListener('keydown', e => {
+    if (e.key === 'ArrowRight') { stopPlay(); go(step + 1); }
+    if (e.key === 'ArrowLeft') { stopPlay(); go(step - 1); }
+  });
+
+  window.renderFrame = (s, t) => { frozen = true; step = s; render(s, t); };
+  window.STEP_COUNT = STEPS.length;
+  window.STEP_MS = STEP_MS;
+
+  const params = new URLSearchParams(location.hash.slice(1));
+  if (params.has('capture')) document.body.classList.add('capture');
+  go((parseInt(params.get('s'), 10) || 1) - 1);
+  requestAnimationFrame(tick);
+</script>
+</body>
+</html>

@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="signup_step">Paso %1$d de %2$d</string>
+    <string name="signup_personal_title">Información personal</string>
+    <string name="signup_personal_subtitle">Completa tus datos para continuar</string>
+    <string name="signup_given_name_placeholder">Ingresa tus nombres</string>
+    <string name="signup_family_name_placeholder">Ingresa tus apellidos</string>
+    <string name="signup_next">Continuar</string>
+    <string name="signup_contact_title">Información de contacto</string>
+    <string name="signup_contact_subtitle">¿A qué correo te escribimos?</string>
+    <string name="signup_contact_subtitle_named">%1$s, ¿a qué correo te escribimos?</string>
+    <string name="signup_email_placeholder">Ingresa tu correo electrónico</string>
+    <string name="signup_finish">Finalizar registro</string>
+</resources>

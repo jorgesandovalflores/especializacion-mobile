@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">App Taxi Driver</string>
+    <string name="common_retry">Try again</string>
+    <string name="common_session_expired">Your session expired. Please sign in again</string>
+</resources>

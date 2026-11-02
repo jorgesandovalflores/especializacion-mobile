@@ -1,0 +1,14 @@
+{
+    "notFound": "El viaje no existe.",
+    "activeExists": "Ya tienes un viaje en curso.",
+    "routeUnavailable": "No pudimos calcular la ruta. Inténtalo nuevamente.",
+    "notRequested": "El viaje ya no está esperando ofertas.",
+    "offerUnavailable": "La oferta ya no está disponible.",
+    "offerExists": "Ya enviaste una oferta para este viaje.",
+    "driverBusy": "El conductor ya tiene un viaje en curso.",
+    "driverOffline": "Inicia tus labores para poder ofertar.",
+    "notCancellable": "El viaje ya no se puede cancelar.",
+    "invalidTransition": "El cambio de estado no es válido para este viaje.",
+    "notCompleted": "Solo puedes calificar un viaje finalizado.",
+    "alreadyRated": "Ya calificaste este viaje."
+}

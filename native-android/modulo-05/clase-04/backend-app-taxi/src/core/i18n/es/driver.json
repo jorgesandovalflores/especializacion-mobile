@@ -1,0 +1,9 @@
+{
+    "notFound": "El conductor no existe.",
+    "inactive": "Tu cuenta de conductor está inactiva. Comunícate con la central.",
+    "phoneTaken": "Ya existe un conductor con ese teléfono.",
+    "emailTaken": "Ya existe un conductor con ese email.",
+    "plateTaken": "Ya existe un conductor con esa placa.",
+    "offlineWithTrip": "No puedes terminar tus labores con un viaje en curso.",
+    "deleteWithTrip": "No se puede eliminar un conductor con un viaje en curso."
+}
