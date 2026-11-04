@@ -12,6 +12,22 @@ Todo se aplica sobre el flujo de inicio de sesión de [`android-app-taxi`](./and
 
 ---
 
+## Contenido
+
+1. [Por qué probar](#1-por-qué-probar)
+2. [La pirámide de pruebas](#2-la-pirámide-de-pruebas)
+3. [Pruebas unitarias](#3-pruebas-unitarias)
+4. [Fakes y mocks](#4-fakes-y-mocks)
+5. [Probar un ViewModel](#5-probar-un-viewmodel)
+6. [Pruebas de UI con Compose](#6-pruebas-de-ui-con-compose)
+7. [Integración: las piezas juntas](#7-integración-las-piezas-juntas)
+8. [Cómo correrlas](#8-cómo-correrlas)
+9. [Errores comunes](#9-errores-comunes)
+
+**Lectura complementaria:** [Publicar una app en Google Play (2026)](./publicacion-google-play.md). Cuenta de desarrollador y verificación, build de release firmado, declaraciones de Play Console, políticas que afectan a App Taxi, pistas de prueba y calendario de cambios 2026–2027.
+
+---
+
 ## 1. Por qué probar
 
 El inicio de sesión por OTP es la puerta de entrada de App Taxi. Si se rompe, nadie usa la app. Probarlo a mano en cada cambio significa abrir el emulador, escribir un teléfono, esperar el SMS y repetir con cada caso de error. Nadie lo hace siempre, y los errores se escapan.
@@ -240,4 +256,5 @@ Un hábito práctico: corre las pruebas JVM en cada cambio y las del dispositivo
 - [Probar el diseño de Compose](https://developer.android.com/develop/ui/compose/testing)
 - [Probar corrutinas](https://developer.android.com/kotlin/coroutines/test)
 - [MockK](https://mockk.io)
+- Lectura complementaria: [Publicar una app en Google Play (2026)](./publicacion-google-play.md)
 - Clase anterior: [Diseño adaptativo y accesibilidad](../clase-02/README.md)
