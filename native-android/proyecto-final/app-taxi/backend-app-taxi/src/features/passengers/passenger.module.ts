@@ -12,8 +12,16 @@ import { AuthController } from "./controllers/auth.controller";
 import { AuthService } from "./services/auth.service";
 import { PassengerOtpDao } from "./dao/passenger-otp.dao";
 import { PassengerOtpEntity } from "./entities/passenger-otp.entity";
-import { HttpModule } from "@nestjs/axios";
-import { FcmRemote } from "src/commons/remote/fcm.remote";
+import { BrevoSmsService } from "./remote/brevo-sms.service";
+import { LabsMobileSmsService } from "./remote/labsmobile-sms.service";
+import { smsSenderProvider } from "./remote/sms-sender.provider";
+import {
+    AccessTokenGuard,
+    AdminAccessGuard,
+} from "src/core/http/guard/access-token.guard";
+import { AdminPassengerController } from "./controllers/admin-passenger.controller";
+import { FirebaseAdminService } from "src/core/firebase/firebase-admin.service";
+import { StorageTokenService } from "./services/storage-token.service";
 
 /* -------------------------------------------------------
    PassengerModule
@@ -27,16 +35,25 @@ import { FcmRemote } from "src/commons/remote/fcm.remote";
         TypeOrmModule.forFeature([PassengerEntity, PassengerOtpEntity]),
         ConfigModule,
         JwtModule.register({}),
-        HttpModule,
     ],
-    controllers: [PassengerController, AuthController],
+    controllers: [
+        PassengerController,
+        AuthController,
+        AdminPassengerController,
+    ],
     providers: [
         PassengerService,
         AuthService,
         PassengerDao,
         PassengerOtpDao,
         CacheService,
-        FcmRemote,
+        BrevoSmsService,
+        LabsMobileSmsService,
+        smsSenderProvider,
+        AccessTokenGuard,
+        AdminAccessGuard,
+        FirebaseAdminService,
+        StorageTokenService,
     ],
     exports: [PassengerService, AuthService, PassengerDao, PassengerOtpDao],
 })

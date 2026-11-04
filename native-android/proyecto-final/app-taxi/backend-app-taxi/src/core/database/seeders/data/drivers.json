@@ -1,0 +1,22 @@
+[
+    {
+        "phoneNumber": "51900000001",
+        "givenName": "Carlos",
+        "familyName": "Quispe",
+        "email": "carlos@apptaxi.pe",
+        "vehiclePlate": "ABC-123",
+        "vehicleBrand": "Toyota",
+        "vehicleModel": "Yaris",
+        "vehicleColor": "Blanco"
+    },
+    {
+        "phoneNumber": "51900000002",
+        "givenName": "María",
+        "familyName": "Rojas",
+        "email": "maria@apptaxi.pe",
+        "vehiclePlate": "XYZ-789",
+        "vehicleBrand": "Kia",
+        "vehicleModel": "Rio",
+        "vehicleColor": "Gris"
+    }
+]

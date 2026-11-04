@@ -1,6 +1,6 @@
 import { Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
-import { Not, Repository } from "typeorm";
+import { Brackets, In, Not, Repository } from "typeorm";
 import { PassengerEntity } from "../entities/passenger.entity";
 import { PassengerStatus } from "../enum/passenger-status.enum";
 
@@ -29,10 +29,10 @@ export class PassengerDao {
 
         try {
             return await this.repo.save(entity);
-        } catch (err: any) {
+        } catch (err: unknown) {
             // Condición de carrera: si alguien lo creó en paralelo por unique(phone)
             // MySQL duplicate key
-            if (err?.code === "ER_DUP_ENTRY") {
+            if ((err as { code?: string })?.code === "ER_DUP_ENTRY") {
                 const existing = await this.findByPhoneNumber(normalized);
                 if (existing) return existing;
             }
@@ -52,89 +52,81 @@ export class PassengerDao {
         return (result.affected ?? 0) > 0;
     }
 
-    async tokenFcmAtById(id: string, tokenFcm: string): Promise<boolean> {
-        const result = await this.repo
-            .createQueryBuilder()
-            .update(PassengerEntity)
-            .set({
-                lastLoginAt: () => "NOW()",
-                tokenFcm,
-            })
-            .where("id = :id", { id })
-            .execute();
-
-        return (result.affected ?? 0) > 0;
-    }
-
-    async updateBasicInfoById(
-        id: string,
-        givenName?: string | null,
-        familyName?: string | null,
-        email?: string | null,
-        photoUrl?: string | null,
-    ): Promise<boolean> {
-        const result = await this.repo
-            .createQueryBuilder()
-            .update(PassengerEntity)
-            .set({
-                givenName,
-                familyName,
-                email,
-                photoUrl,
-            })
-            .where("id = :id", { id })
-            .execute();
-
-        return (result.affected ?? 0) > 0;
-    }
-
     /** Busca por id. */
     async findById(id: string): Promise<PassengerEntity | null> {
         return this.repo.findOne({ where: { id } });
     }
 
-    /** Busca por email normalizado (lowercase/trim). */
-    async findByEmail(email: string): Promise<PassengerEntity | null> {
-        const normalized = email.trim().toLowerCase();
-        return this.repo.findOne({ where: { email: normalized } });
-    }
-
-    /**
-     * Verifica unicidad de email para update (excluye al propio id).
-     * Devuelve true si el email ya está en uso por OTRO pasajero.
-     */
-    async isEmailTakenByAnother(id: string, email: string): Promise<boolean> {
-        const normalized = email.trim().toLowerCase();
-        const found = await this.repo.findOne({
-            where: { email: normalized, id: Not(id) },
-        });
-        return !!found;
-    }
-
-    /**
-     * Actualiza info básica y retorna la entidad actualizada.
-     * Nota: usa update() + recarga, manteniendo compatibilidad con tu método existente.
-     */
-    async updateBasicInfoAndReturn(
+    /** Guarda la URL de la foto de perfil y devuelve el pasajero actualizado. */
+    async updatePhotoUrl(
         id: string,
-        givenName?: string | null,
-        familyName?: string | null,
-        email?: string | null,
-        photoUrl?: string | null,
+        photoUrl: string,
     ): Promise<PassengerEntity | null> {
-        await this.repo
-            .createQueryBuilder()
-            .update(PassengerEntity)
-            .set({
-                givenName,
-                familyName,
-                email: email ? email.trim().toLowerCase() : null,
-                photoUrl,
-                status: PassengerStatus.ACTIVE,
-            })
-            .where("id = :id", { id })
-            .execute();
-
+        await this.repo.update({ id }, { photoUrl });
         return this.findById(id);
+    }
+
+    /** Devuelve true si OTRO pasajero ya usa ese email. */
+    async isEmailTakenByAnother(id: string, email: string): Promise<boolean> {
+        return this.repo.exists({ where: { email, id: Not(id) } });
+    }
+
+    /**
+     * Guarda nombres y email y activa al pasajero.
+     * Devuelve null si el email quedó duplicado por una petición en paralelo.
+     */
+    async completeRegistration(
+        id: string,
+        givenName: string,
+        familyName: string,
+        email: string,
+    ): Promise<PassengerEntity | null> {
+        try {
+            await this.repo.update(
+                { id },
+                {
+                    givenName,
+                    familyName,
+                    email,
+                    status: PassengerStatus.ACTIVE,
+                },
+            );
+        } catch (err: unknown) {
+            if ((err as { code?: string })?.code === "ER_DUP_ENTRY") {
+                return null;
+            }
+            throw err;
+        }
+        return this.findById(id);
+    }
+
+    async findByIds(ids: string[]): Promise<PassengerEntity[]> {
+        if (ids.length === 0) return [];
+        return this.repo.find({ where: { id: In(ids) } });
+    }
+
+    async findPage(
+        search: string | undefined,
+        page: number,
+        size: number,
+    ): Promise<[PassengerEntity[], number]> {
+        const query = this.repo
+            .createQueryBuilder("passenger")
+            .orderBy("passenger.createdAt", "DESC")
+            .skip((page - 1) * size)
+            .take(size);
+        if (search) {
+            const term = `%${search}%`;
+            query.where(
+                new Brackets((where) =>
+                    where
+                        .where("passenger.givenName LIKE :term", { term })
+                        .orWhere("passenger.familyName LIKE :term", { term })
+                        .orWhere("passenger.phoneNumber LIKE :term", { term })
+                        .orWhere("passenger.email LIKE :term", { term }),
+                ),
+            );
+        }
+        return query.getManyAndCount();
     }
 }

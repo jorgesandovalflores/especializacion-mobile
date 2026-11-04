@@ -12,8 +12,14 @@ import { typeOrmConfig } from "./core/database/typeorm.config";
 import { HttpExceptionFilter } from "./core/http/filters/http-exception.filter";
 import { PassengerModule } from "./features/passengers/passenger.module";
 import { MenuModule } from "./features/menu/menu.module";
-import { AddressModule } from "./features/addresses/address.module";
-import { WebsocketsModule } from "./features/websockets/websockets.module";
+import { NotificationModule } from "./features/notifications/notification.module";
+import { CacheModule } from "./core/cache/cache.module";
+import { RealtimeCoreModule } from "./core/realtime/realtime.module";
+import { DriverModule } from "./features/drivers/driver.module";
+import { AdminModule } from "./features/admins/admin.module";
+import { TariffModule } from "./features/tariff/tariff.module";
+import { TripModule } from "./features/trips/trip.module";
+import { RealtimeModule } from "./features/realtime/realtime.module";
 
 const isDebug = process.env.NODE_DEBUG === "true";
 
@@ -46,6 +52,7 @@ const isDebug = process.env.NODE_DEBUG === "true";
             },
         }),
         I18nModule.forRootAsync({
+            imports: [],
             useFactory: () => ({
                 fallbackLanguage: "es",
                 loaderOptions: {
@@ -63,8 +70,14 @@ const isDebug = process.env.NODE_DEBUG === "true";
         TypeOrmModule.forRoot(typeOrmConfig),
         PassengerModule,
         MenuModule,
-        AddressModule,
-        WebsocketsModule,
+        NotificationModule,
+        CacheModule,
+        RealtimeCoreModule,
+        DriverModule,
+        AdminModule,
+        TariffModule,
+        TripModule,
+        RealtimeModule,
     ],
     controllers: [AppController],
     providers: [

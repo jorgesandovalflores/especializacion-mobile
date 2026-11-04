@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="trip_where_title">¿A dónde vas?</string>
+    <string name="trip_where_body">Toca el mapa para elegir tu destino</string>
+    <string name="trip_quoting">Calculando la ruta…</string>
+    <string name="trip_origin_label">Desde</string>
+    <string name="trip_destination_label">Hasta</string>
+    <string name="trip_your_location">Tu ubicación</string>
+    <string name="trip_point_on_map">Punto en el mapa</string>
+    <string name="trip_summary">%1$s · %2$s</string>
+    <string name="trip_suggested_fare">Tarifa sugerida</string>
+    <string name="trip_request">Solicitar viaje</string>
+    <string name="trip_change_destination">Cambiar destino</string>
+    <string name="trip_searching_title">Buscando conductores</string>
+    <string name="trip_searching_body">Las ofertas llegarán aquí en tiempo real</string>
+    <plurals name="trip_offers_count">
+        <item quantity="one">%d oferta recibida</item>
+        <item quantity="other">%d ofertas recibidas</item>
+    </plurals>
+    <string name="trip_offer_eta">Llega en %d min</string>
+    <string name="trip_accept">Aceptar</string>
+    <string name="trip_accept_offer_of">Aceptar la oferta de %1$s por %2$s</string>
+    <string name="trip_cancel_request">Cancelar solicitud</string>
+    <string name="trip_cancel">Cancelar viaje</string>
+    <string name="trip_status_accepted">Tu conductor va en camino</string>
+    <string name="trip_status_arrived">Tu conductor llegó</string>
+    <string name="trip_status_in_progress">En viaje</string>
+    <string name="trip_status_arrived_body">Búscalo en el punto de recojo</string>
+    <string name="trip_status_in_progress_body">Rumbo a %1$s</string>
+    <string name="trip_vehicle">%1$s %2$s · %3$s</string>
+    <string name="trip_rating_value">%.1f</string>
+    <string name="trip_rating_title">¿Cómo estuvo tu viaje?</string>
+    <string name="trip_rating_body">Califica a %1$s</string>
+    <string name="trip_rating_star">%1$d de 5 estrellas</string>
+    <string name="trip_rating_comment">Comentario (opcional)</string>
+    <string name="trip_rating_send">Enviar calificación</string>
+    <string name="trip_rating_skip">Omitir</string>
+    <string name="trip_cancelled">El viaje fue cancelado</string>
+    <string name="trip_rated">¡Gracias por calificar!</string>
+    <string name="trip_destination_marker">Destino</string>
+    <string name="trip_driver_marker">Tu conductor</string>
+</resources>

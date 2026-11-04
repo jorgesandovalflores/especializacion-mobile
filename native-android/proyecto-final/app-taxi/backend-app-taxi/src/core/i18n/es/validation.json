@@ -1,0 +1,15 @@
+{
+    "required": "Este campo es obligatorio.",
+    "string": "El valor debe ser una cadena de texto.",
+    "length": "La longitud del texto no es válida.",
+    "email": "El email no es válido.",
+    "phone": "El teléfono debe tener 11 dígitos (ej. 51987654321).",
+    "password": "La contraseña debe tener entre 8 y 64 caracteres.",
+    "number": "El valor debe ser un número válido.",
+    "coordinate": "La coordenada no es válida.",
+    "rating": "La calificación debe estar entre 1 y 5.",
+    "price": "El precio debe estar entre 1 y 9999.",
+    "status": "El estado no es válido.",
+    "boolean": "El valor debe ser verdadero o falso.",
+    "object": "El objeto enviado no es válido."
+}

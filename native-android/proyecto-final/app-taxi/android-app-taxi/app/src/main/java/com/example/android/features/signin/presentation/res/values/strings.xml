@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="signin_identity_title"><![CDATA[Validaremos tu <b>identidad</b>, con tu número de teléfono]]></string>
+    <string name="signin_phone_placeholder">Ingresa tu número de teléfono</string>
+    <string name="signin_submit">Ingresar</string>
+    <string name="signin_code_title">Ingresa el código</string>
+    <plurals name="signin_code_sent">
+        <item quantity="one">Hemos enviado un código de %1$d dígito al número %2$s</item>
+        <item quantity="many">Hemos enviado un código de %1$d dígitos al número %2$s</item>
+        <item quantity="other">Hemos enviado un código de %1$d dígitos al número %2$s</item>
+    </plurals>
+    <string name="signin_resending">Enviando un nuevo código…</string>
+    <string name="signin_resend_countdown">Puedes volver a enviar un código en %1$s</string>
+    <string name="signin_resend">Reenviar código</string>
+    <string name="signin_resend_action">reenviar el código</string>
+    <string name="signin_validate">Validar</string>
+    <string name="signin_toast_resent">Te enviamos un nuevo código</string>
+    <string name="signin_toast_sent">Enviamos un código al %1$s</string>
+</resources>

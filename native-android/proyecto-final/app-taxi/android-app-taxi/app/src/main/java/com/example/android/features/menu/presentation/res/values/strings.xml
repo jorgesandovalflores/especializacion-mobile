@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="menu_title">Menú</string>
+    <string name="menu_empty_title">No pudimos mostrar el menú</string>
+    <string name="menu_empty_body">No hay opciones disponibles</string>
+</resources>

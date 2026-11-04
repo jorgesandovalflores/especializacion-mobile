@@ -8,6 +8,8 @@ export class CacheService implements OnModuleInit, OnModuleDestroy {
     async onModuleInit() {
         this.client = createClient({
             url: `redis://${process.env.REDIS_HOST || "localhost"}:${process.env.REDIS_PORT || 6379}`,
+            disableOfflineQueue: true,
+            socket: { connectTimeout: 5_000 },
         });
 
         this.client.on("error", (err) =>
@@ -49,5 +51,57 @@ export class CacheService implements OnModuleInit, OnModuleDestroy {
 
     async flushAll(): Promise<void> {
         await this.client.flushAll();
+    }
+
+    async hSet(key: string, field: string, value: unknown): Promise<void> {
+        await this.client.hSet(key, field, JSON.stringify(value));
+    }
+
+    async hGet<T>(key: string, field: string): Promise<T | null> {
+        const value = await this.client.hGet(key, field);
+        return value ? (JSON.parse(value) as T) : null;
+    }
+
+    async hGetAll<T>(key: string): Promise<Record<string, T>> {
+        const entries = await this.client.hGetAll(key);
+        return Object.fromEntries(
+            Object.entries(entries).map(([field, value]) => [
+                field,
+                JSON.parse(value) as T,
+            ]),
+        );
+    }
+
+    async hDel(key: string, field: string): Promise<void> {
+        await this.client.hDel(key, field);
+    }
+
+    async sAdd(key: string, ...members: string[]): Promise<void> {
+        if (members.length) await this.client.sAdd(key, members);
+    }
+
+    async sRem(key: string, member: string): Promise<void> {
+        await this.client.sRem(key, member);
+    }
+
+    async sMembers(key: string): Promise<string[]> {
+        return this.client.sMembers(key);
+    }
+
+    async sIsMember(key: string, member: string): Promise<boolean> {
+        return Boolean(await this.client.sIsMember(key, member));
+    }
+
+    async rPush(key: string, value: unknown): Promise<void> {
+        await this.client.rPush(key, JSON.stringify(value));
+    }
+
+    async lRange<T>(key: string, start = 0, stop = -1): Promise<T[]> {
+        const values = await this.client.lRange(key, start, stop);
+        return values.map((value) => JSON.parse(value) as T);
+    }
+
+    async expire(key: string, ttlSeconds: number): Promise<void> {
+        await this.client.expire(key, ttlSeconds);
     }
 }

@@ -1,0 +1,9 @@
+{
+    "notFound": "The driver does not exist.",
+    "inactive": "Your driver account is inactive. Please contact the dispatch center.",
+    "phoneTaken": "A driver with that phone already exists.",
+    "emailTaken": "A driver with that email already exists.",
+    "plateTaken": "A driver with that plate already exists.",
+    "offlineWithTrip": "You cannot finish your shift with a trip in progress.",
+    "deleteWithTrip": "A driver with a trip in progress cannot be deleted."
+}

@@ -68,7 +68,6 @@ export async function seedPassengers() {
                 familyName: item.familyName,
                 email: item.email,
                 photoUrl: item.photoUrl,
-                tokenFcm: null,
                 status: item.status as PassengerStatus,
                 lastLoginAt: null,
                 createdAt: new Date(),

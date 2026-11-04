@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="home_open_menu">Abrir menú</string>
+    <string name="home_logout">Cerrar sesión</string>
+    <string name="home_center">Centrar en mi ubicación</string>
+    <string name="home_welcome">Sesión iniciada correctamente</string>
+    <string name="home_user_marker">Tu ubicación</string>
+    <string name="home_searching_title">Buscando tu ubicación…</string>
+    <string name="home_searching_body">El GPS puede tardar unos segundos en encontrarte</string>
+    <string name="home_permission_title">Activa tu ubicación</string>
+    <string name="home_permission_body">La usamos para mostrarte en el mapa y enviarte el taxi más cercano</string>
+    <string name="home_permission_action">Permitir ubicación</string>
+    <string name="home_blocked_title">Permiso de ubicación bloqueado</string>
+    <string name="home_blocked_body">Actívalo en Ajustes › Permisos › Ubicación para verte en el mapa</string>
+    <string name="home_blocked_action">Abrir ajustes</string>
+    <string name="home_settings_off_title">La ubicación del teléfono está apagada</string>
+    <string name="home_settings_off_body">Enciéndela para encontrarte en el mapa</string>
+    <string name="home_settings_off_action">Activar ubicación</string>
+    <string name="home_missing_title">Sin permiso de ubicación</string>
+    <string name="home_missing_body">Vuelve a otorgarlo para verte en el mapa</string>
+    <string name="home_unavailable_title">No pudimos encontrarte</string>
+    <string name="home_unavailable_body">Revisa tu señal o acércate a una ventana e inténtalo otra vez</string>
+</resources>

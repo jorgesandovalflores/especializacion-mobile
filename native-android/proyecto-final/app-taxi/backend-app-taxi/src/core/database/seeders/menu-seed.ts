@@ -5,10 +5,9 @@ import { MenuEntity } from "src/features/menu/entities/menu.entity";
 import { MenuApplication } from "src/features/menu/enum/menu-application.enum";
 import { MenuStatus } from "src/features/menu/enum/menu-status.enum";
 
-async function resolveUsersFile(): Promise<string> {
+async function resolveMenusFile(): Promise<string> {
     const candidates = [
         path.resolve(__dirname, "data/menus.json"),
-        path.resolve(__dirname, "./data/menus.json"),
         path.resolve(
             process.cwd(),
             "src/core/database/seeders/data/menus.json",
@@ -26,9 +25,7 @@ async function resolveUsersFile(): Promise<string> {
         } catch {}
     }
 
-    throw new Error(
-        "Users seed file not found. Set SEED_PARAMETERS_FILE or place passengers.json in a known path.",
-    );
+    throw new Error("Menus seed file not found (menus.json).");
 }
 
 export async function seedMenus() {
@@ -38,12 +35,12 @@ export async function seedMenus() {
     await runner.startTransaction();
 
     try {
-        const filePath = await resolveUsersFile();
+        const filePath = await resolveMenusFile();
         const raw = await fs.readFile(filePath, "utf-8");
-        const parameters: Array<{
+        const menus: Array<{
             key: string;
             text: string;
-            iconUrl: string;
+            icon: string;
             deeplink: string;
             order: number;
             application: string;
@@ -52,35 +49,30 @@ export async function seedMenus() {
 
         const repo = runner.manager.getRepository(MenuEntity);
 
-        for (const item of parameters) {
-            const exists = await repo.findOne({
-                where: { key: item.key },
-            });
+        for (const item of menus) {
+            const exists = await repo.findOne({ where: { key: item.key } });
             if (exists) {
-                console.log(`Menu item ya existía: ${exists.key}`);
+                console.log(`Menú ya existía: ${exists.key}`);
                 continue;
             }
             await repo.insert({
                 key: item.key,
                 text: item.text,
-                iconUrl: item.iconUrl,
+                icon: item.icon,
                 deeplink: item.deeplink,
                 order: item.order,
                 application: item.application as MenuApplication,
                 status: item.status as MenuStatus,
-                createdAt: new Date(),
-                updatedAt: new Date(),
-                deletedAt: null,
             });
 
-            console.log(`Menu item registrado: ${item.key}`);
+            console.log(`Menú registrado: ${item.key}`);
         }
 
         await runner.commitTransaction();
-        console.log("Seed de menu completado - OK");
+        console.log("Seed de menus completado - OK");
     } catch (err) {
         await runner.rollbackTransaction();
-        console.error("Error en seed de menu - FAILED", err);
+        console.error("Error en seed de menus - FAILED", err);
         process.exitCode = 1;
     } finally {
         await runner.release();

@@ -16,7 +16,7 @@ export class PassengerOtpCreatedRequestDto {
         maxLength: 11,
         required: true,
     })
-    @Transform(({ value }) =>
+    @Transform(({ value }: { value: unknown }) =>
         typeof value === "string" ? value.trim() : value,
     ) // Recorta espacios
     @IsString({

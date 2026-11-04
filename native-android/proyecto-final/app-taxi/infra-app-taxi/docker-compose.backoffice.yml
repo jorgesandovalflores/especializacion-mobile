@@ -1,0 +1,19 @@
+services:
+    backoffice:
+        image: ${BACKOFFICE_IMAGE:-backoffice-app-taxi}:${BACKOFFICE_TAG:-0.0.1}
+        build:
+            context: ../backoffice-app-taxi
+            dockerfile: Dockerfile
+            args:
+                VITE_API_URL: ${BACKOFFICE_API_URL:-http://localhost:3001}
+        container_name: ${BACKOFFICE_CONTAINER_NAME:-backoffice-app-taxi}
+        restart: unless-stopped
+        ports:
+            - "${BACKOFFICE_PORT:-8080}:80"
+        networks:
+            - internal_network
+
+networks:
+    internal_network:
+        external: true
+        name: ${NETWORK}

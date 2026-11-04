@@ -1,0 +1,15 @@
+{
+    "required": "This field is required.",
+    "string": "The value must be a string.",
+    "length": "The text length is not valid.",
+    "email": "The email is not valid.",
+    "phone": "The phone must have 11 digits (e.g. 51987654321).",
+    "password": "The password must be between 8 and 64 characters.",
+    "number": "The value must be a valid number.",
+    "coordinate": "The coordinate is not valid.",
+    "rating": "The rating must be between 1 and 5.",
+    "price": "The price must be between 1 and 9999.",
+    "status": "The status is not valid.",
+    "boolean": "The value must be true or false.",
+    "object": "The submitted object is not valid."
+}
