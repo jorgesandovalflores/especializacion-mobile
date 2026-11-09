@@ -12,8 +12,9 @@ import androidx.test.platform.app.InstrumentationRegistry
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.cancel
+import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.job
 import kotlinx.coroutines.runBlocking
 import org.junit.After
 import org.junit.Assert.assertEquals
@@ -45,7 +46,7 @@ class SessionStoreDataStoreTest {
 
     @After
     fun tearDown() {
-        scope.cancel()
+        runBlocking { scope.coroutineContext.job.cancelAndJoin() }
         context.preferencesDataStoreFile(STORE_NAME).delete()
     }
 

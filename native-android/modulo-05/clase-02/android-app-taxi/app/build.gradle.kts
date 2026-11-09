@@ -56,6 +56,10 @@ android {
         buildConfig = true
     }
 
+    testOptions {
+        unitTests.isReturnDefaultValues = true
+    }
+
     sourceSets["main"].res.directories += listOf(
         "src/main/res",
         "src/main/java/com/example/android/features/splash/presentation/res",
